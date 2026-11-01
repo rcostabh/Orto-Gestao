@@ -478,6 +478,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.14.0', '2026-11-01', 'Financeiro: nova pesquisa por período, por recebimento (o que entrou de fato) ou por vencimento (previsão de faturamento), com totais e planilha CSV.'],
   ['0.13.0', '2026-11-01', 'Mais ações na ficha com Cancelar contrato (Gerente e Diretor cancelam; os demais solicitam e a gerência decide). Estorno de pagamento (Gerente e Diretor; sai do caixa de quem estorna). Isenção de parcela (só o Diretor; os demais pedem com observação) e nova tela Solicitações com aprovação uma a uma e isenção geral. O botão Desistiu foi retirado.'],
   ['0.12.0', '2026-11-01', 'Caixa: abertura diária por responsável (um caixa por recepcionista), baixa de parcelas só com o caixa aberto, recebimento parcial com saldo e nova data, painel do paciente no caixa (parcelas, pagamentos, agendamentos e procedimentos), fechamento com conferência do dinheiro, relatório para impressão e conciliação pela administração.'],
   ['0.11.1', '2026-11-01', 'Transições suaves: telas sobem ao abrir, janelas aparecem e somem com movimento, avisos deslizam. Tipos de tratamento e dias de vencimento passam a ser só do Diretor.'],
@@ -1597,7 +1598,7 @@ function cancelarContratoDialogo(p, aoFim){
 }
 
 /* ---------- FINANCEIRO: parcelas e baixa de pagamento ---------- */
-const FN = { f: 'abertas', q: '' };
+const FN = { f: 'abertas', q: '', vis: 'lista', rel: null };
 const LBL_PARC = n => n === 0 ? 'Início' : n + 'ª mensalidade';
 const FORMAS_PGTO = ['PIX', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Boleto', 'Transferência'];
 function fnSit(x){
@@ -1653,10 +1654,11 @@ async function finCarregar(){
   D.parc = r.data || []; finLista();
 }
 function finLista(){
+  if (FN.vis === 'rel') return finRel();
   const ab = D.parc.filter(x => x.status === 'aberta'), venc = ab.filter(x => x.dias_atraso > 0), avenc = ab.filter(x => x.dias_atraso === 0), pagas = D.parc.filter(x => x.status !== 'aberta');
   const soma = l => l.reduce((t, x) => t + Number(x.valor_hoje), 0);
   const abas = [['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas e isentas (60 dias)', pagas.length]];
-  $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento. Paga até o vencimento: com desconto. Depois: valor cheio, sem juros.</p></div></div>'
+  $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento. Paga até o vencimento: com desconto. Depois: valor cheio, sem juros.</p></div></div>' + finVis()
     + '<div class="card"><p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
     + '<div class="tools"><div id="fn-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (FN.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
     + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div><div class="tw" id="fn-lista"></div></div>';
@@ -1671,7 +1673,74 @@ function finLista(){
   };
   pinta();
   $$('#fn-abas [data-f]').forEach(b => b.addEventListener('click', () => { FN.f = b.dataset.f; finLista(); }));
+  finVisLiga();
   $('#fn-q').addEventListener('input', e => { FN.q = e.target.value; pinta(); });
+}
+
+/* ---------- Financeiro: pesquisa por período (recebido x vencimento) ---------- */
+function finVis(){
+  return '<div class="tools" id="fn-vis" role="tablist">' + [['lista', 'Parcelas'], ['rel', 'Pesquisa por período']].map(a => '<button class="btn ' + (FN.vis === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.vis === a[0]) + '" data-v="' + a[0] + '">' + a[1] + '</button>').join(' ') + '</div>';
+}
+function finVisLiga(){ $$('#fn-vis [data-v]').forEach(b => b.addEventListener('click', () => { FN.vis = b.dataset.v; finLista(); })); }
+function mesLimites(){ const h = hoje(), y = Number(h.slice(0, 4)), m = Number(h.slice(5, 7)); return [h.slice(0, 8) + '01', h.slice(0, 8) + String(new Date(y, m, 0).getDate()).padStart(2, '0')]; }
+function relSit(x){
+  if (x.situacao === 'paga') return '<span class="pill on">Paga</span>';
+  if (x.situacao === 'isenta') return '<span class="pill nu">Isenta</span>';
+  if (x.vencimento < hoje()) return '<span class="pill off">Vencida</span>';
+  return Number(x.valor) > 0 ? '<span class="pill wr">Pago em parte</span>' : '<span class="pill wr">A vencer</span>';
+}
+function finRel(){
+  if (!FN.rel) { const l = mesLimites(); FN.rel = { modo: 'vencimento', ini: l[0], fim: l[1], dados: null, q: '' }; }
+  const R = FN.rel;
+  $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Pesquise por período: o que foi recebido de fato ou o que vence no intervalo.</p></div></div>' + finVis()
+    + '<div class="card"><form id="rl-form" novalidate><div class="g2"><label class="field" for="rl-modo">Pesquisar por *<select id="rl-modo"><option value="recebido"' + (R.modo === 'recebido' ? ' selected' : '') + '>Recebimento (recebido no período)</option><option value="vencimento"' + (R.modo === 'vencimento' ? ' selected' : '') + '>Vencimento (vence no período)</option></select></label><div></div>'
+    + '<label class="field" for="rl-ini">Data inicial *<input id="rl-ini" type="date" value="' + esc(R.ini) + '"></label><label class="field" for="rl-fim">Data final *<input id="rl-fim" type="date" value="' + esc(R.fim) + '"></label></div>'
+    + '<p class="sub" id="rl-dica" style="margin:0 0 10px"></p><div class="err" id="rl-err" role="alert"></div><div class="tools"><button class="btn" type="submit" id="rl-ok">Pesquisar</button><button class="btn ghost" type="button" id="rl-mes">Mês atual</button></div></form></div>'
+    + '<div id="rl-res"></div>';
+  const dica = () => { $('#rl-dica').textContent = $('#rl-modo').value === 'recebido' ? 'Mostra o dinheiro que realmente entrou no período (pagamentos menos estornos), qualquer que seja o vencimento da parcela.' : 'Mostra todas as parcelas que vencem no período, pagas, isentas ou em aberto. Serve para prever o faturamento.'; };
+  dica(); $('#rl-modo').addEventListener('change', dica);
+  $('#rl-mes').addEventListener('click', () => { const l = mesLimites(); $('#rl-ini').value = l[0]; $('#rl-fim').value = l[1]; });
+  const pinta = () => relPinta();
+  $('#rl-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#rl-err'); er.textContent = '';
+    const modo = $('#rl-modo').value, ini = $('#rl-ini').value, fim = $('#rl-fim').value;
+    if (!ini || !fim) { er.textContent = 'Informe a data inicial e a final.'; return; }
+    if (fim < ini) { er.textContent = 'A data final é anterior à inicial.'; return; }
+    const b = $('#rl-ok'); b.disabled = true;
+    await sb.rpc('financeiro_atualizar');
+    const r = await sb.rpc('relatorio_financeiro', { p_unidade: UN, p_ini: ini, p_fim: fim, p_modo: modo });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    FN.rel = { modo, ini, fim, dados: r.data || [], q: '' }; pinta();
+  });
+  finVisLiga(); pinta();
+}
+function relCsv(R){
+  const n = v => String(Number(v || 0).toFixed(2)).replace('.', ','), q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const cab = R.modo === 'recebido' ? ['Data', 'Paciente', 'Parcela', 'Vencimento', 'Forma', 'Tipo', 'Valor', 'Responsável', 'Motivo'] : ['Vencimento', 'Paciente', 'Parcela', 'Previsto', 'Recebido', 'A receber', 'Situação'];
+  const lin = R.dados.map(x => (R.modo === 'recebido' ? [dBR(x.data_mov), x.paciente_nome, LBL_PARC(x.numero), dBR(x.vencimento), x.forma, x.tipo, n(x.valor), x.responsavel, x.motivo] : [dBR(x.vencimento), x.paciente_nome, LBL_PARC(x.numero), n(x.previsto), n(x.valor), n(x.a_receber), x.situacao]).map(q).join(';'));
+  const blob = new Blob(['﻿' + [cab.map(q).join(';')].concat(lin).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'financeiro-' + R.modo + '-' + R.ini + '_' + R.fim + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function relPinta(){
+  const R = FN.rel, box = $('#rl-res'); if (!R.dados) { box.innerHTML = ''; return; }
+  const d = R.dados, soma = (l, f) => Math.round(l.reduce((t, x) => t + Number(f(x)), 0) * 100) / 100;
+  const per = '<b>' + dBR(R.ini) + '</b> a <b>' + dBR(R.fim) + '</b>';
+  let resumo, tabela;
+  if (R.modo === 'recebido') {
+    const pg = d.filter(x => x.tipo === 'pagamento'), es = d.filter(x => x.tipo === 'estorno'), formas = {};
+    d.forEach(x => { formas[x.forma] = (formas[x.forma] || 0) + Number(x.valor); });
+    resumo = '<div class="kv dkv"><span>Período</span><b>' + per + '</b><span>Total recebido (líquido)</span><b>' + reais(soma(d, x => x.valor)) + '</b><span>Pagamentos</span><b>' + pg.length + ' · ' + reais(soma(pg, x => x.valor)) + '</b><span>Estornos</span><b>' + es.length + ' · ' + reais(soma(es, x => x.valor)) + '</b>'
+      + Object.keys(formas).sort().map(f => '<span>' + esc(f) + '</span><b>' + reais(Math.round(formas[f] * 100) / 100) + '</b>').join('') + '</div>';
+    tabela = d.length ? '<table class="tb"><thead><tr><th>Data</th><th>Paciente</th><th>Parcela</th><th>Forma</th><th>Valor</th><th>Responsável</th></tr></thead><tbody>' + d.map(x => '<tr' + (x.tipo === 'estorno' ? ' class="estornado"' : '') + '><td>' + dBR(x.data_mov) + '</td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button></td><td>' + LBL_PARC(x.numero) + '<br><small style="color:var(--muted)">venc. ' + dBR(x.vencimento) + '</small></td><td>' + esc(x.forma) + (x.tipo === 'estorno' ? '<br><span class="pill off">Estorno</span>' : '') + '</td><td>' + reais(x.valor) + '</td><td>' + esc(x.responsavel || '') + (x.motivo ? '<br><small style="color:var(--muted)">' + esc(x.motivo) + '</small>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhum recebimento neste período.</div>';
+  } else {
+    const nIs = d.filter(x => x.situacao === 'isenta'), base = d.filter(x => x.situacao !== 'isenta'), pacs = new Set(d.map(x => x.paciente_id)).size;
+    resumo = '<div class="kv dkv"><span>Período</span><b>' + per + '</b><span>Parcelas / pacientes</span><b>' + d.length + ' / ' + pacs + '</b><span>Previsto (com desconto)</span><b>' + reais(soma(base, x => x.previsto)) + '</b><span>Já recebido</span><b>' + reais(soma(d, x => x.valor)) + '</b><span>Ainda a receber</span><b>' + reais(soma(d, x => x.a_receber)) + '</b>'
+      + (nIs.length ? '<span>Isentas</span><b>' + nIs.length + ' · ' + reais(soma(nIs, x => x.previsto)) + '</b>' : '') + '</div>';
+    tabela = d.length ? '<table class="tb"><thead><tr><th>Vencimento</th><th>Paciente</th><th>Parcela</th><th>Previsto</th><th>Recebido</th><th>A receber</th><th>Situação</th></tr></thead><tbody>' + d.map(x => '<tr><td>' + dBR(x.vencimento) + '</td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button><br><small style="color:var(--muted)">' + esc(x.paciente_status) + '</small></td><td>' + LBL_PARC(x.numero) + '</td><td>' + reais(x.previsto) + '</td><td>' + reais(x.valor) + '</td><td>' + reais(x.a_receber) + '</td><td>' + relSit(x) + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma parcela vence neste período.</div>';
+  }
+  box.innerHTML = '<div class="card" id="rl-resumo">' + resumo + (d.length ? '<div class="tools" style="margin-top:12px"><button class="btn ghost sm" type="button" id="rl-csv">Baixar planilha (CSV)</button></div>' : '') + '</div><div class="card"><div class="tw" id="rl-tab">' + tabela + '</div></div>';
+  $$('#rl-tab [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
+  const c = $('#rl-csv'); if (c) c.addEventListener('click', () => relCsv(R));
 }
 
 /* ---------- CAIXA: abertura diária por responsável, painel do paciente, fechamento e conciliação ---------- */
