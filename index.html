@@ -265,7 +265,11 @@ $('#form-entrar').addEventListener('submit', async e => {
   if (!login || !senha) { er.textContent = 'Digite o login e a senha.'; return; }
   const b = $('#l-btn'); b.disabled = true; b.textContent = 'Entrando...';
   const { error } = await sb.auth.signInWithPassword({ email: login + '@' + DOMINIO, password: senha });
-  if (error) { er.textContent = 'Login ou senha incorretos.'; b.disabled = false; b.textContent = 'Entrar'; return; }
+  if (error) {
+    const m = String(error.message || '');
+    er.textContent = /invalid login credentials/i.test(m) ? 'Login ou senha incorretos.' : /not confirmed/i.test(m) ? 'Este acesso ainda não foi confirmado no Supabase (e-mail não confirmado).' : /banned|ban/i.test(m) ? 'Este acesso está bloqueado.' : 'Não foi possível entrar: ' + m;
+    b.disabled = false; b.textContent = 'Entrar'; return;
+  }
   const ok = await entrarNoApp();
   b.disabled = false; b.textContent = 'Entrar';
   if (!ok) { await sb.auth.signOut(); er.textContent = 'Seu acesso está inativo ou ainda não foi liberado. Fale com a administração.'; return; }
