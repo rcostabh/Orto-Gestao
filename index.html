@@ -410,6 +410,7 @@ const MENU = [
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
   { g: 'Pacientes', itens: [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' } ] },
+  { r: 'vendas', t: 'Vendas', p: 'vendas.ver' },
   { g: 'Configurações', itens: [
     { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
@@ -417,9 +418,9 @@ const MENU = [
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
     { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
-  { g: 'Em construção', soon: [['vendas', 'Vendas'], ['cobranca', 'Cobrança']] }
+  { g: 'Em construção', soon: [['cobranca', 'Cobrança']] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -436,6 +437,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.9.0', '2026-11-01', 'Avaliação com resultado: o dentista registra apto ou não apto, tratamento clínico concomitante e limpeza profunda inicial (fica identificado quem avaliou). Apto libera a venda de um plano de tratamento (Aparelho fixo, estético, Alinhador, Tratamento completo). Nova tela Vendas.'],
   ['0.8.0', '2026-11-01', 'Agendamentos: cadastro de procedimentos (tempo e tipo de cadeira), agendamento na grade (prospects, pacientes e compromissos), cores por situação (preto, verde, azul, vermelho) e ligação com a avaliação.'],
   ['0.7.0', '2026-11-01', 'Painel da plataforma: o usuário master cria grupos (sociedades), Diretores e usuários de suporte; master e suporte entram em qualquer unidade (modo suporte, com registro); grupos podem ser suspensos.'],
   ['0.6.0', '2026-11-01', 'Cada unidade vê somente os seus dados (funcionários, dentistas, pacientes, agendas); quem tem várias unidades escolhe uma por vez na barra lateral; empresas independentes não se enxergam. Registro de versões.'],
@@ -487,7 +489,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -502,6 +504,7 @@ function abrirRota(r, o){
   if (r === 'dentistas') return denCarregar();
   if (r === 'agendas') return agsCarregar();
   if (r === 'procedimentos') return prcCarregar();
+  if (r === 'vendas') return vdCarregar();
   if (r === 'agenda') return agdCarregar();
   if (r === 'perfis') return perCarregar();
   if (r === 'prospects') return pacCarregar();
@@ -560,7 +563,7 @@ function telaInicio(){
   $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div></div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
     + '<div class="tres">'
-    + [['vendas', 'Vendas', 'Metas, visitas e fechamentos.'], ['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
+    + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
       .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('')
     + '</div>';
 }
@@ -1040,7 +1043,7 @@ async function pacFicha(id){
     + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
     + '<div class="card"><div class="pls"><span class="on">Avaliações</span><span title="Em breve">Ocorrências</span><span title="Em breve">Anamnese</span></div><div class="tw">'
-    + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Dentista</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ST_AV[a.status] + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
+    + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ST_AV[a.status] + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
     + (marc.length ? '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Agendamentos</h2><div class="tw"><table class="tb"><thead><tr><th>Data</th><th>Hora</th><th>Agenda</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>'
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
@@ -1114,9 +1117,21 @@ $('#painel-c').addEventListener('click', async e => {
   if (at) { at.disabled = true; const r = await sb.rpc('atender_avaliacao', { p_id: Number(at.dataset.atender) }); if (r.error) { toast(erroTxt(r.error)); } else toast('Avaliação em atendimento.'); await avBuscar(); return; }
   if (co) {
     const id = Number(co.dataset.concluir), a = AV.lista.find(x => x.id === id);
-    abrirJanela('Concluir avaliação', '<form id="ac-form" novalidate><div class="db"><p style="margin:0"><b>' + esc(a.paciente_nome) + '</b></p><label class="field" for="ac-obs">Observação da avaliação<textarea id="ac-obs" rows="4" maxlength="1000"></textarea></label><div class="err" id="ac-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="ac-cancel">Cancelar</button><button class="btn" type="submit" id="ac-ok">Concluir</button></div></form>');
+    const sn = (n, t) => '<div class="field" role="radiogroup" aria-label="' + t + '"><span>' + t + ' *</span><div class="chks"><label class="chk"><input type="radio" name="' + n + '" value="1"> Sim</label><label class="chk"><input type="radio" name="' + n + '" value="0"> Não</label></div></div>';
+    abrirJanela('Concluir avaliação', '<form id="ac-form" novalidate><div class="db"><p style="margin:0"><b>' + esc(a.paciente_nome) + '</b> <span class="sub">avaliação feita por você, identificada no cadastro do paciente</span></p>'
+      + '<div class="field" role="radiogroup" aria-label="Resultado"><span>Resultado da avaliação *</span><div class="chks"><label class="chk"><input type="radio" name="ac-apto" value="1"> Apto</label><label class="chk"><input type="radio" name="ac-apto" value="0"> Não apto</label></div></div>'
+      + sn('ac-cli', 'Tratamento clínico concomitante?') + sn('ac-lim', 'Limpeza profunda inicial?')
+      + '<label class="field" for="ac-obs">Observação <small>(opcional)</small><textarea id="ac-obs" rows="3" maxlength="1000"></textarea></label><p class="sub" style="margin:0">Apto libera o paciente para a venda de um plano de tratamento.</p><div class="err" id="ac-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="ac-cancel">Cancelar</button><button class="btn" type="submit" id="ac-ok">Concluir</button></div></form>');
     $('#ac-cancel').addEventListener('click', fecharJanela);
-    $('#ac-form').addEventListener('submit', async ev => { ev.preventDefault(); $('#ac-ok').disabled = true; const r = await sb.rpc('concluir_avaliacao', { p_id: id, p_obs: $('#ac-obs').value }); $('#ac-ok').disabled = false; if (r.error) { $('#ac-err').textContent = erroTxt(r.error); return; } fecharJanela(); toast('Avaliação concluída.'); avBuscar(); });
+    $('#ac-form').addEventListener('submit', async ev => {
+      ev.preventDefault(); const er = $('#ac-err'); er.textContent = '';
+      const v = n => { const x = $('input[name="' + n + '"]:checked'); return x ? x.value === '1' : null; };
+      if (v('ac-apto') === null) { er.textContent = 'Marque se o paciente está apto ou não apto.'; return; }
+      if (v('ac-cli') === null || v('ac-lim') === null) { er.textContent = 'Responda as duas perguntas: tratamento clínico concomitante e limpeza profunda inicial.'; return; }
+      $('#ac-ok').disabled = true; const r = await sb.rpc('concluir_avaliacao', { p_id: id, p_apto: v('ac-apto'), p_clinico: v('ac-cli'), p_limpeza: v('ac-lim'), p_obs: $('#ac-obs').value });
+      $('#ac-ok').disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+      fecharJanela(); toast(v('ac-apto') ? 'Avaliação concluída: paciente apto, liberado para venda.' : 'Avaliação concluída: paciente não apto.'); avBuscar(); if (ROTA_ATIVA() === 'vendas') vdCarregar();
+    });
   }
 });
 
@@ -1319,6 +1334,76 @@ function agsForm(a){
     b.disabled = false;
     if (r.error) { er.textContent = /agendas_principal_uq/.test(r.error.message || '') ? 'Esta unidade já tem uma cadeira principal. Tire a marca da outra antes.' : /agendas_nome_uq|23505/.test((r.error.message || '') + r.error.code) ? (/geral/.test(r.error.message || '') ? 'Esta unidade já tem agenda Geral.' : 'Já existe uma agenda com esse nome nesta unidade.') : erroTxt(r.error); return; }
     fecharJanela(); toast(novo ? 'Agenda cadastrada.' : 'Agenda atualizada.'); agsCarregar();
+  });
+}
+
+/* ---------- VENDAS: pacientes liberados pelo dentista e planos vendidos ---------- */
+const VD = { aba: 'lib' };
+const reais = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+async function vdCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Vendas'); return; }
+  const rs = await Promise.all([sb.rpc('fila_venda', { p_unidade: UN }), sb.rpc('vendas_da_unidade', { p_unidade: UN }), sb.from('planos_tratamento').select('*').eq('ativo', true).order('id')]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.fila = rs[0].data || []; D.vendas = rs[1].data || []; D.planos = rs[2].data || [];
+  vdLista();
+}
+function vdLista(){
+  const lib = D.fila.filter(f => f.apto), nao = D.fila.filter(f => !f.apto), ativas = D.vendas.filter(v => v.status === 'ativa');
+  const abas = [['lib', 'Liberados para venda', lib.length], ['nao', 'Não aptos', nao.length], ['vend', 'Vendas realizadas', D.vendas.length]];
+  $('#area').innerHTML = '<div class="head"><div><h1>Vendas</h1><p class="sub">Pacientes que o dentista avaliou. Os aptos estão liberados para a venda de um plano de tratamento.</p></div></div>'
+    + '<div class="card"><div class="tools" id="vd-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (VD.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (VD.aba === a[0]) + '" data-aba="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join('') + '</div><div class="lista" id="vd-lista"></div></div>';
+  const nome = f => esc(f.nome_social || f.nome) + (f.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(f.nome) + ')</small>' : '');
+  const av = f => '<span class="m x">Avaliado por ' + esc(f.dentista_nome || '—') + ' · ' + dtHora(f.concluida_em) + '</span><span class="m x">Clínico concomitante: ' + (f.tratamento_clinico ? 'sim' : 'não') + ' · Limpeza profunda: ' + (f.limpeza_profunda ? 'sim' : 'não') + '</span>';
+  let h = '';
+  if (VD.aba === 'lib') h = lib.length ? lib.map(f => '<div class="row f" data-pid="' + f.paciente_id + '"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.canal_venda) + '</span>'
+      + (pode('vendas.registrar') ? '<button class="btn sm" type="button" data-vender="' + f.paciente_id + '">Vender</button>' : '<span></span>') + '</div>').join('') : '<div class="vazio">Ninguém liberado para venda agora. Quando o dentista concluir uma avaliação como apto, o paciente aparece aqui.</div>';
+  else if (VD.aba === 'nao') h = nao.length ? nao.map(f => '<div class="row f"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.observacao || '') + '</span><button class="btn ghost sm" type="button" data-ficha="' + f.paciente_id + '">Abrir ficha</button></div>').join('') : '<div class="vazio">Nenhum paciente não apto em acompanhamento.</div>';
+  else h = D.vendas.length ? D.vendas.map(v => '<button class="row f" type="button" data-venda="' + v.id + '"><b>' + esc(v.paciente_nome) + '</b><span class="m x">' + esc(v.plano_nome) + '</span><span class="m x">' + reais(v.valor) + '</span><span class="m x">' + esc(v.vendedor_nome || '') + ' · ' + dtHora(v.criado_em) + '</span><span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></button>').join('') : '<div class="vazio">Nenhuma venda registrada ainda.</div>';
+  $('#vd-lista').innerHTML = h;
+  $$('#vd-abas [data-aba]').forEach(b => b.addEventListener('click', () => { VD.aba = b.dataset.aba; vdLista(); }));
+  $$('[data-vender]').forEach(b => b.addEventListener('click', () => vdVender(D.fila.find(f => f.paciente_id === Number(b.dataset.vender)))));
+  $$('[data-ficha]').forEach(b => b.addEventListener('click', () => { const f = D.fila.find(x => x.paciente_id === Number(b.dataset.ficha)); abrirPaciente({ id: f.paciente_id, nome: f.nome, nome_social: f.nome_social }); }));
+  $$('[data-venda]').forEach(b => b.addEventListener('click', () => vdDetalhe(D.vendas.find(v => v.id === Number(b.dataset.venda)))));
+}
+function vdVender(f){
+  abrirJanela('Vender plano de tratamento',
+    '<form id="vv-form" novalidate><div class="db"><p style="margin:0;font-size:16px"><b>' + esc(f.nome_social || f.nome) + '</b> <span class="pill on">Apto</span></p>'
+    + '<p class="sub" style="margin:0">Avaliado por ' + esc(f.dentista_nome || '—') + ' · Tratamento clínico concomitante: ' + (f.tratamento_clinico ? 'sim' : 'não') + ' · Limpeza profunda inicial: ' + (f.limpeza_profunda ? 'sim' : 'não') + (f.observacao ? '<br>' + esc(f.observacao) : '') + '</p>'
+    + '<div class="g2"><label class="field" for="vv-plano">Plano de tratamento *<select id="vv-plano"><option value="">Escolha...</option>' + D.planos.map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="vv-valor">Valor *<span class="pw"><input id="vv-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label></div>'
+    + '<label class="field" for="vv-obs">Observação <small>(opcional)</small><textarea id="vv-obs" rows="2" maxlength="300"></textarea></label>'
+    + '<p class="sub" style="margin:0">Ao vender, o paciente passa a Pré-Ativo e já pode agendar a instalação.</p><div class="err" id="vv-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="vv-cancel">Cancelar</button><button class="btn" type="submit" id="vv-ok">Registrar venda</button></div></form>');
+  $('#vv-valor').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  $('#vv-cancel').addEventListener('click', fecharJanela);
+  $('#vv-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#vv-err'); er.textContent = '';
+    const plano = Number($('#vv-plano').value), valor = moedaNum($('#vv-valor').value);
+    if (!plano) { er.textContent = 'Escolha o plano de tratamento.'; return; }
+    if (!valor) { er.textContent = 'Informe o valor da venda.'; return; }
+    const b = $('#vv-ok'); b.disabled = true;
+    const r = await sb.rpc('registrar_venda', { p_paciente: f.paciente_id, p_plano: plano, p_valor: valor, p_obs: $('#vv-obs').value.trim() || null });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast('Venda registrada. O paciente agora é Pré-Ativo: agende a instalação na Agenda.'); VD.aba = 'vend'; vdCarregar();
+  });
+}
+function vdDetalhe(v){
+  const pode_c = v.status === 'ativa' && pode('vendas.cancelar');
+  abrirJanela('Venda', '<div class="db"><p style="margin:0;font-size:16px"><b>' + esc(v.paciente_nome) + '</b> <span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></p>'
+    + '<div class="kv dkv"><span>Plano</span><b>' + esc(v.plano_nome) + '</b><span>Valor</span><b>' + reais(v.valor) + '</b><span>Vendedor</span><b>' + esc(v.vendedor_nome || '—') + '</b><span>Data</span><b>' + dtHora(v.criado_em) + '</b>' + (v.observacao ? '<span>Observação</span><b>' + esc(v.observacao) + '</b>' : '') + '</div>'
+    + (pode_c ? '<p class="sub" style="margin:0">Cancelar a venda devolve o paciente para prospecção e cancela os horários de tratamento ainda não realizados.</p>' : '') + '<div class="err" id="vc-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq">' + (pode_c ? '<button class="btn danger" type="button" id="vc-canc">Cancelar venda</button>' : '') + '</div><button class="btn ghost" type="button" id="vc-x">Fechar</button></div>');
+  $('#vc-x').addEventListener('click', fecharJanela);
+  const c = $('#vc-canc'); if (c) c.addEventListener('click', async () => {
+    if (c.dataset.c !== '1') { c.dataset.c = '1'; c.textContent = 'Confirmar cancelamento'; return; }
+    c.disabled = true; const r = await sb.rpc('cancelar_venda', { p_id: v.id });
+    if (r.error) { $('#vc-err').textContent = erroTxt(r.error); c.disabled = false; return; }
+    fecharJanela(); toast('Venda cancelada.'); vdCarregar();
   });
 }
 
