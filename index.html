@@ -111,6 +111,44 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .chk{display:flex;align-items:center;gap:9px;min-height:38px;font-size:14.5px;cursor:pointer}
 .chk input{width:18px;height:18px;accent-color:var(--accent)}
 
+/* abas */
+.col{min-width:0}
+.topo{position:sticky;top:0;z-index:15;display:flex;align-items:flex-end;gap:8px;background:var(--bg);border-bottom:1px solid var(--line);padding:8px clamp(16px,3vw,36px) 0}
+.abas{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:thin}
+.aba{display:flex;align-items:center;gap:2px;flex:0 0 auto;max-width:220px;background:var(--surface-2);border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;color:var(--muted);font:500 13.5px var(--font)}
+.aba button{font:inherit;color:inherit;background:transparent;border:0;cursor:pointer}
+.aba .at{padding:9px 6px 9px 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-height:40px}
+.aba .ax{padding:6px 10px 6px 4px;font-size:16px;line-height:1;border-radius:6px}.aba .ax:hover{color:var(--red)}
+.aba:not(.fixa) .at{padding-right:2px}.aba.fixa .at{padding-right:14px}
+.aba[aria-selected=true]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:inset 0 3px 0 var(--accent)}
+.sino{position:relative;flex:0 0 auto;margin-bottom:6px;width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:grid;place-items:center}
+.sino svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sino .bd{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;border-radius:99px;background:var(--accent);color:#fff;font:700 12px var(--font);display:grid;place-items:center;padding:0 5px}
+.sino.toca svg{animation:toca .9s ease 2}
+@keyframes toca{0%,100%{transform:rotate(0)}20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-5deg)}}
+.painel{position:fixed;top:0;right:0;bottom:0;width:min(380px,100vw);z-index:40;background:var(--surface);border-left:1px solid var(--line);box-shadow:-12px 0 30px rgba(0,0,0,.14);display:flex;flex-direction:column}
+.painel[hidden]{display:none}
+.painel .ph{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px}
+.painel .dx{font-size:24px;background:transparent;border:0;cursor:pointer;color:var(--muted);min-width:40px;min-height:40px}
+#painel-c{overflow:auto;padding:14px;display:grid;gap:12px;align-content:start}
+.avc{border:1px solid var(--line);border-radius:14px;padding:13px 14px;display:grid;gap:6px;background:var(--surface)}
+.avc.meu{border-color:var(--accent)}
+.avc b{font-size:15px}.avc .m{color:var(--muted);font-size:13px}
+.avc .ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+/* ficha do paciente */
+.ficha{display:grid;grid-template-columns:minmax(260px,380px) minmax(0,1fr);gap:16px;align-items:start}
+.ficha .kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px 12px;align-items:center;font-size:14px}
+.ficha .kv span{color:var(--muted)}.ficha .kv b{font-weight:500;overflow-wrap:anywhere}
+.tit{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+.tit h1{margin:0;font-size:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--accent-soft)}
+.pls span{border:1.5px solid var(--line);border-radius:99px;padding:6px 16px;font-size:13px;color:var(--muted)}
+.pls span.on{background:#5b6672;border-color:#5b6672;color:#fff;font-weight:600}
+.tw{overflow:auto}.tb{width:100%;border-collapse:collapse;font-size:13.5px}
+.tb th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.02em;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tb td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+@media (max-width:900px){.ficha{grid-template-columns:minmax(0,1fr)}.topo{padding:6px 14px 0;top:49px}}
+
 /* agenda */
 .agw{overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);max-height:calc(100vh - 260px);min-height:260px}
 .ag{display:grid;min-width:max-content}
@@ -200,11 +238,14 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
     <nav id="menu"></nav>
     <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
   </aside>
-  <div>
+  <div class="col">
     <div class="bar"><button type="button" id="abre" aria-label="Abrir menu">☰</button><b id="bar-t"></b></div>
+    <div class="topo"><div class="abas" id="abas" role="tablist" aria-label="Janelas abertas"></div>
+      <button class="sino" id="sino" type="button" hidden aria-label="Avaliações para fazer" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0"/></svg><span class="bd" id="sino-n" hidden>0</span></button></div>
     <main class="main" id="area" tabindex="-1"></main>
   </div>
 </div>
+<aside class="painel" id="painel" hidden aria-label="Avaliações para fazer"><div class="ph"><b>Avaliações para fazer</b><button class="dx" type="button" id="painel-x" aria-label="Fechar painel">×</button></div><div id="painel-c"></div></aside>
 
 <dialog id="dlg" aria-labelledby="dlg-t"><div class="dh"><h2 id="dlg-t"></h2><button class="dx" type="button" id="dlg-x" aria-label="Fechar">×</button></div><div id="dlg-c"></div></dialog>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -287,7 +328,8 @@ async function entrarNoApp(){
   EU = data;
   $('#v-login').hidden = true; $('#v-app').hidden = false;
   $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || '';
-  montarMenu(); irPara('inicio');
+  ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve();
+  montarMenu(); irPara('inicio'); avIniciar();
   return true;
 }
 $('#l-ver').addEventListener('click', () => { const i = $('#l-senha'); const v = i.type === 'password'; i.type = v ? 'text' : 'password'; $('#l-ver').textContent = v ? 'Ocultar' : 'Mostrar'; });
@@ -308,7 +350,7 @@ $('#form-entrar').addEventListener('submit', async e => {
   if (!ok) { await sb.auth.signOut(); er.textContent = 'Seu acesso está inativo ou ainda não foi liberado. Fale com a administração.'; return; }
   $('#l-senha').value = '';
 });
-$('#sair').addEventListener('click', async () => { await sb.auth.signOut(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
+$('#sair').addEventListener('click', async () => { await sb.auth.signOut(); avParar(); ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
 
 /* ---------- menu ---------- */
 const IC = {
@@ -317,6 +359,7 @@ const IC = {
   funcionarios: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5c2.2.6 3.5 2.4 3.5 5.5"/>',
   dentistas: '<path d="M8 3C5.500 3 4 5 4 7.500c0 3 1.500 4 1.500 7 0 2.500.8 6 2.500 6 1.700 0 1.200-3.500 4-3.500s2.300 3.500 4 3.500c1.700 0 2.500-3.500 2.500-6 0-3 1.500-4 1.500-7C20 5 18.500 3 16 3c-1.800 0-2.500.8-4 .8S9.800 3 8 3z"/>',
   perfis: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  prospects: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M18 8v6M15 11h6"/>',
   agendas: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 4v16"/>',
   vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
   agenda: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
@@ -326,7 +369,9 @@ const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg
 const MENU = [
   { r: 'inicio', t: 'Início', p: null },
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
-  { g: 'Cadastros', itens: [
+  { g: 'Pacientes', itens: [
+    { r: 'prospects', t: 'Prospects', p: 'pacientes.ver' } ] },
+  { g: 'Configurações', itens: [
     { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
     { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
@@ -334,7 +379,7 @@ const MENU = [
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
   { g: 'Em construção', soon: [['vendas', 'Vendas'], ['cobranca', 'Cobrança']] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', perfis: 'Perfis de acesso' };
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Prospects', paciente: 'Paciente', perfis: 'Perfis de acesso' };
 function montarMenu(){
   let h = '';
   for (const m of MENU) {
@@ -346,19 +391,65 @@ function montarMenu(){
   $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r)));
 }
 const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' + ico(i.r) + i.t + '</button>';
-function irPara(r){
-  ROTA = r;
-  $$('#menu .item').forEach(b => b.dataset.r === r ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
-  $('#bar-t').textContent = TITULOS[r] || '';
-  $('#v-app').classList.remove('aberto');
+/* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
+const ABAS = []; let ABA = null, FILA = Promise.resolve();
+const ATUALIZA = new Set(['agenda', 'agendas', 'prospects', 'paciente']);
+function renderAbas(){
+  $('#abas').innerHTML = ABAS.map(a => '<div class="aba' + (a.fixa ? ' fixa' : '') + '" role="presentation"><button class="at" type="button" role="tab" data-aba="' + esc(a.chave) + '" aria-selected="' + (a === ABA) + '" title="' + esc(a.titulo) + '">' + esc(a.titulo) + '</button>'
+    + (a.fixa ? '' : '<button class="ax" type="button" data-fecha="' + esc(a.chave) + '" aria-label="Fechar ' + esc(a.titulo) + '">×</button>') + '</div>').join('');
+  $$('#abas .aba').forEach((d, k) => { const a = ABAS[k]; d.setAttribute('aria-selected', a === ABA); d.querySelector('.at').setAttribute('aria-selected', a === ABA); });
+  const at = $('#abas [aria-selected=true].at'); if (at && at.scrollIntoView) at.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+function abrirRota(r, o){
   if (r === 'unidades') return uniCarregar();
   if (r === 'funcionarios') return funCarregar();
   if (r === 'dentistas') return denCarregar();
   if (r === 'agendas') return agsCarregar();
   if (r === 'agenda') return agdCarregar();
   if (r === 'perfis') return perCarregar();
+  if (r === 'prospects') return pacCarregar();
+  if (r === 'paciente') return pacFicha(o.id);
   telaInicio();
 }
+async function guardar(){
+  if (!ABA) return;
+  try { await ABA.pronto; } catch (_) {}
+  ABA.y = window.scrollY; ABA.frag.append(...$('#area').childNodes);
+}
+function mostrar(a){
+  ABA = a; $('#area').replaceChildren(a.frag); window.scrollTo(0, a.y || 0);
+  $$('#menu .item').forEach(b => b.dataset.r === a.rota ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  $('#bar-t').textContent = a.titulo; renderAbas();
+}
+function irPara(r, o){
+  $('#v-app').classList.remove('aberto');
+  const chave = (o && o.chave) || r;
+  FILA = FILA.then(async () => {
+    const ja = ABAS.find(x => x.chave === chave);
+    if (ja && ja === ABA) return;
+    await guardar();
+    if (ja) { mostrar(ja); if (ATUALIZA.has(ja.rota)) ja.pronto = Promise.resolve(abrirRota(ja.rota, ja.opc)).catch(() => {}); return; }
+    const a = { chave, rota: r, titulo: (o && o.titulo) || TITULOS[r] || '', frag: document.createDocumentFragment(), fixa: r === 'inicio', opc: o || {}, y: 0 };
+    ABAS.push(a); ABA = a; $('#area').replaceChildren(); mostrar(a);
+    a.pronto = Promise.resolve(abrirRota(r, o || {})).catch(e => { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(e)) + '</div></div>'; });
+    await a.pronto;
+  }).catch(() => {});
+  return FILA;
+}
+function fecharAba(chave){
+  FILA = FILA.then(async () => {
+    const k = ABAS.findIndex(x => x.chave === chave); if (k < 0 || ABAS[k].fixa) return;
+    const a = ABAS[k];
+    if (a === ABA) { try { await a.pronto; } catch (_) {} $('#area').replaceChildren(); ABAS.splice(k, 1); mostrar(ABAS[k - 1] || ABAS[k] || ABAS[0]); const b = ABA; if (ATUALIZA.has(b.rota)) b.pronto = Promise.resolve(abrirRota(b.rota, b.opc)).catch(() => {}); }
+    else { ABAS.splice(k, 1); renderAbas(); }
+  }).catch(() => {});
+  return FILA;
+}
+function tituloAba(chave, t){ const a = ABAS.find(x => x.chave === chave); if (a) { a.titulo = t; renderAbas(); if (a === ABA) $('#bar-t').textContent = t; } }
+$('#abas').addEventListener('click', e => {
+  const f = e.target.closest('[data-fecha]'); if (f) return void fecharAba(f.dataset.fecha);
+  const t = e.target.closest('[data-aba]'); if (t) { const a = ABAS.find(x => x.chave === t.dataset.aba); if (a) irPara(a.rota, { ...a.opc, chave: a.chave, titulo: a.titulo }); }
+});
 $('#abre').addEventListener('click', () => $('#v-app').classList.toggle('aberto'));
 $('#side').addEventListener('click', e => { if (e.target.closest('.item[data-r]')) $('#v-app').classList.remove('aberto'); });
 
@@ -748,6 +839,166 @@ function denForm(d){
     fecharJanela(); toast(novo ? 'Dentista cadastrado.' : 'Dentista atualizado.'); denCarregar();
   });
 }
+
+
+/* ---------- PACIENTES: prospects ---------- */
+const PAC = { q: '', canal: '' }, CANAIS = ['Promotor', 'Tele', 'Indicação', 'Espontâneo', 'Lead Internet'];
+const dtHora = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' + d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }); };
+const ST_AV = { aguardando: 'Aguardando dentista', em_atendimento: 'Em atendimento', concluida: 'Concluída', cancelada: 'Cancelada' };
+async function pacCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.from('pacientes').select('*').order('id', { ascending: false }), sb.from('avaliacoes').select('*').in('status', ['aguardando', 'em_atendimento']), sb.from('unidades').select('*').order('sigla')]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.pac = rs[0].data; D.avAb = rs[1].data; D.unidades = rs[2].data;
+  $('#area').innerHTML = '<div class="head"><div><h1>Prospects</h1><p class="sub">Pessoas que ainda não iniciaram o tratamento. Cadastre e inicie a avaliação com o dentista do dia.</p></div>' + (pode('pacientes.criar') ? '<button class="btn" type="button" id="pc-novo">+ Novo prospect</button>' : '') + '</div>'
+    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF ou código" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div><div class="lista" id="pc-lista"></div></div>';
+  pacLista();
+  $('#pc-q').addEventListener('input', e => { PAC.q = e.target.value; pacLista(); });
+  $('#pc-canal').addEventListener('change', e => { PAC.canal = e.target.value; pacLista(); });
+  const n = $('#pc-novo'); if (n) n.addEventListener('click', () => pacForm(null));
+}
+function pacLista(){
+  const q = PAC.q.trim().toLowerCase(), qd = dig(PAC.q);
+  const l = D.pac.filter(p => (!PAC.canal || p.canal_venda === PAC.canal) && (!q || (p.nome + ' ' + (p.nome_social || '')).toLowerCase().includes(q) || (qd && (p.cpf || '').includes(qd)) || String(p.id) === q));
+  $('#pc-lista').innerHTML = l.length ? l.map(p => { const av = D.avAb.find(a => a.paciente_id === p.id);
+    return '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') + '</b><span class="m x">' + (p.cpf ? mCPF(p.cpf) : 'sem CPF') + '</span><span class="m x">' + esc(p.canal_venda) + '</span><span class="m x">Cadastro ' + dBR(p.data_cadastro) + '</span>'
+      + '<span class="pill ' + (av ? 'wr' : 'nu') + '">' + (av ? (av.status === 'aguardando' ? 'Aguardando avaliação' : 'Em avaliação') : esc(p.status || 'Prospecção')) + '</span></button>'; }).join('')
+    : '<div class="vazio">' + (D.pac.length ? 'Nenhum prospect encontrado.' : 'Nenhum prospect cadastrado ainda.') + '</div>';
+  $$('#pc-lista .row').forEach(b => b.addEventListener('click', () => abrirPaciente(D.pac.find(p => p.id === Number(b.dataset.id)))));
+}
+const abrirPaciente = p => irPara('paciente', { chave: 'paciente:' + p.id, titulo: (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '), id: p.id });
+function pacForm(p, aoSalvar){
+  const novo = !p, edita = novo ? pode('pacientes.criar') : pode('pacientes.editar'), ro = edita ? '' : ' disabled';
+  const unid = (D.unidades || []).filter(u => u.ativa || (p && u.id === p.unidade_id));
+  const un0 = p ? p.unidade_id : ((EU.unidades || []).find(id => unid.some(u => u.id === id)) || (unid[0] || {}).id);
+  abrirJanela(novo ? 'Novo prospect' : 'Editar cadastro',
+    '<form id="pc-form" novalidate><div class="db">'
+    + fld('pc-nome', 'Nome completo *', p && p.nome, 'maxlength="120" autocomplete="off"' + ro)
+    + '<div class="g2">' + fld('pc-social', 'Nome social', p && p.nome_social, 'maxlength="120" autocomplete="off"' + ro) + fld('pc-cpf', 'CPF', p && p.cpf ? mCPF(p.cpf) : '', 'inputmode="numeric" maxlength="14" autocomplete="off"' + ro) + '</div>'
+    + '<div class="g3">' + fld('pc-rg', 'RG', p && p.rg, 'maxlength="20" autocomplete="off"' + ro) + '<label class="field" for="pc-nasc">Data de nascimento<input id="pc-nasc" type="date" value="' + esc(p && p.data_nascimento) + '" max="' + hoje() + '"' + ro + '></label>' + fld('pc-tel', 'Telefone', p && p.telefone ? mTel(p.telefone) : '', 'inputmode="tel" maxlength="15" autocomplete="off"' + ro) + '</div>'
+    + '<div class="g3"><label class="field" for="pc-canalv">Canal de vendas *<select id="pc-canalv"' + ro + '><option value="">Escolha...</option>' + CANAIS.map(c => '<option' + (p && p.canal_venda === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="pc-un">Unidade *<select id="pc-un"' + ro + '>' + unid.map(u => '<option value="' + u.id + '"' + (u.id === un0 ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="pc-data">Data do cadastro<input id="pc-data" value="' + dBR(p ? p.data_cadastro : hoje()) + '" readonly></label></div>'
+    + '<label class="field" for="pc-obs">Observação<textarea id="pc-obs" rows="3" maxlength="500"' + ro + '>' + esc(p && p.observacao) + '</textarea></label>'
+    + '<div class="err" id="pc-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="pc-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>'
+    + (edita && novo && pode('avaliacoes.iniciar') ? '<button class="btn ghost" type="submit" id="pc-ok2" data-av="1">Salvar e iniciar avaliação</button>' : '') + (edita ? '<button class="btn" type="submit" id="pc-ok">Salvar</button>' : '') + '</div></form>');
+  $('#pc-cpf').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#pc-tel').addEventListener('input', e => { e.target.value = mTel(e.target.value); });
+  $('#pc-cancel').addEventListener('click', fecharJanela);
+  let quer = false;
+  $$('#pc-form button[type=submit]').forEach(b => b.addEventListener('click', () => { quer = b.dataset.av === '1'; }));
+  $('#pc-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return;
+    const er = $('#pc-err'); er.textContent = '';
+    const nome = $('#pc-nome').value.trim().replace(/\s+/g, ' '), cpf = dig($('#pc-cpf').value), canal = $('#pc-canalv').value, nasc = $('#pc-nasc').value, tel = dig($('#pc-tel').value);
+    if (!nome) { er.textContent = 'Informe o nome completo.'; return; }
+    if (cpf && !cpfOk(cpf)) { er.textContent = 'CPF inválido. Confira os números.'; return; }
+    if (nasc && nasc > hoje()) { er.textContent = 'A data de nascimento não pode ser no futuro.'; return; }
+    if (tel && tel.length < 10) { er.textContent = 'Telefone incompleto.'; return; }
+    if (!canal) { er.textContent = 'Escolha o canal de vendas.'; return; }
+    const reg = { nome, nome_social: $('#pc-social').value.trim() || null, cpf: cpf || null, rg: $('#pc-rg').value.trim() || null, data_nascimento: nasc || null, telefone: tel || null, canal_venda: canal, unidade_id: Number($('#pc-un').value), observacao: $('#pc-obs').value.trim() || null };
+    $$('#pc-form button[type=submit]').forEach(b => b.disabled = true);
+    const r = novo ? await sb.from('pacientes').insert(reg).select('*').single() : await sb.from('pacientes').update(reg).eq('id', p.id);
+    $$('#pc-form button[type=submit]').forEach(b => b.disabled = false);
+    if (r.error) { er.textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast(novo ? 'Prospect cadastrado.' : 'Cadastro atualizado.');
+    if (aoSalvar) aoSalvar();
+    if (ROTA_ATIVA() === 'prospects') pacCarregar();
+    if (novo && quer) avIniciarDialogo(r.data);
+  });
+}
+const ROTA_ATIVA = () => ABA ? ABA.rota : '';
+
+/* ---------- ficha do paciente (uma aba por paciente) ---------- */
+async function pacFicha(id){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.from('pacientes').select('*').eq('id', id).single(), sb.rpc('avaliacoes_do_paciente', { p_paciente: id }), sb.from('unidades').select('*').order('sigla')]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er || !rs[0].data) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(er ? erroTxt(er) : 'Paciente não encontrado.') + '</div></div>'; return; }
+  const p = rs[0].data, avs = rs[1].data || []; D.unidades = rs[2].data;
+  tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
+  const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
+  const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
+  $('#area').innerHTML = '<div class="card tit"><h1>' + p.id + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill nu">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' : '')
+    + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '') : (pode('avaliacoes.iniciar') ? '<button class="btn sm" type="button" id="fi-ini">Iniciar avaliação</button>' : '')) + '</div></div>'
+    + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
+    + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
+    + '<div class="card"><div class="pls"><span class="on">Avaliações</span><span title="Em breve">Ocorrências</span><span title="Em breve">Anamnese</span></div><div class="tw">'
+    + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Dentista</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ST_AV[a.status] + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
+    + '</div></div></div>';
+  const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
+  const ed = $('#fi-edit'); if (ed) ed.addEventListener('click', () => pacForm(p, recarrega));
+  const ini = $('#fi-ini'); if (ini) ini.addEventListener('click', () => avIniciarDialogo(p, recarrega));
+  const cn = $('#fi-canc'); if (cn) cn.addEventListener('click', async () => {
+    if (cn.dataset.c !== '1') { cn.dataset.c = '1'; cn.textContent = 'Confirmar cancelamento'; return; }
+    cn.disabled = true; const r = await sb.rpc('cancelar_avaliacao', { p_id: aberta.id });
+    if (r.error) { toast(erroTxt(r.error)); cn.disabled = false; return; } toast('Avaliação cancelada.'); avBuscar(); recarrega();
+  });
+}
+function avIniciarDialogo(p, aoFim){
+  const unid = D.unidades.filter(u => u.ativa), un0 = unid.some(u => u.id === p.unidade_id) ? p.unidade_id : (unid[0] || {}).id;
+  abrirJanela('Iniciar avaliação', '<form id="ai-form" novalidate><div class="db"><p style="margin:0"><b>' + esc(p.nome) + '</b></p>'
+    + '<p class="sub" style="margin:0">Ao iniciar, o dentista que atende hoje na unidade e a gerência recebem o aviso na barra lateral de avaliações.</p>'
+    + '<label class="field" for="ai-un">Unidade da avaliação<select id="ai-un">' + unid.map(u => '<option value="' + u.id + '"' + (u.id === un0 ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select></label>'
+    + '<div class="err" id="ai-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="ai-cancel">Agora não</button><button class="btn" type="submit" id="ai-ok">Iniciar avaliação</button></div></form>');
+  $('#ai-cancel').addEventListener('click', () => { fecharJanela(); if (aoFim) aoFim(); });
+  $('#ai-form').addEventListener('submit', async e => {
+    e.preventDefault(); const b = $('#ai-ok'); b.disabled = true;
+    const r = await sb.rpc('iniciar_avaliacao', { p_paciente: p.id, p_unidade: Number($('#ai-un').value) });
+    b.disabled = false; if (r.error) { $('#ai-err').textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast('Avaliação iniciada. O dentista do dia foi avisado.'); avBuscar(); if (aoFim) aoFim(); if (ROTA_ATIVA() === 'prospects') pacCarregar();
+  });
+}
+
+/* ---------- avaliações para fazer: aviso na barra lateral do dentista do dia e da gerência ---------- */
+const AV = { lista: [], vistos: null, timer: null };
+const avVe = () => pode('avaliacoes.atender') || pode('avaliacoes.ver_todas');
+function avIniciar(){
+  avParar(); if (!avVe()) return;
+  $('#sino').hidden = false; AV.vistos = null; avBuscar();
+  AV.timer = setInterval(avBuscar, 20000);
+}
+function avParar(){ clearInterval(AV.timer); AV.timer = null; AV.lista = []; AV.vistos = null; const s = $('#sino'); if (s) s.hidden = true; const pn = $('#painel'); if (pn) pn.hidden = true; }
+async function avBuscar(){
+  if (!EU || !avVe()) return;
+  const { data, error } = await sb.rpc('avaliacoes_pendentes'); if (error || !EU) return;
+  const novos = AV.vistos ? data.filter(x => x.status === 'aguardando' && !AV.vistos.has(x.id)) : [];
+  const primeira = !AV.vistos; AV.vistos = new Set(data.map(x => x.id)); AV.lista = data;
+  const aguard = data.filter(x => x.status === 'aguardando');
+  if (novos.length) { toast('Nova avaliação: ' + novos[0].paciente_nome + (novos.length > 1 ? ' (+' + (novos.length - 1) + ')' : '')); const s = $('#sino'); s.classList.remove('toca'); void s.offsetWidth; s.classList.add('toca'); }
+  else if (primeira && aguard.length) toast(aguard.length === 1 ? 'Você tem 1 avaliação para fazer.' : 'Você tem ' + aguard.length + ' avaliações para fazer.');
+  avDesenhar();
+}
+function minutosDesde(t){ const m = Math.max(0, Math.round((Date.now() - new Date(t).getTime()) / 60000)); return m < 1 ? 'agora' : m < 60 ? 'há ' + m + ' min' : 'há ' + Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; }
+function avDesenhar(){
+  const n = AV.lista.length, b = $('#sino-n'); b.textContent = n; b.hidden = !n;
+  $('#sino').setAttribute('aria-label', n ? n + ' avaliações para fazer' : 'Avaliações para fazer');
+  if ($('#painel').hidden) return;
+  $('#painel-c').innerHTML = n ? AV.lista.map(a => '<div class="avc' + (a.meu ? ' meu' : '') + '"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><b>' + esc(a.nome_social || a.paciente_nome) + '</b><span class="pill ' + (a.status === 'aguardando' ? 'wr' : 'on') + '">' + ST_AV[a.status] + '</span></div>'
+      + (a.nome_social ? '<span class="m">' + esc(a.paciente_nome) + '</span>' : '') + '<span class="m">' + esc(a.unidade_sigla) + ' · ' + esc(a.canal_venda) + ' · ' + minutosDesde(a.iniciada_em) + '</span>'
+      + (a.dentista_nome ? '<span class="m">Dentista: ' + esc(a.dentista_nome) + '</span>' : '') + '<div class="ac">'
+      + (pode('avaliacoes.atender') && (a.status === 'aguardando' || a.meu) && a.status !== 'em_atendimento' ? '<button class="btn sm" type="button" data-atender="' + a.id + '">Atender</button>' : '')
+      + (a.status === 'em_atendimento' && (a.meu || pode('avaliacoes.ver_todas')) ? '<button class="btn sm" type="button" data-concluir="' + a.id + '">Concluir</button>' : '')
+      + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" data-abrir="' + a.paciente_id + '">Abrir paciente</button>' : '') + '</div></div>').join('')
+    : '<p class="sub" style="margin:8px 4px">Nenhuma avaliação para fazer agora.</p>';
+}
+$('#sino').addEventListener('click', () => { const pn = $('#painel'); pn.hidden = !pn.hidden; $('#sino').setAttribute('aria-expanded', String(!pn.hidden)); if (!pn.hidden) { avDesenhar(); avBuscar(); } });
+$('#painel-x').addEventListener('click', () => { $('#painel').hidden = true; $('#sino').setAttribute('aria-expanded', 'false'); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) avBuscar(); });
+$('#painel-c').addEventListener('click', async e => {
+  const at = e.target.closest('[data-atender]'), co = e.target.closest('[data-concluir]'), ab = e.target.closest('[data-abrir]');
+  if (ab) { const a = AV.lista.find(x => x.paciente_id === Number(ab.dataset.abrir)); irPara('paciente', { chave: 'paciente:' + a.paciente_id, titulo: (a.nome_social || a.paciente_nome).split(' ').slice(0, 2).join(' '), id: a.paciente_id }); return; }
+  if (at) { at.disabled = true; const r = await sb.rpc('atender_avaliacao', { p_id: Number(at.dataset.atender) }); if (r.error) { toast(erroTxt(r.error)); } else toast('Avaliação em atendimento.'); await avBuscar(); return; }
+  if (co) {
+    const id = Number(co.dataset.concluir), a = AV.lista.find(x => x.id === id);
+    abrirJanela('Concluir avaliação', '<form id="ac-form" novalidate><div class="db"><p style="margin:0"><b>' + esc(a.paciente_nome) + '</b></p><label class="field" for="ac-obs">Observação da avaliação<textarea id="ac-obs" rows="4" maxlength="1000"></textarea></label><div class="err" id="ac-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="ac-cancel">Cancelar</button><button class="btn" type="submit" id="ac-ok">Concluir</button></div></form>');
+    $('#ac-cancel').addEventListener('click', fecharJanela);
+    $('#ac-form').addEventListener('submit', async ev => { ev.preventDefault(); $('#ac-ok').disabled = true; const r = await sb.rpc('concluir_avaliacao', { p_id: id, p_obs: $('#ac-obs').value }); $('#ac-ok').disabled = false; if (r.error) { $('#ac-err').textContent = erroTxt(r.error); return; } fecharJanela(); toast('Avaliação concluída.'); avBuscar(); });
+  }
+});
 
 
 /* ---------- AGENDAS (cadastro das cadeiras) ---------- */
