@@ -119,6 +119,9 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .ver{margin:-16px 0 12px 55px;align-self:flex-start;background:transparent;border:0;padding:2px 6px 2px 0;font:500 11px var(--font);color:var(--side-muted);cursor:pointer;letter-spacing:.03em}
 .ver:hover{color:var(--accent)}
 .vl{display:grid;gap:14px;max-height:60vh;overflow:auto}.vl b{font-size:14px}.vl small{color:var(--muted);margin-left:8px}.vl p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.modo{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;background:#1a1a1a;color:#fff;padding:9px clamp(16px,3vw,36px);font-size:13.5px;position:sticky;top:0;z-index:16;border-bottom:2px solid var(--accent)}
+.modo[hidden]{display:none}.modo b{color:var(--accent)}.modo .btn{min-height:34px;padding:0 14px;font-size:13px}
+.cred{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px 10px;background:var(--surface-2);border-radius:12px;padding:14px;font-size:15px}.cred span{color:var(--muted)}.cred b{font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
 /* abas */
 .col{min-width:0}
 .topo{position:sticky;top:0;z-index:15;display:flex;align-items:flex-end;gap:8px;background:var(--bg);border-bottom:1px solid var(--line);padding:8px clamp(16px,3vw,36px) 0}
@@ -250,6 +253,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   </aside>
   <div class="col">
     <div class="bar"><button type="button" id="abre" aria-label="Abrir menu">☰</button><b id="bar-t"></b></div>
+    <div class="modo" id="modo" hidden></div>
     <div class="topo"><div class="abas" id="abas" role="tablist" aria-label="Janelas abertas"></div>
       <button class="sino" id="sino" type="button" hidden aria-label="Avaliações para fazer" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0"/></svg><span class="bd" id="sino-n" hidden>0</span></button></div>
     <main class="main" id="area" tabindex="-1"></main>
@@ -332,15 +336,20 @@ async function iniciar(){
   if (data && data.session) { if (!(await entrarNoApp())) { await sb.auth.signOut(); $('#v-login').hidden = false; $('#l-err').textContent = 'Seu acesso está inativo ou ainda não foi liberado.'; } }
   else $('#v-login').hidden = false;
 }
-async function entrarNoApp(){
+async function entrarNoApp(troca){
   const { data, error } = await sb.rpc('meu_acesso');
   if (error || !data) return false;
+  if (troca) await guardar();
+  const manter = troca ? ABAS.filter(a => a.rota.startsWith('p-')) : [];
   EU = data;
   $('#v-login').hidden = true; $('#v-app').hidden = false;
   $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || '';
-  ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve();
+  ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); ABAS.push(...manter);
   { const ru = await sb.from('unidades').select('*').order('sigla'); UN = null; defUn(ru.data || []); }
-  montarMenu(); irPara('inicio'); avIniciar();
+  const md = $('#modo');
+  if (EU.plataforma && EU.grupo) { md.hidden = false; md.innerHTML = '<span>Modo suporte · você está dentro de <b>' + esc(EU.grupo) + '</b>. O que você fizer aqui é registrado.</span><button class="btn ghost" type="button" id="modo-sai">Voltar ao painel da plataforma</button>'; $('#modo-sai').addEventListener('click', async () => { const r = await sb.rpc('sair_grupo'); if (r.error) { toast(erroTxt(r.error)); return; } await entrarNoApp(true); }); }
+  else { md.hidden = true; md.innerHTML = ''; }
+  montarMenu(); irPara(EU.fora ? 'p-grupos' : 'inicio'); avIniciar();
   return true;
 }
 $('#l-ver').addEventListener('click', () => { const i = $('#l-senha'); const v = i.type === 'password'; i.type = v ? 'text' : 'password'; $('#l-ver').textContent = v ? 'Ocultar' : 'Mostrar'; });
@@ -370,6 +379,9 @@ const IC = {
   funcionarios: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5c2.2.6 3.5 2.4 3.5 5.5"/>',
   dentistas: '<path d="M8 3C5.500 3 4 5 4 7.500c0 3 1.500 4 1.500 7 0 2.500.8 6 2.500 6 1.700 0 1.200-3.500 4-3.500s2.300 3.500 4 3.500c1.700 0 2.500-3.500 2.500-6 0-3 1.500-4 1.500-7C20 5 18.500 3 16 3c-1.800 0-2.500.8-4 .8S9.800 3 8 3z"/>',
   perfis: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  'p-grupos': '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 10h.01M15 10h.01"/>',
+  'p-usuarios': '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
+  'p-log': '<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/>',
   prospects: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M18 8v6M15 11h6"/>',
   agendas: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 4v16"/>',
   vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
@@ -390,9 +402,11 @@ const MENU = [
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
   { g: 'Em construção', soon: [['vendas', 'Vendas'], ['cobranca', 'Cobrança']] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Prospects', paciente: 'Paciente', perfis: 'Perfis de acesso' };
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Prospects', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
+  if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
+  if (EU.fora) { $('#menu').innerHTML = h; $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r))); return; }
   for (const m of MENU) {
     if (m.r) { if (!m.p || pode(m.p)) h += btnMenu(m); }
     else if (m.itens) { const v = m.itens.filter(i => pode(i.p)); if (v.length) h += '<div class="grp">' + m.g + '</div>' + v.map(btnMenu).join(''); }
@@ -405,6 +419,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.7.0', '2026-11-01', 'Painel da plataforma: o usuário master cria grupos (sociedades), Diretores e usuários de suporte; master e suporte entram em qualquer unidade (modo suporte, com registro); grupos podem ser suspensos.'],
   ['0.6.0', '2026-11-01', 'Cada unidade vê somente os seus dados (funcionários, dentistas, pacientes, agendas); quem tem várias unidades escolhe uma por vez na barra lateral; empresas independentes não se enxergam. Registro de versões.'],
   ['0.5.0', '2026-11-01', 'Pacientes: cadastro de prospects, ficha do paciente e avaliações com aviso ao dentista do dia e à gerência. Telas abertas em abas.'],
   ['0.4.0', '2026-11-01', 'Agendas: cadeiras com ortodontista responsável, agenda Geral e grade do dia de 15 em 15 minutos; substituição de dentista por dia.'],
@@ -424,11 +439,12 @@ let UN = null; const MINHAS = [];
 function defUn(todas){
   const m = (todas || []).filter(u => u.ativa && (EU.acesso_total || (EU.unidades || []).includes(u.id)));
   MINHAS.length = 0; MINHAS.push(...m);
-  if (!MINHAS.some(u => u.id === UN)) { let sv = null; try { sv = Number(localStorage.getItem('og_un_' + EU.id)); } catch (_) {} UN = (MINHAS.find(u => u.id === sv) || MINHAS[0] || {}).id || null; }
+  if (!MINHAS.some(u => u.id === UN)) { let sv = null; try { sv = Number(localStorage.getItem('og_un_' + (EU.id || EU.login))); } catch (_) {} UN = (MINHAS.find(u => u.id === sv) || MINHAS[0] || {}).id || null; }
   desenhaUn();
 }
 function desenhaUn(){
   const el = $('#und'), nm = u => esc(u.sigla) + ' — ' + esc(u.razao_social);
+  if (EU.fora) { el.innerHTML = '<span class="ul">Plataforma</span><b>' + esc(EU.perfil) + '</b>'; return; }
   if (!MINHAS.length) { el.innerHTML = '<span class="ul">Unidade</span><b>Sem unidade vinculada</b>'; return; }
   if (MINHAS.length === 1) { el.innerHTML = '<span class="ul">Unidade</span><b>' + nm(MINHAS[0]) + '</b>'; return; }
   el.innerHTML = '<label class="ul" for="un-sel">Unidade</label><select id="un-sel">' + MINHAS.map(u => '<option value="' + u.id + '"' + (u.id === UN ? ' selected' : '') + '>' + nm(u) + '</option>').join('') + '</select>';
@@ -439,7 +455,7 @@ function trocarUnidade(id){
   FILA = FILA.then(async () => {
     if (id === UN) return;
     if (ABA) { try { await ABA.pronto; } catch (_) {} }
-    UN = id; try { localStorage.setItem('og_un_' + EU.id, String(id)); } catch (_) {}
+    UN = id; try { localStorage.setItem('og_un_' + (EU.id || EU.login), String(id)); } catch (_) {}
     desenhaUn(); AV.vistos = null; AV.lista = []; avBuscar();
     const eraFicha = ABA && ABA.rota === 'paciente'; if (eraFicha) $('#area').replaceChildren();
     const resto = ABAS.filter(a => a.rota !== 'paciente'); ABAS.length = 0; ABAS.push(...resto);
@@ -453,7 +469,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'prospects', 'paciente']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'prospects', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -471,6 +487,10 @@ function abrirRota(r, o){
   if (r === 'perfis') return perCarregar();
   if (r === 'prospects') return pacCarregar();
   if (r === 'paciente') return pacFicha(o.id);
+  if (r === 'p-grupos') return pgrCarregar();
+  if (r === 'p-grupo') return pgrFicha(o.id);
+  if (r === 'p-usuarios') return pusCarregar();
+  if (r === 'p-log') return plogCarregar();
   telaInicio();
 }
 async function guardar(){
@@ -491,7 +511,7 @@ function irPara(r, o){
     if (ja && ja === ABA) return;
     await guardar();
     if (ja) { mostrar(ja); if (precisa(ja)) recarregar(ja); return; }
-    const a = { un: UN, chave, rota: r, titulo: (o && o.titulo) || TITULOS[r] || '', frag: document.createDocumentFragment(), fixa: r === 'inicio', opc: o || {}, y: 0 };
+    const a = { un: UN, chave, rota: r, titulo: (o && o.titulo) || TITULOS[r] || '', frag: document.createDocumentFragment(), fixa: r === 'inicio' || r === 'p-grupos', opc: o || {}, y: 0 };
     ABAS.push(a); ABA = a; $('#area').replaceChildren(); mostrar(a);
     a.pronto = Promise.resolve(abrirRota(r, o || {})).catch(e => { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(e)) + '</div></div>'; });
     await a.pronto;
@@ -1070,6 +1090,132 @@ $('#painel-c').addEventListener('click', async e => {
   }
 });
 
+
+/* ---------- PLATAFORMA: painel do dono (master e suporte) ---------- */
+const ehMaster = () => !!EU && EU.plataforma === 'master';
+const cred = (login, senha) => '<div class="cred"><span>Login</span><b>' + esc(login) + '</b><span>Senha</span><b>' + esc(senha) + '</b></div>';
+function mostrarCredenciais(titulo, aviso, login, senha){
+  abrirJanela(titulo, '<div class="db"><p style="margin:0">' + esc(aviso) + '</p>' + cred(login, senha) + '<p class="sub" style="margin:0">Anote agora: a senha não aparece de novo. Depois, só dá para trocar por outra.</p></div><div class="df"><button class="btn" type="button" id="cr-ok">Anotei</button></div>');
+  $('#cr-ok').addEventListener('click', fecharJanela);
+}
+async function plEntrar(grupo, unidade){
+  const r = await sb.rpc('entrar_grupo', { p_grupo: grupo }); if (r.error) { toast(erroTxt(r.error)); return; }
+  if (unidade) { try { localStorage.setItem('og_un_' + (EU.id || EU.login), String(unidade)); } catch (_) {} }
+  await entrarNoApp(true);
+}
+async function pgrCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const r = await sb.rpc('plataforma_grupos');
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  D.grupos = r.data || [];
+  $('#area').innerHTML = '<div class="head"><div><h1>Grupos</h1><p class="sub">Cada grupo é uma empresa ou sociedade independente, com as suas unidades. Os grupos não se enxergam.</p></div>' + (ehMaster() ? '<button class="btn" type="button" id="pg-novo">+ Novo grupo</button>' : '') + '</div>'
+    + '<div class="card"><div class="lista" id="pg-lista">' + (D.grupos.length ? D.grupos.map(g => '<button class="row f" type="button" data-id="' + g.id + '"><b>' + esc(g.nome) + '</b><span class="m x">' + g.unidades + ' unid. · ' + g.funcionarios + ' func.</span><span class="m x">' + g.dentistas + ' dent. · ' + g.pacientes + ' pac.</span><span class="m x">' + esc(g.diretores || 'sem Diretor') + '</span><span class="pill ' + (g.ativo ? 'on' : 'off') + '">' + (g.ativo ? 'Ativo' : 'Suspenso') + '</span></button>').join('') : '<div class="vazio">Nenhum grupo cadastrado ainda.</div>') + '</div></div>';
+  $$('#pg-lista .row').forEach(b => b.addEventListener('click', () => { const g = D.grupos.find(x => x.id === Number(b.dataset.id)); irPara('p-grupo', { chave: 'p-grupo:' + g.id, titulo: g.nome.split(' ').slice(0, 2).join(' '), id: g.id }); }));
+  const n = $('#pg-novo'); if (n) n.addEventListener('click', pgrNovo);
+}
+function pgrNovo(){
+  const senha0 = senhaSugerida();
+  abrirJanela('Novo grupo', '<form id="pn-form" novalidate><div class="db"><p class="sub" style="margin:0">Cria a empresa/sociedade e o Diretor dela. O Diretor entra e cadastra as unidades, a equipe e os perfis.</p>'
+    + fld('pn-nome', 'Nome do grupo (a sociedade) *', '', 'maxlength="80" autocomplete="off"') + fld('pn-dir', 'Nome do Diretor *', '', 'maxlength="120" autocomplete="off"')
+    + '<div class="g2">' + fld('pn-login', 'Login do Diretor *', '', 'maxlength="20" autocomplete="off" autocapitalize="none"') + fld('pn-senha', 'Senha inicial *', senha0, 'autocomplete="off"') + '</div>'
+    + '<div class="err" id="pn-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pn-cancel">Cancelar</button><button class="btn" type="submit" id="pn-ok">Criar grupo</button></div></form>');
+  let manual = false;
+  $('#pn-login').addEventListener('input', () => { manual = true; });
+  $('#pn-dir').addEventListener('input', () => { if (!manual) $('#pn-login').value = loginSugerido($('#pn-dir').value, new Set()); });
+  $('#pn-cancel').addEventListener('click', fecharJanela);
+  $('#pn-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#pn-err'); er.textContent = '';
+    const v = i => $('#' + i).value.trim(), login = v('pn-login').toLowerCase(), senha = $('#pn-senha').value;
+    if (v('pn-nome').length < 3) { er.textContent = 'Informe o nome do grupo.'; return; }
+    if (v('pn-dir').length < 3) { er.textContent = 'Informe o nome do Diretor.'; return; }
+    if (!/^[a-z0-9]{4,20}$/.test(login)) { er.textContent = 'O login precisa ter de 4 a 20 letras ou números.'; return; }
+    if (senha.length < 6) { er.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; }
+    const nomeDir = v('pn-dir');
+    $('#pn-ok').disabled = true;
+    const r = await chamar({ acao: 'criar_grupo', nome_grupo: v('pn-nome'), diretor_nome: v('pn-dir'), login, senha });
+    $('#pn-ok').disabled = false; if (r.erro) { er.textContent = r.erro; return; }
+    fecharJanela(); if (ROTA_ATIVA() === 'p-grupos') pgrCarregar();
+    mostrarCredenciais('Grupo criado', 'Passe estes dados ao Diretor ' + nomeDir + ':', login, senha);
+  });
+}
+async function pgrFicha(id){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.rpc('plataforma_grupos'), sb.rpc('plataforma_unidades', { p_grupo: id })]);
+  const er = rs.map(r => r.error).find(Boolean);
+  const g = er ? null : (rs[0].data || []).find(x => x.id === id);
+  if (!g) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(er ? erroTxt(er) : 'Grupo não encontrado.') + '</div></div>'; return; }
+  const us = rs[1].data || [];
+  tituloAba('p-grupo:' + id, g.nome.split(' ').slice(0, 2).join(' '));
+  $('#area').innerHTML = '<div class="card tit"><h1>' + esc(g.nome) + ' <span class="pill ' + (g.ativo ? 'on' : 'off') + '">' + (g.ativo ? 'Ativo' : 'Suspenso') + '</span></h1><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" id="gf-entrar">Entrar neste grupo</button>'
+    + (ehMaster() ? '<button class="btn ghost sm" type="button" id="gf-ren">Renomear</button><button class="btn ghost sm" type="button" id="gf-und">+ Nova unidade</button><button class="btn ' + (g.ativo ? 'danger' : 'ghost') + ' sm" type="button" id="gf-atv">' + (g.ativo ? 'Suspender grupo' : 'Reativar grupo') + '</button>' : '') + '</div></div>'
+    + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv"><span>Diretor(es)</span><b>' + esc(g.diretores || '—') + '</b><span>Unidades</span><b>' + g.unidades + '</b><span>Funcionários</span><b>' + g.funcionarios + '</b><span>Dentistas</span><b>' + g.dentistas + '</b><span>Pacientes</span><b>' + g.pacientes + '</b><span>Criado em</span><b>' + esc(dtHora(g.criado_em).slice(0, 10)) + '</b></div></div>'
+    + '<div class="card"><h2 style="margin:0 0 8px">Unidades</h2><div class="lista">' + (us.length ? us.map(u => '<div class="row f" style="cursor:default"><b><span class="sig" style="margin-right:8px">' + esc(u.sigla) + '</span>' + esc(u.razao_social) + '</b><span class="m x">' + esc([u.cidade, u.uf].filter(Boolean).join(' / ')) + '</span><span class="m x">' + (u.telefone ? mTel(u.telefone) : '') + '</span><span class="pill ' + (u.ativa ? 'on' : 'off') + '">' + (u.ativa ? 'Ativa' : 'Inativa') + '</span><button class="btn ghost sm" type="button" data-ent="' + u.id + '">Entrar</button></div>').join('') : '<div class="vazio">Este grupo ainda não tem unidades.</div>') + '</div></div></div>';
+  const recarrega = () => { if (ROTA_ATIVA() === 'p-grupo') pgrFicha(id); };
+  $('#gf-entrar').addEventListener('click', () => plEntrar(id, us[0] && us[0].id));
+  $$('[data-ent]').forEach(b => b.addEventListener('click', () => plEntrar(id, Number(b.dataset.ent))));
+  const ren = $('#gf-ren'); if (ren) ren.addEventListener('click', () => {
+    abrirJanela('Renomear grupo', '<form id="pr-form" novalidate><div class="db">' + fld('pr-nome', 'Nome do grupo', g.nome, 'maxlength="80" autocomplete="off"') + '<div class="err" id="pr-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pr-cancel">Cancelar</button><button class="btn" type="submit">Salvar</button></div></form>');
+    $('#pr-cancel').addEventListener('click', fecharJanela);
+    $('#pr-form').addEventListener('submit', async e => { e.preventDefault(); const r = await sb.rpc('plataforma_renomear_grupo', { p_id: id, p_nome: $('#pr-nome').value }); if (r.error) { $('#pr-err').textContent = erroTxt(r.error); return; } fecharJanela(); toast('Grupo renomeado.'); recarrega(); });
+  });
+  const und = $('#gf-und'); if (und) und.addEventListener('click', () => {
+    abrirJanela('Nova unidade', '<form id="pu-form" novalidate><div class="db"><p class="sub" style="margin:0">Só o básico. O Diretor completa endereço, horários e o resto em Configurações › Unidades.</p>' + fld('pu-razao', 'Razão social *', '', 'maxlength="120" autocomplete="off"') + fld('pu-sigla', 'Sigla * <small>(2 a 8 letras ou números)</small>', '', 'maxlength="8" autocomplete="off"') + '<div class="err" id="pu-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pu-cancel">Cancelar</button><button class="btn" type="submit">Criar unidade</button></div></form>');
+    $('#pu-sigla').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+    $('#pu-cancel').addEventListener('click', fecharJanela);
+    $('#pu-form').addEventListener('submit', async e => {
+      e.preventDefault(); const er = $('#pu-err'); er.textContent = '';
+      if ($('#pu-razao').value.trim().length < 3) { er.textContent = 'Informe a razão social.'; return; }
+      if (!/^[A-Z0-9]{2,8}$/.test($('#pu-sigla').value)) { er.textContent = 'A sigla precisa ter de 2 a 8 letras ou números.'; return; }
+      const r = await sb.rpc('plataforma_criar_unidade', { p_grupo: id, p_razao: $('#pu-razao').value, p_sigla: $('#pu-sigla').value });
+      if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Unidade criada.'); recarrega();
+    });
+  });
+  const atv = $('#gf-atv'); if (atv) atv.addEventListener('click', async () => {
+    if (g.ativo && atv.dataset.c !== '1') { atv.dataset.c = '1'; atv.textContent = 'Confirmar suspensão'; return; }
+    atv.disabled = true; const r = await sb.rpc('plataforma_grupo_ativo', { p_id: id, p_ativo: !g.ativo });
+    if (r.error) { toast(erroTxt(r.error)); atv.disabled = false; return; } toast(g.ativo ? 'Grupo suspenso: ninguém dele consegue entrar.' : 'Grupo reativado.'); recarrega();
+  });
+}
+async function pusCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const r = await sb.rpc('plataforma_usuarios_lista');
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  D.pus = r.data || [];
+  $('#area').innerHTML = '<div class="head"><div><h1>Usuários da plataforma</h1><p class="sub">Master cria grupos e usuários. Suporte entra nas unidades para ajudar, mas não cria grupos.</p></div><button class="btn" type="button" id="pu-novo">+ Novo usuário</button></div>'
+    + '<div class="card"><div class="lista" id="pu-lista">' + D.pus.map(u => '<button class="row f" type="button" data-id="' + esc(u.auth_id) + '"><b>' + esc(u.nome) + '</b><span class="m x">' + esc(u.login) + '</span><span class="m x"></span><span class="m x"></span><span class="pill ' + (u.papel === 'master' ? 'nu' : 'wr') + '">' + (u.papel === 'master' ? 'Master' : 'Suporte') + '</span></button>').join('') + '</div></div>';
+  $$('#pu-lista .row').forEach(b => b.addEventListener('click', () => pusForm(D.pus.find(u => u.auth_id === b.dataset.id))));
+  $('#pu-novo').addEventListener('click', () => pusForm(null));
+}
+function pusForm(u){
+  const novo = !u, senha0 = senhaSugerida();
+  abrirJanela(novo ? 'Novo usuário da plataforma' : 'Usuário da plataforma', '<form id="pw-form" novalidate><div class="db">' + fld('pw-nome', 'Nome *', u && u.nome, 'maxlength="120" autocomplete="off"')
+    + '<div class="g2">' + (novo ? fld('pw-login', 'Login *', '', 'maxlength="20" autocomplete="off" autocapitalize="none"') : fld('pw-login', 'Login', u.login, 'readonly')) + '<label class="field" for="pw-papel">Papel<select id="pw-papel"><option value="suporte"' + (u && u.papel === 'suporte' ? ' selected' : '') + '>Suporte</option><option value="master"' + (u && u.papel === 'master' ? ' selected' : '') + '>Master</option></select></label></div>'
+    + (novo ? fld('pw-senha', 'Senha inicial *', senha0, 'autocomplete="off"') : '<label class="field" for="pw-ativo">Situação<select id="pw-ativo"><option value="1"' + (u.ativo ? ' selected' : '') + '>Ativo</option><option value="0"' + (u.ativo ? '' : ' selected') + '>Inativo</option></select></label>' + fld('pw-senha', 'Nova senha <small>(deixe em branco para não trocar)</small>', '', 'autocomplete="off"'))
+    + '<div class="err" id="pw-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pw-cancel">Cancelar</button><button class="btn" type="submit" id="pw-ok">Salvar</button></div></form>');
+  $('#pw-cancel').addEventListener('click', fecharJanela);
+  $('#pw-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#pw-err'); er.textContent = '';
+    const nome = $('#pw-nome').value.trim(), papel = $('#pw-papel').value, senha = $('#pw-senha').value;
+    if (nome.length < 3) { er.textContent = 'Informe o nome.'; return; }
+    if (novo) { const login = $('#pw-login').value.trim().toLowerCase(); if (!/^[a-z0-9]{4,20}$/.test(login)) { er.textContent = 'O login precisa ter de 4 a 20 letras ou números.'; return; } if (senha.length < 6) { er.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; } }
+    else if (senha && senha.length < 6) { er.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; }
+    const loginN = novo ? $('#pw-login').value.trim().toLowerCase() : '';
+    $('#pw-ok').disabled = true; let r;
+    if (novo) r = await chamar({ acao: 'criar_plataforma_usuario', nome, login: $('#pw-login').value.trim().toLowerCase(), papel, senha });
+    else { r = await chamar({ acao: 'atualizar_plataforma_usuario', auth_id: u.auth_id, nome, papel, ativo: $('#pw-ativo').value === '1' }); if (!r.erro && senha) r = await chamar({ acao: 'trocar_senha_plataforma', auth_id: u.auth_id, senha }); }
+    $('#pw-ok').disabled = false; if (r.erro) { er.textContent = r.erro; return; }
+    fecharJanela(); if (ROTA_ATIVA() === 'p-usuarios') pusCarregar();
+    if (novo) mostrarCredenciais('Usuário criado', 'Passe estes dados para ' + nome + ':', loginN, senha);
+  });
+}
+async function plogCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const r = await sb.rpc('plataforma_log_lista', { p_limite: 300 });
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  const l = r.data || [];
+  $('#area').innerHTML = '<div class="head"><div><h1>Registro de acessos</h1><p class="sub">Quem entrou em qual grupo e o que foi feito na plataforma (últimos 300).</p></div></div><div class="card"><div class="tw">'
+    + (l.length ? '<table class="tb"><thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Grupo</th><th>Unidade</th><th>Detalhe</th></tr></thead><tbody>' + l.map(x => '<tr><td>' + dtHora(x.quando) + '</td><td>' + esc(x.usuario || '') + '</td><td>' + esc(x.acao) + '</td><td>' + esc(x.grupo_nome || '') + '</td><td>' + esc(x.unidade_sigla || '') + '</td><td>' + esc(x.detalhe || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nada registrado ainda.</div>') + '</div></div>';
+}
 
 /* ---------- AGENDAS (cadastro das cadeiras) ---------- */
 const AGS = { un: null }, DIA_CURTO = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
