@@ -398,6 +398,7 @@ const IC = {
   'p-usuarios': '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
   'p-log': '<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/>',
   prospects: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M18 8v6M15 11h6"/>',
+  avaliacoes: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 14l2 2 4-4"/>',
   agendas: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 4v16"/>',
   procedimentos: '<path d="M9 3h6v5l4 9a3 3 0 0 1-2.7 4H7.700A3 3 0 0 1 5 17l4-9z"/><path d="M8 14h8"/>',
   vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
@@ -408,6 +409,7 @@ const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg
 const MENU = [
   { r: 'inicio', t: 'Início', p: null },
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
+  { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
   { g: 'Pacientes', itens: [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' } ] },
   { r: 'vendas', t: 'Vendas', p: 'vendas.ver' },
@@ -420,13 +422,13 @@ const MENU = [
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
   { g: 'Em construção', soon: [['cobranca', 'Cobrança']] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
   if (EU.fora) { $('#menu').innerHTML = h; $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r))); return; }
   for (const m of MENU) {
-    if (m.r) { if (!m.p || pode(m.p)) h += btnMenu(m); }
+    if (m.r) { if (!m.p || [].concat(m.p).some(x => pode(x))) h += btnMenu(m); }
     else if (m.itens) { const v = m.itens.filter(i => pode(i.p)); if (v.length) h += '<div class="grp">' + m.g + '</div>' + v.map(btnMenu).join(''); }
     else h += '<div class="grp">' + m.g + '</div>' + m.soon.map(s => '<div class="item soon" aria-disabled="true">' + ico(s[0]) + s[1] + '<span class="tag">em breve</span></div>').join('');
   }
@@ -437,6 +439,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.9.1', '2026-11-01', 'Nova tela Avaliações no menu (dentista e gerência): lista de pacientes para avaliar, com Atender e Concluir (apto / não apto), sem depender só do sino.'],
   ['0.9.0', '2026-11-01', 'Avaliação com resultado: o dentista registra apto ou não apto, tratamento clínico concomitante e limpeza profunda inicial (fica identificado quem avaliou). Apto libera a venda de um plano de tratamento (Aparelho fixo, estético, Alinhador, Tratamento completo). Nova tela Vendas.'],
   ['0.8.0', '2026-11-01', 'Agendamentos: cadastro de procedimentos (tempo e tipo de cadeira), agendamento na grade (prospects, pacientes e compromissos), cores por situação (preto, verde, azul, vermelho) e ligação com a avaliação.'],
   ['0.7.0', '2026-11-01', 'Painel da plataforma: o usuário master cria grupos (sociedades), Diretores e usuários de suporte; master e suporte entram em qualquer unidade (modo suporte, com registro); grupos podem ser suspensos.'],
@@ -489,7 +492,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -505,6 +508,7 @@ function abrirRota(r, o){
   if (r === 'agendas') return agsCarregar();
   if (r === 'procedimentos') return prcCarregar();
   if (r === 'vendas') return vdCarregar();
+  if (r === 'avaliacoes') return avTela();
   if (r === 'agenda') return agdCarregar();
   if (r === 'perfis') return perCarregar();
   if (r === 'prospects') return pacCarregar();
@@ -1099,19 +1103,25 @@ function minutosDesde(t){ const m = Math.max(0, Math.round((Date.now() - new Dat
 function avDesenhar(){
   const n = AV.lista.length, b = $('#sino-n'); b.textContent = n; b.hidden = !n;
   $('#sino').setAttribute('aria-label', n ? n + ' avaliações para fazer' : 'Avaliações para fazer');
+  const t = $('#av-tela'); if (t) t.innerHTML = avCartoes(true);
   if ($('#painel').hidden) return;
-  $('#painel-c').innerHTML = n ? AV.lista.map(a => '<div class="avc' + (a.meu ? ' meu' : '') + '"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><b>' + esc(a.nome_social || a.paciente_nome) + '</b><span class="pill ' + (a.status === 'aguardando' ? 'wr' : 'on') + '">' + ST_AV[a.status] + '</span></div>'
+  $('#painel-c').innerHTML = avCartoes(false);
+}
+function avCartoes(tela){
+  const n = AV.lista.length;
+  return n ? AV.lista.map(a => '<div class="avc' + (a.meu ? ' meu' : '') + '"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><b>' + esc(a.nome_social || a.paciente_nome) + '</b><span class="pill ' + (a.status === 'aguardando' ? 'wr' : 'on') + '">' + ST_AV[a.status] + '</span></div>'
       + (a.nome_social ? '<span class="m">' + esc(a.paciente_nome) + '</span>' : '') + '<span class="m">' + esc(a.unidade_sigla) + ' · ' + esc(a.canal_venda) + ' · ' + minutosDesde(a.iniciada_em) + '</span>'
       + (a.dentista_nome ? '<span class="m">Dentista: ' + esc(a.dentista_nome) + '</span>' : '') + '<div class="ac">'
       + (pode('avaliacoes.atender') && (a.status === 'aguardando' || a.meu) && a.status !== 'em_atendimento' ? '<button class="btn sm" type="button" data-atender="' + a.id + '">Atender</button>' : '')
       + (a.status === 'em_atendimento' && (a.meu || pode('avaliacoes.ver_todas')) ? '<button class="btn sm" type="button" data-concluir="' + a.id + '">Concluir</button>' : '')
       + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" data-abrir="' + a.paciente_id + '">Abrir paciente</button>' : '') + '</div></div>').join('')
+    : tela ? '<div class="card"><p class="sub" style="margin:0">Nenhuma avaliação para fazer agora. Ela aparece aqui quando a recepção marcar que o paciente chegou ou quando um prospect tiver a avaliação iniciada. Você só vê as avaliações da unidade escolhida e dos dias em que atende nela.</p></div>'
     : '<p class="sub" style="margin:8px 4px">Nenhuma avaliação para fazer agora.</p>';
 }
 $('#sino').addEventListener('click', () => { const pn = $('#painel'); pn.hidden = !pn.hidden; $('#sino').setAttribute('aria-expanded', String(!pn.hidden)); if (!pn.hidden) { avDesenhar(); avBuscar(); } });
 $('#painel-x').addEventListener('click', () => { $('#painel').hidden = true; $('#sino').setAttribute('aria-expanded', 'false'); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) avBuscar(); });
-$('#painel-c').addEventListener('click', async e => {
+const avClique = async e => {
   const at = e.target.closest('[data-atender]'), co = e.target.closest('[data-concluir]'), ab = e.target.closest('[data-abrir]');
   if (ab) { const a = AV.lista.find(x => x.paciente_id === Number(ab.dataset.abrir)); irPara('paciente', { chave: 'paciente:' + a.paciente_id, titulo: (a.nome_social || a.paciente_nome).split(' ').slice(0, 2).join(' '), id: a.paciente_id }); return; }
   if (at) { at.disabled = true; const r = await sb.rpc('atender_avaliacao', { p_id: Number(at.dataset.atender) }); if (r.error) { toast(erroTxt(r.error)); } else toast('Avaliação em atendimento.'); await avBuscar(); return; }
@@ -1133,8 +1143,14 @@ $('#painel-c').addEventListener('click', async e => {
       fecharJanela(); toast(v('ac-apto') ? 'Avaliação concluída: paciente apto, liberado para venda.' : 'Avaliação concluída: paciente não apto.'); avBuscar(); if (ROTA_ATIVA() === 'vendas') vdCarregar();
     });
   }
-});
+};
+$('#painel-c').addEventListener('click', avClique);
+$('#area').addEventListener('click', e => { if (e.target.closest('#av-tela')) avClique(e); });
 
+async function avTela(){
+  $('#area').innerHTML = '<div class="head"><div><h1>Avaliações</h1><p class="sub">Pacientes esperando avaliação. Clique em Atender e, ao terminar, em Concluir: marque apto ou não apto, tratamento clínico concomitante e limpeza profunda inicial.</p></div></div><div id="av-tela"></div>';
+  avDesenhar(); await avBuscar();
+}
 
 /* ---------- PLATAFORMA: painel do dono (master e suporte) ---------- */
 const ehMaster = () => !!EU && EU.plataforma === 'master';
