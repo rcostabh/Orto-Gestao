@@ -438,6 +438,7 @@ const IC = {
   financeiro: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>',
   solicitacoes: '<path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2zM9 9h6M9 13h4"/>',
   caixa: '<path d="M3 7h15a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7zM3 7l12-3v3M16 14h2"/>',
+  produtos: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
   tratamentos: '<path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 4-5 2-5 4 2 3 5 3 5-1 5-3"/>',
   cobranca: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>'
 };
@@ -459,10 +460,11 @@ const MENU = [
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
     { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
     { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
+    { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
   { g: 'Em construção', soon: [['cobranca', 'Cobrança']] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -479,6 +481,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.15.0', '2026-11-01', 'Cobranças avulsas: botão + Nova cobrança na ficha financeira do paciente (produto ou serviço, valor, vencimento). Cadastro de produtos e serviços só para o Diretor. A cobrança avulsa é recebida, estornada e isentada como as parcelas, sem mexer no contrato do tratamento.'],
   ['0.14.0', '2026-11-01', 'Financeiro: nova pesquisa por período, por recebimento (o que entrou de fato) ou por vencimento (previsão de faturamento), em grid de parcelas com totais fixos no rodapé e planilha CSV.'],
   ['0.13.0', '2026-11-01', 'Mais ações na ficha com Cancelar contrato (Gerente e Diretor cancelam; os demais solicitam e a gerência decide). Estorno de pagamento (Gerente e Diretor; sai do caixa de quem estorna). Isenção de parcela (só o Diretor; os demais pedem com observação) e nova tela Solicitações com aprovação uma a uma e isenção geral. O botão Desistiu foi retirado.'],
   ['0.12.0', '2026-11-01', 'Caixa: abertura diária por responsável (um caixa por recepcionista), baixa de parcelas só com o caixa aberto, recebimento parcial com saldo e nova data, painel do paciente no caixa (parcelas, pagamentos, agendamentos e procedimentos), fechamento com conferência do dinheiro, relatório para impressão e conciliação pela administração.'],
@@ -541,7 +544,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'caixa', 'solicitacoes', 'tratamentos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -560,6 +563,7 @@ function abrirRota(r, o){
   if (r === 'financeiro') return finCarregar();
   if (r === 'caixa') return caixaCarregar();
   if (r === 'solicitacoes') return solCarregar();
+  if (r === 'produtos') return ehDir() ? prdCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os produtos e serviços.</div></div>');
   if (r === 'tratamentos') return ehDir() ? trtCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os tipos de tratamento.</div></div>');
   if (r === 'avaliacoes') return avTela();
   if (r === 'agenda') return agdCarregar();
@@ -1143,7 +1147,7 @@ async function pacFicha(id){
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
     + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '<span title="Em breve">Anamnese</span></div>'
     + '<div class="tw" id="fi-oc"' + (aberta ? ' hidden' : '') + '>' + (ocs.length ? '<table class="tb"><thead><tr><th>#</th><th>Data</th><th>Ocorrência</th><th>Responsável</th><th>Resultado</th><th>Detalhes</th></tr></thead><tbody>' + ocs.map((o, i) => '<tr><td>' + (i + 1) + '</td><td class="oc-t">' + dtHora(o.quando) + '</td><td><b>' + esc(o.titulo) + '</b></td><td>' + esc(o.responsavel) + '</td><td>' + (o.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : o.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(o.resultado)) + '</td><td>' + esc(o.detalhe) + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma ocorrência ainda.</div>') + '</div>'
-    + '<div class="tw" id="fi-fn" hidden>' + fnTabela(rs[7].error ? [] : (rs[7].data || []), pode('financeiro.baixar')) + '</div>'
+    + '<div class="tw" id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço)">+ Nova cobrança</button></div>' : '') + fnTabela(rs[7].error ? [] : (rs[7].data || []), pode('financeiro.baixar')) + '</div>'
     + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
@@ -1151,6 +1155,7 @@ async function pacFicha(id){
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
   $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; }));
+  const fnv = $('#fi-nova'); if (fnv) fnv.addEventListener('click', () => cobrancaDialogo(p.id, p.nome_social || p.nome, null));
   $$('#fi-fn [data-rec]').forEach(b => b.addEventListener('click', () => caixaPaciente(p.id)));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
@@ -1601,6 +1606,7 @@ function cancelarContratoDialogo(p, aoFim){
 /* ---------- FINANCEIRO: parcelas e baixa de pagamento ---------- */
 const FN = { f: 'abertas', q: '', vis: 'lista', rel: null };
 const LBL_PARC = n => n === 0 ? 'Início' : n + 'ª mensalidade';
+const lblp = (x, k) => x.descricao || LBL_PARC(x[k || 'numero']);
 const FORMAS_PGTO = ['PIX', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Boleto', 'Transferência'];
 function fnSit(x){
   if (x.status === 'paga') return '<span class="pill on">Paga</span>';
@@ -1610,14 +1616,14 @@ function fnSit(x){
 }
 function fnTabela(lista, baixa){
   if (!lista.length) return '<div class="vazio">Nenhuma parcela ainda. Ela nasce quando o tratamento é iniciado.</div>';
-  return '<table class="tb"><thead><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead><tbody>' + lista.map(x => '<tr><td><b>' + LBL_PARC(x.numero) + '</b></td><td>' + dBR(x.vencimento) + '</td><td>'
+  return '<table class="tb"><thead><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead><tbody>' + lista.map(x => '<tr><td><b>' + lblp(x, 'numero') + '</b></td><td>' + dBR(x.vencimento) + '</td><td>'
     + (x.status === 'isenta' ? 'isento ' + reais(x.valor_isento) : x.status === 'paga' ? reais(x.valor_pago) : reais(x.valor_hoje) + (x.parcial ? '<br><small style="color:var(--muted)">saldo (já pago ' + reais(x.valor_pago) + ')</small>' : x.valor_hoje < x.valor_cheio ? '<br><small style="color:var(--muted)">com desconto até o vencimento</small>' : '')) + '</td><td>' + fnSit(x) + '</td><td>' + (x.status === 'paga' ? dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento) : x.status === 'isenta' ? dBR(x.pago_em) : '')
     + '</td><td>' + (x.status === 'aberta' && baixa ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '') + '</td></tr>').join('') + '</tbody></table>';
 }
 function fnReceber(x, nome, aoFim){
   if (!x) return;
-  abrirJanela('Receber — ' + LBL_PARC(x.numero), '<form id="rc-form" novalidate><div class="db"><p style="margin:0;font-size:16px"><b>' + esc(nome) + '</b></p>'
-    + '<div class="kv dkv"><span>Parcela</span><b>' + LBL_PARC(x.numero) + '</b><span>Vencimento</span><b>' + dBR(x.vencimento) + (x.dias_atraso > 0 ? ' <span class="pill off">vencida há ' + x.dias_atraso + ' d</span>' : '') + '</b><span>Valor cheio</span><b>' + reais(x.valor_cheio) + '</b><span>Desconto</span><b>' + reais(x.desconto) + ' (vale pagando até o vencimento)</b>'
+  abrirJanela('Receber — ' + lblp(x, 'numero'), '<form id="rc-form" novalidate><div class="db"><p style="margin:0;font-size:16px"><b>' + esc(nome) + '</b></p>'
+    + '<div class="kv dkv"><span>Parcela</span><b>' + lblp(x, 'numero') + '</b><span>Vencimento</span><b>' + dBR(x.vencimento) + (x.dias_atraso > 0 ? ' <span class="pill off">vencida há ' + x.dias_atraso + ' d</span>' : '') + '</b><span>Valor cheio</span><b>' + reais(x.valor_cheio) + '</b><span>Desconto</span><b>' + reais(x.desconto) + ' (vale pagando até o vencimento)</b>'
     + (x.pago > 0 ? '<span>Já pago</span><b>' + reais(x.pago) + '</b>' : '') + '<span>Saldo a receber</span><b>' + reais(x.saldo) + '</b></div>'
     + '<div class="g2"><label class="field" for="rc-valor">Valor recebido agora *<span class="pw"><input id="rc-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(x.saldo)) + '"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
     + '<label class="field" for="rc-forma">Forma de pagamento *<select id="rc-forma"><option value="">Escolha...</option>' + FORMAS_PGTO.map(f => '<option>' + f + '</option>').join('') + '</select></label></div>'
@@ -1666,7 +1672,7 @@ function finLista(){
   const pinta = () => {
     const q = FN.q.trim().toLowerCase(); let l = FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
     if (q) l = l.filter(x => x.paciente_nome.toLowerCase().includes(q));
-    $('#fn-lista').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '">' + esc(x.paciente_nome) + '</button><br><small style="color:var(--muted)">' + esc(x.paciente_status) + '</small></td><td>' + LBL_PARC(x.numero) + '</td><td>' + dBR(x.vencimento) + '</td><td>'
+    $('#fn-lista').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '">' + esc(x.paciente_nome) + '</button><br><small style="color:var(--muted)">' + esc(x.paciente_status) + '</small></td><td>' + lblp(x, 'numero') + '</td><td>' + dBR(x.vencimento) + '</td><td>'
       + (x.status === 'isenta' ? 'isento ' + reais(x.valor_isento) + '<br><small style="color:var(--muted)">' + dBR(x.pago_em) + '</small>' : x.status === 'paga' ? reais(x.valor_pago) + '<br><small style="color:var(--muted)">' + dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento) + '</small>' : reais(x.valor_hoje) + (x.parcial ? '<br><small style="color:var(--muted)">saldo (já pago ' + reais(x.valor_pago) + ')</small>' : x.valor_hoje < x.valor_cheio ? '<br><small style="color:var(--muted)">com desconto</small>' : '')) + '</td><td>' + fnSit(x) + '</td><td>'
       + (x.status === 'aberta' && pode('financeiro.baixar') ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nada por aqui.</div>';
     $$('#fn-lista [data-rec]').forEach(b => b.addEventListener('click', () => { const x = D.parc.find(y => y.id === Number(b.dataset.rec)); caixaPaciente(x.paciente_id); }));
@@ -1720,7 +1726,7 @@ function finRel(){
 function relCsv(R){
   const n = v => String(Number(v || 0).toFixed(2)).replace('.', ','), q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const cab = ['Cód', 'Paciente', 'Status', 'Nº', 'Tipo', 'Vencimento', 'Parcela', 'Desconto', 'Recebimento', 'Recebido', 'Saldo devedor', 'Meio de pagamento'];
-  const lin = R.dados.map(x => [x.parcela_id, x.paciente_nome, x.situacao, x.numero + 1, LBL_TIPO(x.numero), dBR(x.vencimento), n(x.valor_cheio), n(x.desconto), relQuando(x.quando), n(x.recebido), n(x.saldo), x.forma].map(q).join(';'));
+  const lin = R.dados.map(x => [x.parcela_id, x.paciente_nome, x.situacao, x.numero == null ? '' : x.numero + 1, x.descricao || LBL_TIPO(x.numero), dBR(x.vencimento), n(x.valor_cheio), n(x.desconto), relQuando(x.quando), n(x.recebido), n(x.saldo), x.forma].map(q).join(';'));
   const blob = new Blob(['﻿' + [cab.map(q).join(';')].concat(lin).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'financeiro-' + R.modo + '-' + R.ini + '_' + R.fim + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -1733,7 +1739,7 @@ function relPinta(){
   if (!d.length) { box.innerHTML = '<div class="card"><div class="vazio">' + (R.modo === 'recebido' ? 'Nenhum recebimento neste período.' : 'Nenhuma parcela vence neste período.') + '</div></div>'; return; }
   const pago = x => x.situacao === 'paga' || x.situacao === 'isenta';
   box.innerHTML = '<div class="card" style="padding:0;overflow:hidden"><div class="rlg" id="rl-tab"><table class="tb rl"><thead><tr><th>Cód</th><th>Paciente</th><th>Status</th><th>Nº</th><th>Tipo</th><th>Vencimento</th><th class="n">Parcela</th><th class="n">Desconto</th><th>Recebimento</th><th class="n">Recebido</th><th class="n">Saldo devedor</th><th>Meio pagamento</th></tr></thead><tbody>'
-    + d.map(x => '<tr><td>' + x.parcela_id + '</td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button></td><td>' + relSit(x) + '</td><td>' + (x.numero + 1) + '</td><td>' + LBL_TIPO(x.numero) + '</td>'
+    + d.map(x => '<tr><td>' + x.parcela_id + '</td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button></td><td>' + relSit(x) + '</td><td>' + (x.numero == null ? '—' : x.numero + 1) + '</td><td>' + esc(x.descricao || LBL_TIPO(x.numero)) + '</td>'
       + '<td' + (pago(x) ? ' style="text-decoration:line-through;color:var(--muted)"' : '') + '>' + dBR(x.vencimento) + '</td><td class="n">' + reais(x.valor_cheio) + '</td><td class="n">' + reais(x.desconto) + '</td><td>' + relQuando(x.quando) + '</td><td class="n">' + reais(x.recebido) + '</td><td class="n">' + (Number(x.saldo) > 0 ? '<span class="pill nu">' + reais(x.saldo) + '</span>' : reais(0)) + '</td><td>' + esc(x.forma || '') + '</td></tr>').join('')
     + '</tbody><tfoot><tr id="rl-tot"><td colspan="6">Totais · <span id="rl-n">' + d.length + '</span> ' + (d.length === 1 ? 'linha' : 'linhas') + '</td><td class="n">' + reais(soma(x => x.valor_cheio)) + '</td><td class="n">' + reais(soma(x => x.desconto)) + '</td><td></td><td class="n">' + reais(soma(x => x.recebido)) + '</td><td class="n">' + reais(soma(x => x.saldo)) + '</td><td></td></tr></tfoot></table></div></div>';
   $$('#rl-tab [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
@@ -1816,7 +1822,7 @@ async function caixaFechar(c){
 }
 function cxTexto(d){
   const c = d.caixa, L = ['CAIXA — ' + c.unidade, 'Data: ' + dBR(c.data) + ' · Responsável: ' + c.responsavel, 'Aberto por ' + (c.aberto_por || '—') + ' às ' + hhmm(c.aberto_em) + ' · Troco inicial ' + reais(c.valor_inicial), ''];
-  L.push('Pagamentos:'); d.itens.forEach(i => L.push(hhmm(i.quando) + '  ' + i.paciente + '  ' + (i.estorno ? 'ESTORNO ' : '') + LBL_PARC(i.parcela) + (i.parcial ? ' (parcial)' : '') + '  ' + i.forma + '  ' + reais(i.valor)));
+  L.push('Pagamentos:'); d.itens.forEach(i => L.push(hhmm(i.quando) + '  ' + i.paciente + '  ' + (i.estorno ? 'ESTORNO ' : '') + lblp(i, 'parcela') + (i.parcial ? ' (parcial)' : '') + '  ' + i.forma + '  ' + reais(i.valor)));
   L.push('', 'Totais por forma:'); d.formas.forEach(f => L.push(f.forma + ': ' + reais(f.total) + ' (' + f.qtd + ')')); L.push('TOTAL: ' + reais(d.formas.reduce((t, f) => t + Number(f.total), 0)));
   if (c.status === 'fechado') L.push('', 'Fechado por ' + c.fechado_por + ' às ' + hhmm(c.fechado_em) + ' · Dinheiro contado ' + reais(c.dinheiro_contado) + ' · Diferença ' + reais(c.diferenca) + (c.obs_fechamento ? ' · ' + c.obs_fechamento : ''));
   return L.join('\n');
@@ -1828,7 +1834,7 @@ async function caixaRelatorio(id){
     + '<div class="kv dkv"><span>Abertura</span><b>' + hhmm(c.aberto_em) + ' por ' + esc(c.aberto_por || '—') + '</b><span>Troco inicial</span><b>' + reais(c.valor_inicial) + '</b>'
     + (c.status === 'fechado' ? '<span>Fechamento</span><b>' + hhmm(c.fechado_em) + ' por ' + esc(c.fechado_por || '—') + '</b><span>Dinheiro contado</span><b>' + reais(c.dinheiro_contado) + (Number(c.diferenca) !== 0 ? ' <span class="pill off">diferença ' + reais(c.diferenca) + '</span>' : ' <span class="pill on">confere</span>') + '</b>' + (c.obs_fechamento ? '<span>Observação</span><b>' + esc(c.obs_fechamento) + '</b>' : '') : '')
     + (c.conciliado_em ? '<span>Conciliação</span><b>' + dtHora(c.conciliado_em) + ' por ' + esc(c.conciliado_por || '—') + (c.obs_conciliacao ? ' · ' + esc(c.obs_conciliacao) : '') + '</b>' : '') + '</div>'
-    + '<div class="tw"><table class="tb"><thead><tr><th>Hora</th><th>Paciente</th><th>Parcela</th><th>Forma</th><th>Valor</th></tr></thead><tbody>' + (d.itens.length ? d.itens.map(i => '<tr><td>' + hhmm(i.quando) + '</td><td>' + esc(i.paciente) + '</td><td>' + (i.estorno ? '<span class="pill off">Estorno</span> ' : '') + LBL_PARC(i.parcela) + (i.parcial ? ' <small style="color:var(--muted)">(parcial)</small>' : '') + (i.estorno && i.motivo ? '<br><small style="color:var(--muted)">' + esc(i.motivo) + '</small>' : '') + '</td><td>' + esc(i.forma) + '</td><td>' + reais(i.valor) + '</td></tr>').join('') : '<tr><td colspan="5">Nenhum pagamento recebido.</td></tr>') + '</tbody></table></div>'
+    + '<div class="tw"><table class="tb"><thead><tr><th>Hora</th><th>Paciente</th><th>Parcela</th><th>Forma</th><th>Valor</th></tr></thead><tbody>' + (d.itens.length ? d.itens.map(i => '<tr><td>' + hhmm(i.quando) + '</td><td>' + esc(i.paciente) + '</td><td>' + (i.estorno ? '<span class="pill off">Estorno</span> ' : '') + lblp(i, 'parcela') + (i.parcial ? ' <small style="color:var(--muted)">(parcial)</small>' : '') + (i.estorno && i.motivo ? '<br><small style="color:var(--muted)">' + esc(i.motivo) + '</small>' : '') + '</td><td>' + esc(i.forma) + '</td><td>' + reais(i.valor) + '</td></tr>').join('') : '<tr><td colspan="5">Nenhum pagamento recebido.</td></tr>') + '</tbody></table></div>'
     + '<div class="tw"><table class="tb"><thead><tr><th>Forma</th><th>Pagamentos</th><th>Total</th></tr></thead><tbody>' + d.formas.map(f => '<tr><td>' + esc(f.forma) + '</td><td>' + f.qtd + '</td><td>' + reais(f.total) + '</td></tr>').join('') + '<tr><td><b>Total recebido</b></td><td>' + d.itens.length + '</td><td><b>' + reais(tot) + '</b></td></tr></tbody></table></div>'
     + (pode_c ? '<label class="field noprint" for="rl-obs">Observação da conciliação <small>(opcional)</small><input id="rl-obs" maxlength="200" autocomplete="off"></label><div class="err" id="rl-err" role="alert"></div>' : '') + '</div>'
     + '<div class="df noprint"><div class="esq"><button class="btn ghost" type="button" id="rl-copiar">Copiar texto</button> <button class="btn ghost" type="button" id="rl-imp">Imprimir</button></div>' + (pode_c ? '<button class="btn" type="button" id="rl-conc">Marcar como conciliado</button>' : '') + '<button class="btn ghost" type="button" id="rl-x">Fechar</button></div>');
@@ -1851,25 +1857,29 @@ async function caixaPaciente(pid){
   abrirJanela('Paciente no caixa', '<div class="db" id="pc-caixa"><div><b style="font-size:18px">' + esc(p.nome) + '</b> <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status) + '</span><br><small style="color:var(--muted)">' + (p.cpf ? 'CPF ' + mCPF(p.cpf) + ' · ' : '') + (p.telefone ? mTel(p.telefone) + ' · ' : '') + 'código ' + p.id + (p.nome_registro !== p.nome ? ' · ' + esc(p.nome_registro) : '') + '</small></div>'
     + (d.pedido_cancelamento ? '<div class="card" style="margin:0;border-color:var(--warn)"><b>Há uma solicitação de cancelamento de contrato aguardando decisão.</b></div>' : '')
     + (t ? '<div class="kv dkv"><span>Tratamento</span><b>' + esc(t.plano) + ' · ' + reais(t.mensalidade) + '/mês (desconto ' + reais(t.desconto) + ' até o vencimento)</b><span>Responsável</span><b>' + esc(t.dentista || '—') + ' · ' + NOMES_DIA[t.dia_semana] + '</b><span>Vencimento</span><b>Todo dia ' + t.dia_vencimento + ' · desde ' + dBR(t.desde) + '</b></div>' : '')
-    + '<h3 style="margin:6px 0 0;font-size:15px">A receber</h3>' + tb(['Parcela', 'Vencimento', 'Já pago', 'Saldo', ''], d.parcelas.map(x => '<tr><td><b>' + LBL_PARC(x.numero) + '</b>' + (x.parcial ? '<br><small style="color:var(--muted)">pago em parte</small>' : '') + (x.pedido_isencao ? '<br><span class="pill wr">isenção pedida</span>' : '') + '</td><td>' + dBR(x.vencimento) + (x.dias_atraso > 0 ? '<br><span class="pill off">vencida há ' + x.dias_atraso + ' d</span>' : '') + '</td><td>' + (x.pago > 0 ? reais(x.pago) : '—') + '</td><td><b>' + reais(x.saldo) + '</b>' + (x.saldo < x.valor_cheio - x.pago ? '<br><small style="color:var(--muted)">com desconto</small>' : '') + '</td><td style="white-space:nowrap">' + (baixa ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button> ' : '')
-      + (dir ? '<button class="btn ghost sm" type="button" data-isen="' + x.id + '">Isentar</button>' : pedeIs && !x.pedido_isencao ? '<button class="btn ghost sm" type="button" data-pedis="' + x.id + '">Pedir isenção</button>' : '') + '</td></tr>'), 'Nada em aberto.')
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px"><h3 style="margin:0;font-size:15px">A receber</h3>' + (pode('financeiro.lancar') ? '<button class="btn sm" type="button" id="pc-nova" title="Lançar uma cobrança avulsa (produto ou serviço)">+ Nova cobrança</button>' : '') + '</div>' + tb(['Parcela', 'Vencimento', 'Já pago', 'Saldo', ''], d.parcelas.map(x => '<tr><td><b>' + lblp(x, 'numero') + '</b>' + (x.obs ? '<br><small style="color:var(--muted)">' + esc(x.obs) + '</small>' : '') + (x.parcial ? '<br><small style="color:var(--muted)">pago em parte</small>' : '') + (x.pedido_isencao ? '<br><span class="pill wr">isenção pedida</span>' : '') + '</td><td>' + dBR(x.vencimento) + (x.dias_atraso > 0 ? '<br><span class="pill off">vencida há ' + x.dias_atraso + ' d</span>' : '') + '</td><td>' + (x.pago > 0 ? reais(x.pago) : '—') + '</td><td><b>' + reais(x.saldo) + '</b>' + (x.saldo < x.valor_cheio - x.pago ? '<br><small style="color:var(--muted)">com desconto</small>' : '') + '</td><td style="white-space:nowrap">' + (baixa ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button> ' : '')
+      + (dir ? '<button class="btn ghost sm" type="button" data-isen="' + x.id + '">Isentar</button>' : pedeIs && !x.pedido_isencao ? '<button class="btn ghost sm" type="button" data-pedis="' + x.id + '">Pedir isenção</button>' : '') + (ger && x.tipo === 'avulsa' && !(x.pago > 0) ? ' <button class="btn ghost sm" type="button" data-canc="' + x.id + '">Cancelar</button>' : '') + '</td></tr>'), 'Nada em aberto.')
     + '<h3 style="margin:6px 0 0;font-size:15px">Pagamentos feitos' + (d.pagamentos.length ? ' <small style="font-weight:400;color:var(--muted)">· total ' + reais(totalPago) + '</small>' : '') + '</h3>' + tb(['Data', 'Parcela', 'Valor', 'Forma', 'Por', ''], d.pagamentos.map(x => { const dev = Number(x.valor_cheio) - Number(x.desconto), est = x.tipo === 'estorno';
-      return '<tr' + (x.estornado ? ' class="estornado"' : '') + '><td>' + dtHora(x.quando) + '</td><td>' + LBL_PARC(x.parcela) + '</td><td><b>' + reais(x.valor) + '</b>' + (est ? '<br><span class="pill off">Estorno</span> <small>' + esc(x.motivo || '') + '</small>' : x.estornado ? '<br><small>estornado</small>' : Number(x.valor) < dev ? '<br><small style="color:var(--warn)">pagamento parcial (parcela de ' + reais(dev) + ' a ' + reais(x.valor_cheio) + ')</small>' : '') + '</td><td>' + esc(x.forma) + '</td><td>' + esc(x.recebido_por || '—') + '</td><td>' + (ger && !est && !x.estornado ? '<button class="btn ghost sm" type="button" data-est="' + x.id + '">Estornar</button>' : '') + '</td></tr>'; }), 'Nenhum pagamento ainda.')
-    + (d.isencoes.length ? '<h3 style="margin:6px 0 0;font-size:15px">Isenções</h3>' + tb(['Data', 'Parcela', 'Valor isento', 'Autorizada por', 'Motivo'], d.isencoes.map(x => '<tr><td>' + dtHora(x.quando) + '</td><td>' + LBL_PARC(x.parcela) + '</td><td><b>' + reais(x.valor) + '</b></td><td>' + esc(x.por || '—') + '</td><td>' + esc(x.motivo || '') + '</td></tr>'), '') : '')
+      return '<tr' + (x.estornado ? ' class="estornado"' : '') + '><td>' + dtHora(x.quando) + '</td><td>' + lblp(x, 'parcela') + '</td><td><b>' + reais(x.valor) + '</b>' + (est ? '<br><span class="pill off">Estorno</span> <small>' + esc(x.motivo || '') + '</small>' : x.estornado ? '<br><small>estornado</small>' : Number(x.valor) < dev ? '<br><small style="color:var(--warn)">pagamento parcial (parcela de ' + reais(dev) + ' a ' + reais(x.valor_cheio) + ')</small>' : '') + '</td><td>' + esc(x.forma) + '</td><td>' + esc(x.recebido_por || '—') + '</td><td>' + (ger && !est && !x.estornado ? '<button class="btn ghost sm" type="button" data-est="' + x.id + '">Estornar</button>' : '') + '</td></tr>'; }), 'Nenhum pagamento ainda.')
+    + (d.isencoes.length ? '<h3 style="margin:6px 0 0;font-size:15px">Isenções</h3>' + tb(['Data', 'Parcela', 'Valor isento', 'Autorizada por', 'Motivo'], d.isencoes.map(x => '<tr><td>' + dtHora(x.quando) + '</td><td>' + lblp(x, 'parcela') + '</td><td><b>' + reais(x.valor) + '</b></td><td>' + esc(x.por || '—') + '</td><td>' + esc(x.motivo || '') + '</td></tr>'), '') : '')
     + '<h3 style="margin:6px 0 0;font-size:15px">O que ele fará</h3>' + tb(['Data', 'Hora', 'Procedimento', 'Agenda'], prox.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.hora) + '</td><td>' + esc(g.procedimento) + '</td><td>' + esc(g.agenda) + '</td></tr>'), 'Nenhum atendimento agendado.')
     + '<h3 style="margin:6px 0 0;font-size:15px">Atendimentos que teve' + (Object.keys(feitos).length ? ' <small style="font-weight:400;color:var(--muted)">· ' + Object.keys(feitos).map(k => esc(k) + ' ×' + feitos[k]).join(', ') + '</small>' : '') + '</h3>' + tb(['Data', 'Hora', 'Procedimento', 'Situação'], hist.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.hora) + '</td><td>' + esc(g.procedimento) + '</td><td><span class="sd s-' + g.status + '"></span>' + (ST_PRX[g.status] || g.status) + '</td></tr>'), 'Nenhum atendimento ainda.')
     + '</div><div class="df"><button class="btn ghost" type="button" id="pc-fx">Fechar</button></div>');
   $('#pc-fx').addEventListener('click', fecharJanela);
   const volta = () => caixaPaciente(pid), pn = esc(p.nome);
   $$('#pc-caixa [data-rec]').forEach(b => b.addEventListener('click', () => fnReceber(d.parcelas.find(x => x.id === Number(b.dataset.rec)), p.nome, volta)));
+  const nv = $('#pc-nova'); if (nv) nv.addEventListener('click', () => cobrancaDialogo(pid, p.nome, volta));
+  $$('#pc-caixa [data-canc]').forEach(b => b.addEventListener('click', () => { const x = d.parcelas.find(y => y.id === Number(b.dataset.canc));
+    motivoDialogo({ titulo: 'Cancelar cobrança', resumo: '<b>' + pn + '</b><br>' + esc(x.descricao) + ' · ' + reais(x.saldo), intro: 'Use quando a cobrança foi lançada por engano. Cobrança com pagamento não pode ser cancelada: estorne o pagamento antes.',
+      rotulo: 'Motivo do cancelamento', obrigatorio: true, msgObrig: 'Informe o motivo do cancelamento.', confirmar: 'Cancelar cobrança', perigo: true, aoVoltar: volta, acao: async t => { const r2 = await sb.rpc('cancelar_cobranca', { p_parcela: x.id, p_motivo: t }); return r2.error ? erroTxt(r2.error) : ''; }, ok: 'Cobrança cancelada.', aoFim: volta }); }));
   $$('#pc-caixa [data-isen]').forEach(b => b.addEventListener('click', () => { const x = d.parcelas.find(y => y.id === Number(b.dataset.isen));
-    motivoDialogo({ titulo: 'Isentar parcela', resumo: '<b>' + pn + '</b><br>' + LBL_PARC(x.numero) + ' · saldo a isentar <b>' + reais(x.saldo) + '</b>', intro: 'A isenção quita o saldo da parcela sem receber. Gera a próxima parcela, como se tivesse sido paga.',
+    motivoDialogo({ titulo: 'Isentar parcela', resumo: '<b>' + pn + '</b><br>' + lblp(x, 'numero') + ' · saldo a isentar <b>' + reais(x.saldo) + '</b>', intro: 'A isenção quita o saldo da parcela sem receber. Gera a próxima parcela, como se tivesse sido paga.',
       rotulo: 'Motivo da isenção', obrigatorio: false, confirmar: 'Isentar parcela', perigo: true, aoVoltar: volta, acao: async t => { const r2 = await sb.rpc('isentar_parcela', { p_parcela: x.id, p_motivo: t || null }); return r2.error ? erroTxt(r2.error) : ''; }, ok: 'Parcela isenta.', aoFim: volta }); }));
   $$('#pc-caixa [data-pedis]').forEach(b => b.addEventListener('click', () => { const x = d.parcelas.find(y => y.id === Number(b.dataset.pedis));
-    motivoDialogo({ titulo: 'Pedir isenção', resumo: '<b>' + pn + '</b><br>' + LBL_PARC(x.numero) + ' · saldo ' + reais(x.saldo), intro: 'Só o Diretor isenta. Seu pedido aparece na tela Solicitações, com a sua observação.',
+    motivoDialogo({ titulo: 'Pedir isenção', resumo: '<b>' + pn + '</b><br>' + lblp(x, 'numero') + ' · saldo ' + reais(x.saldo), intro: 'Só o Diretor isenta. Seu pedido aparece na tela Solicitações, com a sua observação.',
       rotulo: 'Observação: por que isentar esta parcela?', obrigatorio: true, msgObrig: 'Escreva por que a parcela deve ser isenta.', confirmar: 'Enviar pedido', aoVoltar: volta, acao: async t => { const r2 = await sb.rpc('solicitar_isencao', { p_parcela: x.id, p_motivo: t }); return r2.error ? erroTxt(r2.error) : ''; }, ok: 'Pedido de isenção enviado ao Diretor.', aoFim: volta }); }));
   $$('#pc-caixa [data-est]').forEach(b => b.addEventListener('click', () => { const x = d.pagamentos.find(y => y.id === Number(b.dataset.est));
-    motivoDialogo({ titulo: 'Estornar pagamento', resumo: '<b>' + pn + '</b><br>' + LBL_PARC(x.parcela) + ' · ' + esc(x.forma) + ' · <b>' + reais(x.valor) + '</b> em ' + dtHora(x.quando), intro: 'O valor sai do SEU caixa de hoje (precisa estar aberto) e a parcela volta a ficar em aberto. Não dá para desfazer.',
+    motivoDialogo({ titulo: 'Estornar pagamento', resumo: '<b>' + pn + '</b><br>' + lblp(x, 'parcela') + ' · ' + esc(x.forma) + ' · <b>' + reais(x.valor) + '</b> em ' + dtHora(x.quando), intro: 'O valor sai do SEU caixa de hoje (precisa estar aberto) e a parcela volta a ficar em aberto. Não dá para desfazer.',
       rotulo: 'Motivo do estorno', obrigatorio: true, msgObrig: 'Informe o motivo do estorno.', confirmar: 'Estornar', perigo: true, aoVoltar: volta, acao: async t => { const r2 = await sb.rpc('estornar_pagamento', { p_id: x.id, p_motivo: t }); return r2.error ? erroTxt(r2.error) : ''; }, ok: 'Pagamento estornado.', aoFim: volta }); }));
 }
 
@@ -1893,13 +1903,13 @@ function solLista(){
     + (dir && SO.aba === 'isencao' && pendIs.length ? '<button class="btn" type="button" id="so-geral">Isenção geral (' + pendIs.length + ' pendentes)</button>' : '') + '</div>'
     + '<div class="card"><div class="tools"><div id="so-abas" role="tablist">' + [['isencao', 'Isenções'], ['cancelamento', 'Cancelamentos de contrato']].map(a => '<button class="btn ' + (SO.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (SO.aba === a[0]) + '" data-aba="' + a[0] + '">' + a[1] + ' (' + pend(a[0]) + ' pendentes)</button>').join(' ') + '</div></div>'
     + '<div class="tw" id="so-lista">' + (lista.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>' + (SO.aba === 'isencao' ? 'Parcela e valor' : 'Situação') + '</th><th>Observação do pedido</th><th>Pedido por</th><th>Situação</th><th></th></tr></thead><tbody>'
-      + lista.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '">' + esc(x.paciente_nome) + '</button></td><td>' + (SO.aba === 'isencao' ? LBL_PARC(x.parcela_numero) + '<br><b>' + reais(x.valor) + '</b>' : esc(x.paciente_status)) + '</td><td style="max-width:280px;white-space:normal">' + esc(x.motivo) + '</td><td>' + esc(x.solicitante_nome || '') + '<br><small style="color:var(--muted)">' + dtHora(x.criado_em) + '</small></td><td>' + pill(x.status)
+      + lista.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '">' + esc(x.paciente_nome) + '</button></td><td>' + (SO.aba === 'isencao' ? (x.parcela_desc || LBL_PARC(x.parcela_numero)) + '<br><b>' + reais(x.valor) + '</b>' : esc(x.paciente_status)) + '</td><td style="max-width:280px;white-space:normal">' + esc(x.motivo) + '</td><td>' + esc(x.solicitante_nome || '') + '<br><small style="color:var(--muted)">' + dtHora(x.criado_em) + '</small></td><td>' + pill(x.status)
         + (x.status !== 'pendente' ? '<br><small style="color:var(--muted)">' + esc(x.decidido_por_nome || '') + (x.obs_decisao ? ' · ' + esc(x.obs_decisao) : '') + '</small>' : '') + '</td><td style="white-space:nowrap">'
         + (x.status === 'pendente' && decide ? '<button class="btn sm" type="button" data-ap="' + x.id + '">Aprovar</button> <button class="btn ghost sm" type="button" data-rec="' + x.id + '">Recusar</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma solicitação.</div>') + '</div></div>';
   $$('#so-abas [data-aba]').forEach(b => b.addEventListener('click', () => { SO.aba = b.dataset.aba; solLista(); }));
   $$('#so-lista [data-pac]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.pac))));
   const dec = (id, ap) => { const x = D.sols.find(y => y.id === id), isen = x.tipo === 'isencao';
-    motivoDialogo({ titulo: (ap ? 'Aprovar ' : 'Recusar ') + (isen ? 'isenção' : 'cancelamento de contrato'), resumo: '<b>' + esc(x.paciente_nome) + '</b>' + (isen ? '<br>' + LBL_PARC(x.parcela_numero) + ' · ' + reais(x.valor) : '') + '<br><small style="color:var(--muted)">Pedido de ' + esc(x.solicitante_nome || '') + ':</small> ' + esc(x.motivo),
+    motivoDialogo({ titulo: (ap ? 'Aprovar ' : 'Recusar ') + (isen ? 'isenção' : 'cancelamento de contrato'), resumo: '<b>' + esc(x.paciente_nome) + '</b>' + (isen ? '<br>' + (x.parcela_desc || LBL_PARC(x.parcela_numero)) + ' · ' + reais(x.valor) : '') + '<br><small style="color:var(--muted)">Pedido de ' + esc(x.solicitante_nome || '') + ':</small> ' + esc(x.motivo),
       intro: ap ? (isen ? 'A parcela será isentada e a próxima será gerada.' : 'O contrato será cancelado e o paciente passa a Desistente.') : '', rotulo: 'Observação da decisão', obrigatorio: false, confirmar: ap ? 'Aprovar' : 'Recusar', perigo: ap && !isen,
       acao: async t => { const r = await sb.rpc('decidir_solicitacao', { p_id: id, p_aprovar: ap, p_obs: t || null }); return r.error ? erroTxt(r.error) : ''; }, ok: ap ? 'Solicitação aprovada.' : 'Solicitação recusada.', aoFim: () => { fecharJanela(); solCarregar(); } }); };
   $$('#so-lista [data-ap]').forEach(b => b.addEventListener('click', () => dec(Number(b.dataset.ap), true)));
@@ -1967,6 +1977,78 @@ function trtForm(p){
     b.disabled = false;
     if (r.error) { er.textContent = /planos_nome_uq|23505/.test((r.error.message || '') + r.error.code) ? 'Já existe um tipo com esse nome.' : erroTxt(r.error); return; }
     fecharJanela(); toast(novo ? 'Tipo cadastrado.' : 'Tipo atualizado.'); trtCarregar();
+  });
+}
+
+/* ---------- Cobrança avulsa (produto/serviço) lançada na ficha financeira ---------- */
+async function cobrancaDialogo(pid, nome, aoFim){
+  const r = await sb.from('produtos_servicos').select('id,nome,valor_padrao').eq('ativo', true).order('nome');
+  if (r.error) { toast(erroTxt(r.error)); return; }
+  const it = r.data, volta = () => { if (aoFim) aoFim(); else fecharJanela(); };
+  abrirJanela('Nova cobrança', '<form id="cb-form" novalidate><div class="db"><p style="margin:0;font-size:16px"><b>' + esc(nome) + '</b></p>'
+    + (it.length ? '<label class="field" for="cb-item">Produto/Serviço *<select id="cb-item"><option value="">Selecione</option>' + it.map(x => '<option value="' + x.id + '">' + esc(x.nome) + '</option>').join('') + '</select></label>'
+      : '<div class="vazio">Nenhum produto ou serviço cadastrado. O Diretor cadastra em Produtos e serviços.</div>')
+    + '<div class="g2"><label class="field" for="cb-valor">Valor *<span class="pw"><input id="cb-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off" value=""><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
+    + '<label class="field" for="cb-venc">Data do vencimento *<input id="cb-venc" type="date" value="' + hoje() + '" min="' + somaDias(hoje(), -365) + '" max="' + somaDias(hoje(), 730) + '"></label></div>'
+    + fld('cb-obs', 'Observação (opcional)', '', 'maxlength="200" autocomplete="off"')
+    + '<p class="sub" style="margin:0">A cobrança entra em "A receber" do paciente e é recebida no caixa como as demais parcelas. Não altera o contrato do tratamento.</p><div class="err" id="cb-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="cb-cancel">Voltar</button><button class="btn" type="submit" id="cb-ok"' + (it.length ? '' : ' disabled') + '>Lançar cobrança</button></div></form>');
+  $('#cb-valor').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  const sel = $('#cb-item'); if (sel) sel.addEventListener('change', () => { const x = it.find(y => y.id === Number(sel.value)); if (x && x.valor_padrao && !$('#cb-valor').value) $('#cb-valor').value = moedaTxt(x.valor_padrao); });
+  $('#cb-cancel').addEventListener('click', volta);
+  $('#cb-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#cb-err'); er.textContent = '';
+    const item = Number($('#cb-item').value), valor = moedaNum($('#cb-valor').value) || 0, venc = $('#cb-venc').value;
+    if (!item) { er.textContent = 'Escolha o produto ou serviço.'; return; }
+    if (valor <= 0) { er.textContent = 'Informe o valor da cobrança.'; return; }
+    if (!venc) { er.textContent = 'Informe a data do vencimento.'; return; }
+    const b = $('#cb-ok'); b.disabled = true;
+    const r2 = await sb.rpc('lancar_cobranca', { p_paciente: pid, p_item: item, p_valor: valor, p_venc: venc, p_obs: $('#cb-obs').value.trim() || null });
+    b.disabled = false; if (r2.error) { er.textContent = erroTxt(r2.error); return; }
+    toast('Cobrança lançada.'); volta(); refrescaTela();
+  });
+}
+
+/* ---------- PRODUTOS E SERVIÇOS (cadastro do Diretor) ---------- */
+const PD = { q: '' };
+async function prdCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const r = await sb.from('produtos_servicos').select('*').order('nome');
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  D.prd = r.data; prdLista();
+}
+function prdLista(){
+  $('#area').innerHTML = '<div class="head"><div><h1>Produtos e serviços</h1><p class="sub">Lista usada ao lançar uma cobrança avulsa na ficha financeira do paciente. Só o Diretor cadastra. O valor é sugerido na hora de lançar e pode ser ajustado. Vale para todas as unidades do grupo.</p></div>'
+    + '<button class="btn" type="button" id="pd-novo">+ Novo produto ou serviço</button></div>'
+    + '<div class="card"><div class="tools"><input id="pd-q" type="search" placeholder="Buscar" aria-label="Buscar produto ou serviço" value="' + esc(PD.q) + '"></div><div class="lista" id="pd-lista"></div></div>';
+  const pinta = () => { const q = PD.q.trim().toLowerCase(), l = D.prd.filter(x => !q || x.nome.toLowerCase().includes(q));
+    $('#pd-lista').innerHTML = l.length ? l.map(x => '<button class="row f" type="button" data-id="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">' + (x.valor_padrao ? reais(x.valor_padrao) : 'sem valor sugerido') + '</span><span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nada encontrado.</div>';
+    $$('#pd-lista .row').forEach(b => b.addEventListener('click', () => prdForm(D.prd.find(x => x.id === Number(b.dataset.id))))); };
+  pinta(); $('#pd-q').addEventListener('input', e => { PD.q = e.target.value; pinta(); }); $('#pd-novo').addEventListener('click', () => prdForm(null));
+}
+function prdForm(x){
+  const novo = !x;
+  abrirJanela(novo ? 'Novo produto ou serviço' : 'Produto ou serviço', '<form id="pd-form" novalidate><div class="db">' + fld('pd-nome', 'Nome *', x && x.nome, 'maxlength="80" autocomplete="off"')
+    + '<label class="field" for="pd-val">Valor sugerido (opcional)<span class="pw"><input id="pd-val" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(x && x.valor_padrao)) + '"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
+    + '<div class="err" id="pd-err" role="alert"></div></div><div class="df"><div class="esq">' + (!novo ? '<button class="btn ' + (x.ativo ? 'danger' : 'ghost') + '" type="button" id="pd-ina">' + (x.ativo ? 'Inativar' : 'Reativar') + '</button>' : '') + '</div>'
+    + '<button class="btn ghost" type="button" id="pd-cancel">Cancelar</button><button class="btn" type="submit" id="pd-ok">Salvar</button></div></form>');
+  $('#pd-val').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  $('#pd-cancel').addEventListener('click', fecharJanela);
+  const ina = $('#pd-ina'); if (ina) ina.addEventListener('click', async () => {
+    if (ina.dataset.c !== '1') { ina.dataset.c = '1'; ina.textContent = 'Confirmar'; return; }
+    const r = await sb.from('produtos_servicos').update({ ativo: !x.ativo }).eq('id', x.id);
+    if (r.error) { $('#pd-err').textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast(x.ativo ? 'Inativado. Não aparece mais ao lançar cobranças.' : 'Reativado.'); prdCarregar();
+  });
+  $('#pd-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#pd-err'); er.textContent = '';
+    const nome = $('#pd-nome').value.trim().replace(/\s+/g, ' ').toUpperCase(), val = moedaNum($('#pd-val').value) || null;
+    if (nome.length < 2) { er.textContent = 'Dê um nome ao produto ou serviço.'; return; }
+    const reg = { nome, valor_padrao: val }, b = $('#pd-ok'); b.disabled = true;
+    const r = novo ? await sb.from('produtos_servicos').insert(reg) : await sb.from('produtos_servicos').update(reg).eq('id', x.id);
+    b.disabled = false;
+    if (r.error) { er.textContent = /produtos_nome_uq|23505/.test((r.error.message || '') + r.error.code) ? 'Já existe um item com esse nome.' : erroTxt(r.error); return; }
+    fecharJanela(); toast(novo ? 'Cadastrado.' : 'Atualizado.'); prdCarregar();
   });
 }
 
