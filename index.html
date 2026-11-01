@@ -111,6 +111,14 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .chk{display:flex;align-items:center;gap:9px;min-height:38px;font-size:14.5px;cursor:pointer}
 .chk input{width:18px;height:18px;accent-color:var(--accent)}
 
+.und{margin:0 6px 14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.07);display:grid;gap:4px;font-size:13px;color:#fff}
+.und .ul{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--side-muted)}
+.und b{font-weight:600;line-height:1.3}
+.und select{font:600 14px var(--font);color:#fff;background:#1c1c1c;border:1.5px solid rgba(255,255,255,.18);border-radius:10px;min-height:40px;padding:0 10px;width:100%}
+.und select:focus{outline:none;border-color:var(--accent)}
+.ver{margin:-16px 0 12px 55px;align-self:flex-start;background:transparent;border:0;padding:2px 6px 2px 0;font:500 11px var(--font);color:var(--side-muted);cursor:pointer;letter-spacing:.03em}
+.ver:hover{color:var(--accent)}
+.vl{display:grid;gap:14px;max-height:60vh;overflow:auto}.vl b{font-size:14px}.vl small{color:var(--muted);margin-left:8px}.vl p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
 /* abas */
 .col{min-width:0}
 .topo{position:sticky;top:0;z-index:15;display:flex;align-items:flex-end;gap:8px;background:var(--bg);border-bottom:1px solid var(--line);padding:8px clamp(16px,3vw,36px) 0}
@@ -235,6 +243,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 <div id="v-app" hidden>
   <aside class="side" id="side" aria-label="Menu principal">
     <div class="brand"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0b0b0b" stroke="#2b2b2b" stroke-width="1"/><path d="M32 12a20 20 0 1 0 20 20" fill="none" stroke="#ff6a00" stroke-width="8" stroke-linecap="round"/><path d="M45 11v14M38 18h14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg><span class="wm">Orto<i> Gestão</i></span></div>
+    <button class="ver" id="ver" type="button" title="Registro de versões"></button>
+    <div class="und" id="und"></div>
     <nav id="menu"></nav>
     <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
   </aside>
@@ -329,6 +339,7 @@ async function entrarNoApp(){
   $('#v-login').hidden = true; $('#v-app').hidden = false;
   $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || '';
   ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve();
+  { const ru = await sb.from('unidades').select('*').order('sigla'); UN = null; defUn(ru.data || []); }
   montarMenu(); irPara('inicio'); avIniciar();
   return true;
 }
@@ -350,7 +361,7 @@ $('#form-entrar').addEventListener('submit', async e => {
   if (!ok) { await sb.auth.signOut(); er.textContent = 'Seu acesso está inativo ou ainda não foi liberado. Fale com a administração.'; return; }
   $('#l-senha').value = '';
 });
-$('#sair').addEventListener('click', async () => { await sb.auth.signOut(); avParar(); ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
+$('#sair').addEventListener('click', async () => { await sb.auth.signOut(); avParar(); UN = null; MINHAS.length = 0; ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
 
 /* ---------- menu ---------- */
 const IC = {
@@ -391,9 +402,60 @@ function montarMenu(){
   $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r)));
 }
 const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' + ico(i.r) + i.t + '</button>';
+
+/* ---------- versão do sistema ---------- */
+const VERSOES = [
+  ['0.6.0', '2026-11-01', 'Cada unidade vê somente os seus dados (funcionários, dentistas, pacientes, agendas); quem tem várias unidades escolhe uma por vez na barra lateral; empresas independentes não se enxergam. Registro de versões.'],
+  ['0.5.0', '2026-11-01', 'Pacientes: cadastro de prospects, ficha do paciente e avaliações com aviso ao dentista do dia e à gerência. Telas abertas em abas.'],
+  ['0.4.0', '2026-11-01', 'Agendas: cadeiras com ortodontista responsável, agenda Geral e grade do dia de 15 em 15 minutos; substituição de dentista por dia.'],
+  ['0.3.0', '', 'Dentistas: ortodontista e dias de trabalho por unidade. Busca de endereço pelo CEP e horário de almoço das unidades.'],
+  ['0.2.0', '', 'Cadastro de dentistas.'],
+  ['0.1.0', '', 'Primeira versão: login, unidades, funcionários e perfis de acesso. Marca Orto Gestão.']
+];
+const APP_VERSAO = VERSOES[0][0];
+$('#ver').textContent = 'v' + APP_VERSAO;
+$('#ver').addEventListener('click', () => {
+  abrirJanela('Registro de versões', '<div class="db"><div class="vl">' + VERSOES.map(v => '<div><b>v' + v[0] + '</b>' + (v[1] ? '<small>' + dBR(v[1]) + '</small>' : '') + '<p>' + esc(v[2]) + '</p></div>').join('') + '</div></div><div class="df"><button class="btn" type="button" id="vx">Fechar</button></div>');
+  $('#vx').addEventListener('click', fecharJanela);
+});
+
+/* ---------- unidade ativa: a pessoa vê uma unidade por vez ---------- */
+let UN = null; const MINHAS = [];
+function defUn(todas){
+  const m = (todas || []).filter(u => u.ativa && (EU.acesso_total || (EU.unidades || []).includes(u.id)));
+  MINHAS.length = 0; MINHAS.push(...m);
+  if (!MINHAS.some(u => u.id === UN)) { let sv = null; try { sv = Number(localStorage.getItem('og_un_' + EU.id)); } catch (_) {} UN = (MINHAS.find(u => u.id === sv) || MINHAS[0] || {}).id || null; }
+  desenhaUn();
+}
+function desenhaUn(){
+  const el = $('#und'), nm = u => esc(u.sigla) + ' — ' + esc(u.razao_social);
+  if (!MINHAS.length) { el.innerHTML = '<span class="ul">Unidade</span><b>Sem unidade vinculada</b>'; return; }
+  if (MINHAS.length === 1) { el.innerHTML = '<span class="ul">Unidade</span><b>' + nm(MINHAS[0]) + '</b>'; return; }
+  el.innerHTML = '<label class="ul" for="un-sel">Unidade</label><select id="un-sel">' + MINHAS.map(u => '<option value="' + u.id + '"' + (u.id === UN ? ' selected' : '') + '>' + nm(u) + '</option>').join('') + '</select>';
+  $('#un-sel').addEventListener('change', e => trocarUnidade(Number(e.target.value)));
+}
+const semUn = t => '<div class="head"><h1>' + t + '</h1></div><div class="card"><div class="vazio">' + (pode('unidades.criar') ? 'Nenhuma unidade cadastrada ainda. Cadastre a primeira em Configurações › Unidades.' : 'Você ainda não está vinculado a nenhuma unidade. Peça a um Diretor para vincular você em Funcionários.') + '</div></div>';
+function trocarUnidade(id){
+  FILA = FILA.then(async () => {
+    if (id === UN) return;
+    if (ABA) { try { await ABA.pronto; } catch (_) {} }
+    UN = id; try { localStorage.setItem('og_un_' + EU.id, String(id)); } catch (_) {}
+    desenhaUn(); AV.vistos = null; AV.lista = []; avBuscar();
+    const eraFicha = ABA && ABA.rota === 'paciente'; if (eraFicha) $('#area').replaceChildren();
+    const resto = ABAS.filter(a => a.rota !== 'paciente'); ABAS.length = 0; ABAS.push(...resto);
+    if (eraFicha) mostrar(ABAS.find(a => a.rota === 'prospects') || ABAS[0]); else renderAbas();
+    if (precisa(ABA)) recarregar(ABA);
+    try { await ABA.pronto; } catch (_) {}
+    toast('Unidade: ' + (MINHAS.find(u => u.id === id) || {}).sigla);
+  }).catch(() => {});
+  return FILA;
+}
+
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'prospects', 'paciente']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'prospects', 'paciente']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
+const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
   $('#abas').innerHTML = ABAS.map(a => '<div class="aba' + (a.fixa ? ' fixa' : '') + '" role="presentation"><button class="at" type="button" role="tab" data-aba="' + esc(a.chave) + '" aria-selected="' + (a === ABA) + '" title="' + esc(a.titulo) + '">' + esc(a.titulo) + '</button>'
     + (a.fixa ? '' : '<button class="ax" type="button" data-fecha="' + esc(a.chave) + '" aria-label="Fechar ' + esc(a.titulo) + '">×</button>') + '</div>').join('');
@@ -428,8 +490,8 @@ function irPara(r, o){
     const ja = ABAS.find(x => x.chave === chave);
     if (ja && ja === ABA) return;
     await guardar();
-    if (ja) { mostrar(ja); if (ATUALIZA.has(ja.rota)) ja.pronto = Promise.resolve(abrirRota(ja.rota, ja.opc)).catch(() => {}); return; }
-    const a = { chave, rota: r, titulo: (o && o.titulo) || TITULOS[r] || '', frag: document.createDocumentFragment(), fixa: r === 'inicio', opc: o || {}, y: 0 };
+    if (ja) { mostrar(ja); if (precisa(ja)) recarregar(ja); return; }
+    const a = { un: UN, chave, rota: r, titulo: (o && o.titulo) || TITULOS[r] || '', frag: document.createDocumentFragment(), fixa: r === 'inicio', opc: o || {}, y: 0 };
     ABAS.push(a); ABA = a; $('#area').replaceChildren(); mostrar(a);
     a.pronto = Promise.resolve(abrirRota(r, o || {})).catch(e => { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(e)) + '</div></div>'; });
     await a.pronto;
@@ -440,7 +502,7 @@ function fecharAba(chave){
   FILA = FILA.then(async () => {
     const k = ABAS.findIndex(x => x.chave === chave); if (k < 0 || ABAS[k].fixa) return;
     const a = ABAS[k];
-    if (a === ABA) { try { await a.pronto; } catch (_) {} $('#area').replaceChildren(); ABAS.splice(k, 1); mostrar(ABAS[k - 1] || ABAS[k] || ABAS[0]); const b = ABA; if (ATUALIZA.has(b.rota)) b.pronto = Promise.resolve(abrirRota(b.rota, b.opc)).catch(() => {}); }
+    if (a === ABA) { try { await a.pronto; } catch (_) {} $('#area').replaceChildren(); ABAS.splice(k, 1); mostrar(ABAS[k - 1] || ABAS[k] || ABAS[0]); const b = ABA; if (precisa(b)) recarregar(b); }
     else { ABAS.splice(k, 1); renderAbas(); }
   }).catch(() => {});
   return FILA;
@@ -486,7 +548,7 @@ async function uniCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const { data, error } = await sb.from('unidades').select('*').order('sigla');
   if (error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(error)) + '</div></div>'; return; }
-  D.unidades = data;
+  D.unidades = data; defUn(data);
   uniLista();
 }
 const horarioResumo = h => {
@@ -578,7 +640,9 @@ async function funCarregar(){
   const rs = await Promise.all([sb.from('funcionarios').select('*').order('nome'), sb.from('funcionario_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('perfis').select('*').order('id')]);
   const er = rs.map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.func = rs[0].data; D.fu = rs[1].data; D.unidades = rs[2].data; D.perfis = rs[3].data;
+  D.fu = rs[1].data; D.unidades = rs[2].data; D.perfis = rs[3].data; defUn(D.unidades);
+  if (!UN) { $('#area').innerHTML = semUn('Funcionários'); return; }
+  D.func = rs[0].data.filter(f => D.fu.some(x => x.funcionario_id === f.id && x.unidade_id === UN) || (D.perfis.find(p => p.id === f.perfil_id) || {}).acesso_total);
   funLista();
 }
 const nomePerfil = id => (D.perfis.find(p => p.id === id) || {}).nome || '—';
@@ -596,7 +660,7 @@ function funLista(){
 }
 function funForm(f){
   const novo = !f, edita = novo ? pode('funcionarios.criar') : pode('funcionarios.editar'), ro = edita ? '' : ' disabled';
-  const minhasUn = novo ? [] : D.fu.filter(x => x.funcionario_id === f.id).map(x => x.unidade_id);
+  const minhasUn = novo ? [UN] : D.fu.filter(x => x.funcionario_id === f.id).map(x => x.unidade_id);
   const senha0 = senhaSugerida();
   const perfisOk = D.perfis.filter(p => p.ativo || (f && p.id === f.perfil_id)).filter(p => !p.acesso_total || EU.acesso_total || (f && p.id === f.perfil_id));
   abrirJanela(novo ? 'Novo funcionário' : f.nome,
@@ -652,6 +716,7 @@ function funForm(f){
     if (v('f-ina') && v('f-ina') < v('f-adm')) { er.textContent = 'A inativação não pode ser antes da admissão.'; return; }
     if (!v('f-cargo')) { er.textContent = 'Informe o cargo.'; return; }
     if (!v('f-perfil')) { er.textContent = 'Escolha o perfil de acesso.'; return; }
+    if (!$$('#f-uns input:checked').length) { er.textContent = 'Marque ao menos uma unidade.'; return; }
     if (v('f-email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('f-email'))) { er.textContent = 'E-mail inválido.'; return; }
     if (!/^[a-z0-9]{4,20}$/.test(v('f-login'))) { er.textContent = 'O login precisa ter de 4 a 20 letras ou números.'; return; }
     if (novo && v('f-senha').length < 6) { er.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; }
@@ -731,7 +796,9 @@ async function denCarregar(){
   const rs = await Promise.all([sb.from('dentistas').select('*').order('nome'), sb.from('dentista_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('funcionarios').select('*').order('nome'), sb.from('dentista_dias').select('*')]);
   const er = [rs[0], rs[1], rs[2], rs[4]].map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.dent = rs[0].data; D.du = rs[1].data; D.unidades = rs[2].data; D.func = rs[3].error ? [] : rs[3].data; D.dd = rs[4].data;
+  D.du = rs[1].data; D.unidades = rs[2].data; defUn(D.unidades);
+  if (!UN) { $('#area').innerHTML = semUn('Dentistas'); return; }
+  D.dent = rs[0].data.filter(d => D.du.some(x => x.dentista_id === d.id && x.unidade_id === UN)); D.func = rs[3].error ? [] : rs[3].data; D.dd = rs[4].data;
   denLista();
 }
 function denLista(){
@@ -749,7 +816,7 @@ function denLista(){
 }
 function denForm(d){
   const novo = !d, edita = novo ? pode('dentistas.criar') : pode('dentistas.editar'), ro = edita ? '' : ' disabled';
-  const minhas = novo ? [] : D.du.filter(x => x.dentista_id === d.id).map(x => x.unidade_id);
+  const minhas = novo ? [UN] : D.du.filter(x => x.dentista_id === d.id).map(x => x.unidade_id);
   const usados = new Set(D.dent.filter(x => !d || x.id !== d.id).map(x => x.funcionario_id).filter(Boolean));
   const acessos = D.func.filter(f => !usados.has(f.id) && (!inativoEm(f.data_inativacao) || (d && d.funcionario_id === f.id)));
   const sel = (id, rot, lista, val) => '<label class="field" for="' + id + '">' + rot + '<select id="' + id + '"' + ro + '><option value=""></option>' + lista.map(x => '<option' + (val === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select></label>';
@@ -817,6 +884,7 @@ function denForm(d){
     if (v('d-email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('d-email'))) { er.textContent = 'E-mail inválido.'; return; }
     if (dig(v('d-cel')).length < 10) { er.textContent = 'Informe o celular com DDD.'; return; }
     if (!v('d-ativ')) { er.textContent = 'Informe a data de ativação.'; return; }
+    if (!$$('.un-on:checked').length) { er.textContent = 'Marque ao menos uma unidade em que o dentista atua.'; return; }
     const reg = { nome: v('d-nome'), nome_social: v('d-social') || null, cpf, cro, email: v('d-email') || null, celular: dig(v('d-cel')), telefone_residencial: dig(v('d-res')) || null,
       data_ativacao: v('d-ativ'), rg: v('d-rg') || null, data_nascimento: v('d-nasc') || null, estado_civil: v('d-civil') || null, nacionalidade: v('d-nac') || null, valor_atendimento: moedaNum(v('d-valor')),
       atende_outros: $('#d-outros').checked, ortodontista: $('#d-orto').checked, cep: dig(v('d-cep')) || null, logradouro: v('d-log') || null, numero: v('d-num') || null, complemento: v('d-comp') || null, bairro: v('d-bai') || null, cidade: v('d-cid') || null, uf: v('d-uf') || null,
@@ -850,7 +918,9 @@ async function pacCarregar(){
   const rs = await Promise.all([sb.from('pacientes').select('*').order('id', { ascending: false }), sb.from('avaliacoes').select('*').in('status', ['aguardando', 'em_atendimento']), sb.from('unidades').select('*').order('sigla')]);
   const er = rs.map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.pac = rs[0].data; D.avAb = rs[1].data; D.unidades = rs[2].data;
+  D.unidades = rs[2].data; defUn(D.unidades);
+  if (!UN) { $('#area').innerHTML = semUn('Prospects'); return; }
+  D.pac = rs[0].data.filter(p => p.unidade_id === UN); D.avAb = rs[1].data.filter(a => a.unidade_id === UN);
   $('#area').innerHTML = '<div class="head"><div><h1>Prospects</h1><p class="sub">Pessoas que ainda não iniciaram o tratamento. Cadastre e inicie a avaliação com o dentista do dia.</p></div>' + (pode('pacientes.criar') ? '<button class="btn" type="button" id="pc-novo">+ Novo prospect</button>' : '') + '</div>'
     + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF ou código" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div><div class="lista" id="pc-lista"></div></div>';
   pacLista();
@@ -870,8 +940,8 @@ function pacLista(){
 const abrirPaciente = p => irPara('paciente', { chave: 'paciente:' + p.id, titulo: (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '), id: p.id });
 function pacForm(p, aoSalvar){
   const novo = !p, edita = novo ? pode('pacientes.criar') : pode('pacientes.editar'), ro = edita ? '' : ' disabled';
-  const unid = (D.unidades || []).filter(u => u.ativa || (p && u.id === p.unidade_id));
-  const un0 = p ? p.unidade_id : ((EU.unidades || []).find(id => unid.some(u => u.id === id)) || (unid[0] || {}).id);
+  const unid = MINHAS.slice();
+  const un0 = p ? p.unidade_id : UN;
   abrirJanela(novo ? 'Novo prospect' : 'Editar cadastro',
     '<form id="pc-form" novalidate><div class="db">'
     + fld('pc-nome', 'Nome completo *', p && p.nome, 'maxlength="120" autocomplete="off"' + ro)
@@ -939,7 +1009,7 @@ async function pacFicha(id){
   });
 }
 function avIniciarDialogo(p, aoFim){
-  const unid = D.unidades.filter(u => u.ativa), un0 = unid.some(u => u.id === p.unidade_id) ? p.unidade_id : (unid[0] || {}).id;
+  const unid = MINHAS.slice(), un0 = unid.some(u => u.id === p.unidade_id) ? p.unidade_id : UN;
   abrirJanela('Iniciar avaliação', '<form id="ai-form" novalidate><div class="db"><p style="margin:0"><b>' + esc(p.nome) + '</b></p>'
     + '<p class="sub" style="margin:0">Ao iniciar, o dentista que atende hoje na unidade e a gerência recebem o aviso na barra lateral de avaliações.</p>'
     + '<label class="field" for="ai-un">Unidade da avaliação<select id="ai-un">' + unid.map(u => '<option value="' + u.id + '"' + (u.id === un0 ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select></label>'
@@ -964,7 +1034,7 @@ function avIniciar(){
 function avParar(){ clearInterval(AV.timer); AV.timer = null; AV.lista = []; AV.vistos = null; const s = $('#sino'); if (s) s.hidden = true; const pn = $('#painel'); if (pn) pn.hidden = true; }
 async function avBuscar(){
   if (!EU || !avVe()) return;
-  const { data, error } = await sb.rpc('avaliacoes_pendentes'); if (error || !EU) return;
+  const res = await sb.rpc('avaliacoes_pendentes'); if (res.error || !EU) return; const data = (res.data || []).filter(x => x.unidade_id === UN);
   const novos = AV.vistos ? data.filter(x => x.status === 'aguardando' && !AV.vistos.has(x.id)) : [];
   const primeira = !AV.vistos; AV.vistos = new Set(data.map(x => x.id)); AV.lista = data;
   const aguard = data.filter(x => x.status === 'aguardando');
@@ -1010,22 +1080,21 @@ async function agsCarregar(){
   const rs = await Promise.all([sb.from('unidades').select('*').order('sigla'), sb.from('agendas').select('*').order('ordem')]);
   const er = rs.map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.unidades = rs[0].data; D.agendas = rs[1].data;
-  if (!AGS.un || !D.unidades.some(u => u.id === AGS.un)) AGS.un = (D.unidades.find(u => u.ativa) || D.unidades[0] || {}).id;
-  if (AGS.un) await agsDentistas(AGS.un);
+  D.unidades = rs[0].data; D.agendas = rs[1].data; defUn(D.unidades);
+  if (!UN) { $('#area').innerHTML = semUn('Agendas'); return; }
+  AGS.un = UN; await agsDentistas(AGS.un);
   agsLista();
 }
 function agsLista(){
   const un = D.unidades.find(u => u.id === AGS.un);
   $('#area').innerHTML = '<div class="head"><div><h1>Agendas</h1><p class="sub">As cadeiras de cada unidade e o ortodontista responsável por cada uma.</p></div>' + (pode('agendas.criar') && un ? '<button class="btn" type="button" id="a-nova">+ Nova agenda</button>' : '') + '</div>'
-    + '<div class="card"><div class="tools"><select id="a-un" aria-label="Unidade">' + D.unidades.map(u => '<option value="' + u.id + '"' + (u.id === AGS.un ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + (u.ativa ? '' : ' (inativa)') + '</option>').join('') + '</select></div><div class="lista" id="a-lista"></div></div>';
+    + '<div class="card"><div class="tools" style="margin-bottom:6px"><span class="pill nu">Unidade ' + esc(un.sigla) + ' — ' + esc(un.razao_social) + '</span></div><div class="lista" id="a-lista"></div></div>';
   const l = D.agendas.filter(a => a.unidade_id === AGS.un).sort((x, y) => (y.tipo === 'geral') - (x.tipo === 'geral') || x.ordem - y.ordem || x.nome.localeCompare(y.nome));
   const resp = id => D.dun.find(x => x.id === id);
   $('#a-lista').innerHTML = l.length ? l.map(a => { const r = resp(a.dentista_id);
     return '<button class="row f" type="button" data-id="' + a.id + '"><b><span class="sig" style="margin-right:8px">' + esc(a.nome) + '</span>' + (a.tipo === 'geral' ? 'Agenda Geral' : esc(r ? r.nome : 'Responsável #' + a.dentista_id)) + '</b>'
       + '<span class="m x">' + (a.tipo === 'geral' ? 'Todos os dias de funcionamento' : esc(diasTxt(r && r.dias))) + '</span><span class="m x">' + (a.tipo === 'geral' ? 'Sem responsável fixo' : 'Cadeira') + '</span><span class="m x"></span><span class="pill ' + (a.ativa ? 'on' : 'off') + '">' + (a.ativa ? 'Ativa' : 'Inativa') + '</span></button>'; }).join('')
     : '<div class="vazio">Nenhuma agenda nesta unidade ainda.</div>';
-  $('#a-un').addEventListener('change', async e => { AGS.un = Number(e.target.value); await agsDentistas(AGS.un); agsLista(); });
   $$('#a-lista .row').forEach(b => b.addEventListener('click', () => agsForm(D.agendas.find(a => a.id === Number(b.dataset.id)))));
   const n = $('#a-nova'); if (n) n.addEventListener('click', () => agsForm(null));
 }
@@ -1088,21 +1157,20 @@ async function agdCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const r = await sb.from('unidades').select('*').order('sigla');
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
-  D.unidades = r.data.filter(u => u.ativa);
-  if (!D.unidades.length) { $('#area').innerHTML = '<div class="head"><h1>Agenda</h1></div><div class="card"><div class="vazio">Cadastre uma unidade primeiro.</div></div>'; return; }
-  if (!AG.un || !D.unidades.some(u => u.id === AG.un)) AG.un = (D.unidades.find(u => EU.unidades.includes(u.id)) || D.unidades[0]).id;
+  defUn(r.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Agenda'); return; }
+  AG.un = UN;
   if (!AG.data) AG.data = hoje();
   agdDesenhar();
 }
 async function agdDesenhar(){
   const un = D.unidades.find(u => u.id === AG.un), dt = dataLocal(AG.data), dow = dt.getDay();
   $('#area').innerHTML = '<div class="head"><div><h1>Agenda</h1><p class="sub">Grade do dia, em horários de 15 em 15 minutos.</p></div></div>'
-    + '<div class="agbar"><select id="g-un" aria-label="Unidade">' + D.unidades.map(u => '<option value="' + u.id + '"' + (u.id === AG.un ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select>'
+    + '<div class="agbar"><span class="pill nu">' + esc(un.sigla) + ' — ' + esc(un.razao_social) + '</span>'
     + '<div class="nav"><button class="btn ghost sm" type="button" id="g-ant" aria-label="Dia anterior">◀</button><button class="btn ghost sm" type="button" id="g-hoje">Hoje</button><button class="btn ghost sm" type="button" id="g-prox" aria-label="Próximo dia">▶</button></div>'
     + '<input type="date" id="g-data" value="' + esc(AG.data) + '" aria-label="Data"><span class="dl">' + esc(dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + '</span>'
     + '<button class="btn ghost sm" type="button" id="g-atual">Atualizar</button></div><div id="g-corpo"><div class="card"><p class="sub">Carregando...</p></div></div>';
   const troca = () => { agdDesenhar(); };
-  $('#g-un').addEventListener('change', e => { AG.un = Number(e.target.value); troca(); });
   $('#g-ant').addEventListener('click', () => { AG.data = somaDias(AG.data, -1); troca(); });
   $('#g-prox').addEventListener('click', () => { AG.data = somaDias(AG.data, 1); troca(); });
   $('#g-hoje').addEventListener('click', () => { AG.data = hoje(); troca(); });
