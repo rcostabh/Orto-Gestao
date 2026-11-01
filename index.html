@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orto Gestão</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2216%22%20fill=%22%230b0b0b%22/%3E%3Cpath%20d=%22M32%2012a20%2020%200%201%200%2020%2020%22%20fill=%22none%22%20stroke=%22%23ff6a00%22%20stroke-width=%228%22%20stroke-linecap=%22round%22/%3E%3Cpath%20d=%22M45%2011v14M38%2018h14%22%20stroke=%22%23fff%22%20stroke-width=%225%22%20stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f4f2; --surface:#ffffff; --surface-2:#efede9; --ink:#141414; --muted:#6b6862; --line:#e3e0da;
+  --accent:#ff6a00; --accent-ink:#0b0b0b; --accent-text:#bf4b00; --accent-soft:#fff0e3; --side:#0b0b0b; --side-ink:#e9e7e3; --side-muted:#8a8680;
+  --red:#c62828; --red-soft:#fdeaea; --ok:#1b7a3d; --ok-soft:#e3f5e8; --warn:#9a5b00; --warn-soft:#fff2d9;
+  --shadow:0 1px 2px rgba(20,20,20,.05),0 8px 24px rgba(20,20,20,.07);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0e0e0e; --surface:#181818; --surface-2:#232323; --ink:#f3f1ed; --muted:#a29e97; --line:#2c2c2c;
+    --accent:#ff7a1a; --accent-ink:#0b0b0b; --accent-text:#ff9140; --accent-soft:#34200f; --side:#050505; --side-ink:#e9e7e3; --side-muted:#7d7a74;
+    --red:#ff8a80; --red-soft:#3a1c1c; --ok:#6fdc8c; --ok-soft:#14301d; --warn:#ffc266; --warn-soft:#3a2b0d;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.4); color-scheme:dark}
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
+h1{font:700 24px/1.2 var(--font);letter-spacing:-.02em;margin:0}
+h2{font:650 17px/1.25 var(--font);margin:0 0 4px}
+.sub{color:var(--muted);font-size:13.5px;margin:0}
+button{font-family:inherit}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font:600 14px var(--font);padding:0 18px;min-height:42px;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:filter .15s}
+.btn:hover{filter:brightness(1.08)} .btn:disabled{opacity:.55;cursor:default}
+.btn.ghost{background:var(--surface-2);color:var(--ink)} .btn.ghost:hover{filter:none;background:var(--line)}
+.btn.danger{background:var(--red-soft);color:var(--red)} .btn.sm{min-height:34px;padding:0 12px;font-size:13px;border-radius:10px}
+.err{color:var(--red);font-size:13.5px;min-height:1px;margin-top:6px} .err:empty{display:none}
+.ok-msg{color:var(--ok);font-size:13.5px}
+
+/* login */
+#v-login{min-height:100%;display:grid;place-items:center;padding:24px;background:radial-gradient(900px 500px at 85% -10%,rgba(255,106,0,.28),transparent 60%),radial-gradient(700px 420px at -10% 110%,rgba(255,106,0,.14),transparent 60%),#0b0b0b}
+.login{--surface:#151515;--surface-2:#242424;--ink:#f5f3ef;--muted:#a9a59e;--line:#303030;--accent:#ff6a00;width:100%;max-width:410px;background:#151515;color:var(--ink);border-radius:26px;padding:36px 30px;box-shadow:0 30px 80px rgba(0,0,0,.6);border:1px solid #2a2a2a}
+.login h1{font-size:30px}
+.mark{display:block;flex:none}
+.login .mark{width:56px;height:56px;margin-bottom:22px}
+.wm{font-weight:800;letter-spacing:-.035em}.wm i{font-style:normal;font-weight:500;color:var(--accent)}
+.login h1{margin-bottom:4px}
+.form{display:grid;gap:14px;margin-top:22px}
+.field{display:grid;gap:5px;font-size:13px;font-weight:600;color:var(--muted);min-width:0}
+.field input,.field select,.field textarea{font:400 15px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:11px;min-height:44px;padding:9px 12px;width:100%;min-width:0}
+.field input:focus,.field select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.field input[readonly]{background:var(--surface-2)}
+.field small{font-weight:400;color:var(--muted);font-size:12px}
+.pw{position:relative} .pw input{padding-right:84px}
+.pw button{position:absolute;right:6px;top:6px;min-height:32px;border:0;background:var(--surface-2);color:var(--ink);border-radius:8px;padding:0 10px;font:600 12px var(--font);cursor:pointer}
+
+/* shell */
+#v-app{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100%}
+.side{background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 20px}
+.brand .mark{width:36px;height:36px}.brand .wm{font-size:19px;color:#fff}
+.grp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--side-muted);padding:16px 10px 6px;font-weight:600}
+.item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--side-ink);font:500 14.5px var(--font);padding:0 12px;min-height:42px;border-radius:10px;cursor:pointer;text-align:left}
+.item:hover{background:rgba(255,255,255,.07)} .item[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.item svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.item.soon{opacity:.5;cursor:default}.item.soon:hover{background:transparent}
+.item .tag{margin-left:auto;font-size:10.5px;background:rgba(255,255,255,.12);padding:2px 7px;border-radius:99px}
+.side .eu{margin-top:auto;padding:14px 10px 4px;border-top:1px solid rgba(255,255,255,.1);font-size:13px}
+.side .eu b{display:block;color:#fff;font-size:14px}.side .eu span{color:var(--side-muted)}
+.side .eu button{margin-top:10px;width:100%}
+.main{min-width:0;padding:26px clamp(16px,3vw,36px) 60px}
+.bar{display:none}
+.head{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line);padding:20px;min-width:0}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.tools input,.tools select{font:400 14.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:11px;min-height:42px;padding:0 12px}
+.tools input{flex:1 1 220px;min-width:0}
+.lista{display:grid}
+.row{display:grid;grid-template-columns:90px minmax(0,1.6fr) minmax(0,1.2fr) minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:12px 6px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;font:inherit;cursor:pointer;width:100%;border-radius:0}
+.row:first-child{border-top:0}.row:hover{background:var(--surface-2)}
+.row.f{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto}
+.row .m{color:var(--muted);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sig{font:700 13px var(--font);background:var(--accent-soft);color:var(--accent-text);padding:5px 10px;border-radius:8px;text-align:center;justify-self:start}
+.pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap}
+.pill.on{background:var(--ok-soft);color:var(--ok)} .pill.off{background:var(--red-soft);color:var(--red)} .pill.wr{background:var(--warn-soft);color:var(--warn)} .pill.nu{background:var(--accent-soft);color:var(--accent-text)}
+.vazio{padding:34px 10px;text-align:center;color:var(--muted)}
+.tres{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.tres .card{display:grid;gap:6px}.tres .card svg{width:26px;height:26px;stroke:var(--accent-text);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* janelas */
+dialog{border:0;border-radius:20px;padding:0;width:min(760px,calc(100vw - 20px));max-height:calc(100vh - 20px);background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(8,18,22,.55)}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.dh h2{margin:0;font-size:18px}
+.dx{border:0;background:var(--surface-2);color:var(--ink);width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer}
+.db{padding:20px 22px;overflow:auto;flex:1 1 auto;min-height:0;display:grid;gap:16px;align-content:start}
+dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
+#dlg-c,#dlg-c form{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
+.df{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--line)}
+.df .esq{margin-right:auto;display:flex;gap:10px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}
+.sec{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-text);font-weight:700;margin:4px 0 -4px}
+.hor{display:grid;gap:8px}
+.hor .d{display:grid;grid-template-columns:120px 1fr 1fr;gap:10px;align-items:center}
+.hor .d label.c{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-height:40px}
+.hor input[type=time]{font:400 15px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px;width:100%}
+.hor input:disabled{opacity:.4}
+.chk{display:flex;align-items:center;gap:9px;min-height:38px;font-size:14.5px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
+.chks{display:flex;flex-wrap:wrap;gap:2px 18px}
+.cred{background:var(--accent-soft);border-radius:14px;padding:14px 16px;display:grid;gap:4px}
+.cred code{font:600 16px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em}
+.sen{background:var(--surface-2);border-radius:14px;padding:14px;display:grid;gap:10px}
+
+/* perfis */
+.perf{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
+.pl{display:grid;gap:4px}
+.pl button{display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;background:transparent;color:var(--ink);font:500 14.5px var(--font);padding:0 12px;min-height:44px;border-radius:11px;cursor:pointer;text-align:left}
+.pl button:hover{background:var(--surface-2)}.pl button[aria-current="true"]{background:var(--accent-soft);color:var(--accent-text);font-weight:650}
+.mod{border-top:1px solid var(--line);padding:12px 0;display:grid;gap:2px}
+.mod:first-of-type{border-top:0}
+.mod .t{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:650}
+.link{border:0;background:none;color:var(--accent-text);font:600 13px var(--font);cursor:pointer;padding:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:14px;z-index:99;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+
+@media (max-width:900px){
+  #v-app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;inset:0 auto 0 0;width:280px;z-index:40;transform:translateX(-102%);transition:transform .22s}
+  #v-app.aberto .side{transform:none;box-shadow:0 0 0 100vmax rgba(8,18,22,.5)}
+  .bar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 14px}
+  .bar button{border:0;background:var(--surface-2);color:var(--ink);width:42px;height:42px;border-radius:11px;font-size:20px;cursor:pointer}
+  .main{padding:18px 14px 60px}
+  .row,.row.f{grid-template-columns:minmax(0,1fr) auto}
+  .row .m.x{display:none}
+  .perf{grid-template-columns:minmax(0,1fr)}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+  .hor .d{grid-template-columns:96px 1fr 1fr;gap:6px}
+  .df .esq{width:100%;margin-right:0}
+  .df .btn{flex:1}
+}
+</style>
+</head>
+<body>
+
+<div id="v-conf" hidden style="padding:40px 20px;max-width:560px;margin:0 auto">
+  <div class="card"><h1>Falta ligar o banco de dados</h1>
+  <p class="sub" style="margin-top:8px">Abra o arquivo <b>config.js</b> e preencha o endereço (URL) e a chave pública (anon) do seu projeto no Supabase.</p></div>
+</div>
+
+<div id="v-login" hidden>
+  <form class="login" id="form-entrar" autocomplete="on" novalidate>
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0b0b0b" stroke="#2b2b2b" stroke-width="1"/><path d="M32 12a20 20 0 1 0 20 20" fill="none" stroke="#ff6a00" stroke-width="8" stroke-linecap="round"/><path d="M45 11v14M38 18h14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>
+    <h1><span class="wm">Orto<i> Gestão</i></span></h1>
+    <p class="sub">Entre com o seu login e a sua senha.</p>
+    <div class="form">
+      <label class="field" for="l-login">Login<input id="l-login" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20" placeholder="Ex.: abc123"></label>
+      <label class="field" for="l-senha">Senha<span class="pw"><input id="l-senha" type="password" autocomplete="current-password"><button type="button" id="l-ver" aria-label="Mostrar senha">Mostrar</button></span></label>
+      <div class="err" id="l-err" role="alert"></div>
+      <button class="btn" id="l-btn" type="submit">Entrar</button>
+    </div>
+  </form>
+</div>
+
+<div id="v-app" hidden>
+  <aside class="side" id="side" aria-label="Menu principal">
+    <div class="brand"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0b0b0b" stroke="#2b2b2b" stroke-width="1"/><path d="M32 12a20 20 0 1 0 20 20" fill="none" stroke="#ff6a00" stroke-width="8" stroke-linecap="round"/><path d="M45 11v14M38 18h14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg><span class="wm">Orto<i> Gestão</i></span></div>
+    <nav id="menu"></nav>
+    <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
+  </aside>
+  <div>
+    <div class="bar"><button type="button" id="abre" aria-label="Abrir menu">☰</button><b id="bar-t"></b></div>
+    <main class="main" id="area" tabindex="-1"></main>
+  </div>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-t"><div class="dh"><h2 id="dlg-t"></h2><button class="dx" type="button" id="dlg-x" aria-label="Fechar">×</button></div><div id="dlg-c"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = (s, r) => (r||document).querySelector(s);
+const $$ = (s, r) => Array.from((r||document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const C = window.CONFIG || {};
+const DOMINIO = C.LOGIN_DOMAIN || 'acesso.orto.app';
+let sb = null, EU = null, ROTA = 'inicio';
+const D = { unidades: [], perfis: [], permissoes: [], pp: [], func: [], fu: [] };
+
+/* ---------- utilidades ---------- */
+const hoje = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+const dBR = d => d ? d.split('-').reverse().join('/') : '';
+const dig = s => String(s || '').replace(/\D/g, '');
+const mCPF = s => { const d = dig(s).slice(0, 11); return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2'); };
+const mTel = s => { const d = dig(s).slice(0, 11); if (d.length <= 2) return d ? '(' + d : ''; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
+const mCEP = s => { const d = dig(s).slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; };
+function cpfOk(p){
+  if (!/^\d{11}$/.test(p) || /^(\d)\1{10}$/.test(p)) return false;
+  const d = p.split('').map(Number); let s = 0, r;
+  for (let i = 0; i < 9; i++) s += d[i] * (10 - i); r = (s * 10) % 11; if (r === 10) r = 0; if (r !== d[9]) return false;
+  s = 0; for (let i = 0; i < 10; i++) s += d[i] * (11 - i); r = (s * 10) % 11; if (r === 10) r = 0; return r === d[10];
+}
+let tt; function toast(m){ const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 3800); }
+const sorteio = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+function senhaSugerida(){
+  const al = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  for (;;) { let s = ''; for (let i = 0; i < 8; i++) s += al[sorteio(al.length)]; if (/[A-Z]/.test(s) && /[a-z]/.test(s) && /\d/.test(s)) return s; }
+}
+function loginSugerido(nome, usados){
+  const stop = ['de', 'da', 'do', 'das', 'dos', 'e'];
+  const ini = nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/\s+/).filter(w => w && !stop.includes(w)).map(w => w[0]).filter(c => /[a-z]/.test(c)).join('').slice(0, 4) || 'usr';
+  const n = 6 - ini.length;
+  for (let t = 0; t < 300; t++) { let d = ''; for (let i = 0; i < n; i++) d += sorteio(10); if (!usados.has(ini + d)) return ini + d; }
+  return ini + String(Date.now()).slice(-n);
+}
+const inativoEm = (dt) => !!dt && dt <= hoje();
+const erroTxt = e => {
+  if (!e) return '';
+  if (e.code === '42501' || /row-level security|permission denied|Sem permissão/i.test(e.message || '')) return 'Você não tem permissão para fazer isso.';
+  if (e.code === '23505') { const m = e.message || ''; return /sigla/.test(m) ? 'Já existe uma unidade com essa sigla.' : /cpf/.test(m) ? 'Já existe um cadastro com esse CPF.' : /cro/.test(m) ? 'Já existe um dentista com esse CRO.' : /funcionario_id/.test(m) ? 'Esse acesso já está ligado a outro dentista.' : 'Já existe um cadastro igual a esse.'; }
+  return e.message || 'Algo deu errado. Tente de novo.';
+};
+async function chamar(body){
+  const { data, error } = await sb.functions.invoke('gestao-funcionarios', { body });
+  if (error) {
+    try { if (error.context && error.context.json) { const j = await error.context.json(); if (j && j.erro) return { erro: j.erro }; } } catch (_) {}
+    return { erro: 'Não foi possível falar com o servidor. Confira se a função está publicada.' };
+  }
+  if (data && data.erro) return { erro: data.erro };
+  return { ok: true, data };
+}
+const pode = p => !!EU && (EU.acesso_total || EU.permissoes.includes(p));
+
+/* ---------- janelas ---------- */
+const dlg = $('#dlg');
+function abrirJanela(titulo, html){ $('#dlg-t').textContent = titulo; $('#dlg-c').innerHTML = html; if (!dlg.open) dlg.showModal(); }
+function fecharJanela(){ if (dlg.open) dlg.close(); }
+$('#dlg-x').addEventListener('click', fecharJanela);
+dlg.addEventListener('click', e => { if (e.target === dlg) fecharJanela(); });
+
+/* ---------- entrar e sair ---------- */
+async function iniciar(){
+  if (!C.SUPABASE_URL || !C.SUPABASE_ANON_KEY || !window.supabase) { $('#v-conf').hidden = false; return; }
+  sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  const { data } = await sb.auth.getSession();
+  if (data && data.session) { if (!(await entrarNoApp())) { await sb.auth.signOut(); $('#v-login').hidden = false; $('#l-err').textContent = 'Seu acesso está inativo ou ainda não foi liberado.'; } }
+  else $('#v-login').hidden = false;
+}
+async function entrarNoApp(){
+  const { data, error } = await sb.rpc('meu_acesso');
+  if (error || !data) return false;
+  EU = data;
+  $('#v-login').hidden = true; $('#v-app').hidden = false;
+  $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || '';
+  montarMenu(); irPara('inicio');
+  return true;
+}
+$('#l-ver').addEventListener('click', () => { const i = $('#l-senha'); const v = i.type === 'password'; i.type = v ? 'text' : 'password'; $('#l-ver').textContent = v ? 'Ocultar' : 'Mostrar'; });
+$('#form-entrar').addEventListener('submit', async e => {
+  e.preventDefault();
+  const login = $('#l-login').value.trim().toLowerCase(), senha = $('#l-senha').value;
+  const er = $('#l-err'); er.textContent = '';
+  if (!login || !senha) { er.textContent = 'Digite o login e a senha.'; return; }
+  const b = $('#l-btn'); b.disabled = true; b.textContent = 'Entrando...';
+  const { error } = await sb.auth.signInWithPassword({ email: login + '@' + DOMINIO, password: senha });
+  if (error) { er.textContent = 'Login ou senha incorretos.'; b.disabled = false; b.textContent = 'Entrar'; return; }
+  const ok = await entrarNoApp();
+  b.disabled = false; b.textContent = 'Entrar';
+  if (!ok) { await sb.auth.signOut(); er.textContent = 'Seu acesso está inativo ou ainda não foi liberado. Fale com a administração.'; return; }
+  $('#l-senha').value = '';
+});
+$('#sair').addEventListener('click', async () => { await sb.auth.signOut(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
+
+/* ---------- menu ---------- */
+const IC = {
+  inicio: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  unidades: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>',
+  funcionarios: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5c2.2.6 3.5 2.4 3.5 5.5"/>',
+  dentistas: '<path d="M8 3C5.500 3 4 5 4 7.500c0 3 1.500 4 1.500 7 0 2.500.8 6 2.500 6 1.700 0 1.200-3.500 4-3.500s2.300 3.500 4 3.500c1.700 0 2.500-3.500 2.500-6 0-3 1.500-4 1.500-7C20 5 18.500 3 16 3c-1.800 0-2.500.8-4 .8S9.800 3 8 3z"/>',
+  perfis: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
+  agenda: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+  cobranca: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>'
+};
+const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg>';
+const MENU = [
+  { r: 'inicio', t: 'Início', p: null },
+  { g: 'Cadastros', itens: [
+    { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
+    { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
+    { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
+    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
+  { g: 'Em construção', soon: [['vendas', 'Vendas'], ['agenda', 'Agenda'], ['cobranca', 'Cobrança']] }
+];
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', perfis: 'Perfis de acesso' };
+function montarMenu(){
+  let h = '';
+  for (const m of MENU) {
+    if (m.r) h += btnMenu(m);
+    else if (m.itens) { const v = m.itens.filter(i => pode(i.p)); if (v.length) h += '<div class="grp">' + m.g + '</div>' + v.map(btnMenu).join(''); }
+    else h += '<div class="grp">' + m.g + '</div>' + m.soon.map(s => '<div class="item soon" aria-disabled="true">' + ico(s[0]) + s[1] + '<span class="tag">em breve</span></div>').join('');
+  }
+  $('#menu').innerHTML = h;
+  $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r)));
+}
+const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' + ico(i.r) + i.t + '</button>';
+function irPara(r){
+  ROTA = r;
+  $$('#menu .item').forEach(b => b.dataset.r === r ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  $('#bar-t').textContent = TITULOS[r] || '';
+  $('#v-app').classList.remove('aberto');
+  if (r === 'unidades') return uniCarregar();
+  if (r === 'funcionarios') return funCarregar();
+  if (r === 'dentistas') return denCarregar();
+  if (r === 'perfis') return perCarregar();
+  telaInicio();
+}
+$('#abre').addEventListener('click', () => $('#v-app').classList.toggle('aberto'));
+$('#side').addEventListener('click', e => { if (e.target.closest('.item[data-r]')) $('#v-app').classList.remove('aberto'); });
+
+function telaInicio(){
+  const primeiro = (EU.nome || '').split(' ')[0];
+  const sem = !EU.acesso_total && !EU.permissoes.length;
+  $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div></div>'
+    + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
+    + '<div class="tres">'
+    + [['vendas', 'Vendas', 'Metas, visitas e fechamentos.'], ['agenda', 'Agenda', 'Consultas, cadeiras e profissionais.'], ['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
+      .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('')
+    + '</div>';
+}
+
+/* ---------- UNIDADES ---------- */
+const DIAS = [[1, 'Segunda'], [2, 'Terça'], [3, 'Quarta'], [4, 'Quinta'], [5, 'Sexta'], [6, 'Sábado'], [0, 'Domingo']];
+const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
+async function uniCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const { data, error } = await sb.from('unidades').select('*').order('sigla');
+  if (error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(error)) + '</div></div>'; return; }
+  D.unidades = data;
+  uniLista();
+}
+const horarioResumo = h => {
+  const ab = DIAS.filter(d => h && h[d[0]]);
+  if (!ab.length) return 'Sem horário';
+  const iguais = ab.every(d => h[d[0]].abre === h[ab[0][0]].abre && h[d[0]].fecha === h[ab[0][0]].fecha);
+  return ab.length + ' dia' + (ab.length > 1 ? 's' : '') + (iguais ? ' · ' + h[ab[0][0]].abre + ' às ' + h[ab[0][0]].fecha : '');
+};
+function uniLista(){
+  $('#area').innerHTML = '<div class="head"><div><h1>Unidades</h1><p class="sub">Clínicas da rede.</p></div>' + (pode('unidades.criar') ? '<button class="btn" type="button" id="u-novo">+ Nova unidade</button>' : '') + '</div>'
+    + '<div class="card"><div class="tools"><input id="u-q" type="search" placeholder="Buscar por sigla, nome ou cidade" aria-label="Buscar unidades"><select id="u-st" aria-label="Situação"><option value="a">Ativas</option><option value="i">Inativas</option><option value="t">Todas</option></select></div><div class="lista" id="u-lista"></div></div>';
+  const desenhar = () => {
+    const q = $('#u-q').value.trim().toLowerCase(), st = $('#u-st').value;
+    const l = D.unidades.filter(u => (st === 't' || (st === 'a') === u.ativa) && (!q || [u.sigla, u.razao_social, u.cidade].join(' ').toLowerCase().includes(q)));
+    $('#u-lista').innerHTML = l.length ? l.map(u => '<button class="row" type="button" data-id="' + u.id + '"><span class="sig">' + esc(u.sigla) + '</span><b>' + esc(u.razao_social) + '</b><span class="m x">' + esc([u.cidade, u.uf].filter(Boolean).join(' / ')) + '</span><span class="m x">' + esc(mTel(u.telefone)) + ' · ' + esc(horarioResumo(u.horario)) + '</span><span class="pill ' + (u.ativa ? 'on' : 'off') + '">' + (u.ativa ? 'Ativa' : 'Inativa') + '</span></button>').join('') : '<div class="vazio">Nenhuma unidade encontrada.</div>';
+    $$('#u-lista .row').forEach(b => b.addEventListener('click', () => uniForm(D.unidades.find(u => u.id === Number(b.dataset.id)))));
+  };
+  $('#u-q').addEventListener('input', desenhar); $('#u-st').addEventListener('change', desenhar); desenhar();
+  const n = $('#u-novo'); if (n) n.addEventListener('click', () => uniForm(null));
+}
+const fld = (id, rot, val, extra) => '<label class="field" for="' + id + '">' + rot + '<input id="' + id + '" value="' + esc(val) + '" ' + (extra || '') + '></label>';
+function uniForm(u){
+  const novo = !u, edita = novo ? pode('unidades.criar') : pode('unidades.editar'), ro = edita ? '' : ' disabled';
+  const h = (u && u.horario) || {};
+  const horas = DIAS.map(d => { const x = h[d[0]]; return '<div class="d"><label class="c"><input type="checkbox" class="h-on" data-d="' + d[0] + '"' + (x ? ' checked' : '') + ro + '> ' + d[1] + '</label><input type="time" class="h-a" data-d="' + d[0] + '" value="' + esc(x ? x.abre : '08:00') + '" aria-label="Abre ' + d[1] + '"' + (x && edita ? '' : ' disabled') + '><input type="time" class="h-f" data-d="' + d[0] + '" value="' + esc(x ? x.fecha : '18:00') + '" aria-label="Fecha ' + d[1] + '"' + (x && edita ? '' : ' disabled') + '></div>'; }).join('');
+  abrirJanela(novo ? 'Nova unidade' : 'Unidade ' + u.sigla,
+    '<form id="u-form" novalidate><div class="db"><div class="sec">Identificação</div>'
+    + '<div class="g2">' + fld('u-razao', 'Razão social', u && u.razao_social, 'maxlength="120"' + ro) + fld('u-sigla', 'Sigla <small>(2 a 8 letras ou números)</small>', u && u.sigla, 'maxlength="8" autocapitalize="characters"' + ro) + '</div>'
+    + '<div class="g2">' + fld('u-tel', 'Telefone', mTel(u && u.telefone), 'inputmode="tel" maxlength="15"' + ro) + '</div>'
+    + '<div class="sec">Endereço</div>'
+    + '<div class="g3">' + fld('u-cep', 'CEP', mCEP(u && u.cep), 'inputmode="numeric" maxlength="9"' + ro) + fld('u-log', 'Rua / Avenida', u && u.logradouro, ro) + fld('u-num', 'Número', u && u.numero, 'maxlength="10"' + ro) + '</div>'
+    + '<div class="g3">' + fld('u-comp', 'Complemento', u && u.complemento, ro) + fld('u-bai', 'Bairro', u && u.bairro, ro) + fld('u-cid', 'Cidade', u && u.cidade, ro) + '</div>'
+    + '<div class="g3"><label class="field" for="u-uf">UF<select id="u-uf"' + ro + '><option value=""></option>' + UFS.map(x => '<option' + (u && u.uf === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label></div>'
+    + '<div class="sec">Horário de funcionamento</div><div class="hor" id="u-hor">' + horas + '</div>'
+    + (edita ? '<div><button class="link" type="button" id="u-rep">Repetir a segunda-feira de terça a sexta</button></div>' : '')
+    + '<div class="err" id="u-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq">' + (!novo && pode('unidades.inativar') ? '<button class="btn ' + (u.ativa ? 'danger' : 'ghost') + '" type="button" id="u-ina">' + (u.ativa ? 'Inativar unidade' : 'Reativar unidade') + '</button>' : '') + '</div>'
+    + '<button class="btn ghost" type="button" id="u-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="u-ok">Salvar</button>' : '') + '</div></form>');
+  const linhaDia = d => ({ on: $('.h-on[data-d="' + d + '"]'), a: $('.h-a[data-d="' + d + '"]'), f: $('.h-f[data-d="' + d + '"]') });
+  $$('.h-on').forEach(c => c.addEventListener('change', () => { const l = linhaDia(c.dataset.d); l.a.disabled = l.f.disabled = !c.checked; }));
+  const rep = $('#u-rep'); if (rep) rep.addEventListener('click', () => { const s = linhaDia(1); for (let d = 2; d <= 5; d++) { const l = linhaDia(d); l.on.checked = s.on.checked; l.a.value = s.a.value; l.f.value = s.f.value; l.a.disabled = l.f.disabled = !s.on.checked; } });
+  $('#u-cancel').addEventListener('click', fecharJanela);
+  $('#u-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
+  $('#u-cep').addEventListener('input', e => e.target.value = mCEP(e.target.value));
+  $('#u-sigla').addEventListener('input', e => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+  $('#u-cep').addEventListener('blur', async () => {
+    const c = dig($('#u-cep').value); if (c.length !== 8 || $('#u-cep').disabled) return;
+    try { const r = await fetch('https://viacep.com.br/ws/' + c + '/json/'); const j = await r.json(); if (j.erro) return;
+      [['u-log', j.logradouro], ['u-bai', j.bairro], ['u-cid', j.localidade]].forEach(([id, v]) => { if (v && !$('#' + id).value) $('#' + id).value = v; });
+      if (j.uf && !$('#u-uf').value) $('#u-uf').value = j.uf; } catch (_) {}
+  });
+  const ina = $('#u-ina'); if (ina) ina.addEventListener('click', async () => {
+    if (ina.dataset.c !== '1') { ina.dataset.c = '1'; ina.textContent = 'Confirmar'; return; }
+    const { error } = await sb.from('unidades').update({ ativa: !u.ativa }).eq('id', u.id);
+    if (error) { $('#u-err').textContent = erroTxt(error); return; }
+    fecharJanela(); toast(u.ativa ? 'Unidade inativada.' : 'Unidade reativada.'); uniCarregar();
+  });
+  $('#u-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return;
+    const er = $('#u-err'); er.textContent = '';
+    const v = id => $('#' + id).value.trim();
+    const horario = {};
+    for (const d of DIAS) { const l = linhaDia(d[0]); if (l.on.checked) { if (!l.a.value || !l.f.value || l.f.value <= l.a.value) { er.textContent = 'Confira o horário de ' + d[1].toLowerCase() + ': o fechamento precisa ser depois da abertura.'; return; } horario[d[0]] = { abre: l.a.value, fecha: l.f.value }; } }
+    const sigla = v('u-sigla');
+    if (v('u-razao').length < 3) { er.textContent = 'Informe a razão social.'; return; }
+    if (!/^[A-Z0-9]{2,8}$/.test(sigla)) { er.textContent = 'A sigla precisa ter de 2 a 8 letras ou números.'; return; }
+    if (dig(v('u-tel')).length < 10) { er.textContent = 'Informe o telefone com DDD.'; return; }
+    if (!v('u-log') || !v('u-num') || !v('u-cid') || !v('u-uf')) { er.textContent = 'Preencha rua, número, cidade e UF.'; return; }
+    if (!Object.keys(horario).length) { er.textContent = 'Marque pelo menos um dia de funcionamento.'; return; }
+    const reg = { razao_social: v('u-razao'), sigla, telefone: dig(v('u-tel')), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
+    const b = $('#u-ok'); b.disabled = true;
+    const { error } = novo ? await sb.from('unidades').insert(reg) : await sb.from('unidades').update(reg).eq('id', u.id);
+    b.disabled = false;
+    if (error) { er.textContent = erroTxt(error); return; }
+    fecharJanela(); toast(novo ? 'Unidade cadastrada.' : 'Unidade atualizada.'); uniCarregar();
+  });
+}
+
+/* ---------- FUNCIONÁRIOS ---------- */
+async function funCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.from('funcionarios').select('*').order('nome'), sb.from('funcionario_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('perfis').select('*').order('id')]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.func = rs[0].data; D.fu = rs[1].data; D.unidades = rs[2].data; D.perfis = rs[3].data;
+  funLista();
+}
+const nomePerfil = id => (D.perfis.find(p => p.id === id) || {}).nome || '—';
+function funLista(){
+  $('#area').innerHTML = '<div class="head"><div><h1>Funcionários</h1><p class="sub">Quem trabalha na rede e o que cada um pode acessar.</p></div>' + (pode('funcionarios.criar') ? '<button class="btn" type="button" id="f-novo">+ Novo funcionário</button>' : '') + '</div>'
+    + '<div class="card"><div class="tools"><input id="f-q" type="search" placeholder="Buscar por nome, login ou cargo" aria-label="Buscar funcionários"><select id="f-st" aria-label="Situação"><option value="a">Ativos</option><option value="i">Inativos</option><option value="t">Todos</option></select></div><div class="lista" id="f-lista"></div></div>';
+  const desenhar = () => {
+    const q = $('#f-q').value.trim().toLowerCase(), st = $('#f-st').value;
+    const l = D.func.filter(f => (st === 't' || (st === 'a') === !inativoEm(f.data_inativacao)) && (!q || [f.nome, f.login, f.cargo].join(' ').toLowerCase().includes(q)));
+    $('#f-lista').innerHTML = l.length ? l.map(f => '<button class="row f" type="button" data-id="' + f.id + '"><b>' + esc(f.nome) + '</b><span class="m x">' + esc(f.cargo || '') + '</span><span class="m x">' + esc(nomePerfil(f.perfil_id)) + '</span><span class="m x">Login: ' + esc(f.login) + '</span><span class="pill ' + (inativoEm(f.data_inativacao) ? 'off' : 'on') + '">' + (inativoEm(f.data_inativacao) ? 'Inativo' : 'Ativo') + '</span></button>').join('') : '<div class="vazio">Nenhum funcionário encontrado.</div>';
+    $$('#f-lista .row').forEach(b => b.addEventListener('click', () => funForm(D.func.find(f => f.id === Number(b.dataset.id)))));
+  };
+  $('#f-q').addEventListener('input', desenhar); $('#f-st').addEventListener('change', desenhar); desenhar();
+  const n = $('#f-novo'); if (n) n.addEventListener('click', () => funForm(null));
+}
+function funForm(f){
+  const novo = !f, edita = novo ? pode('funcionarios.criar') : pode('funcionarios.editar'), ro = edita ? '' : ' disabled';
+  const minhasUn = novo ? [] : D.fu.filter(x => x.funcionario_id === f.id).map(x => x.unidade_id);
+  const senha0 = senhaSugerida();
+  const perfisOk = D.perfis.filter(p => p.ativo || (f && p.id === f.perfil_id)).filter(p => !p.acesso_total || EU.acesso_total || (f && p.id === f.perfil_id));
+  abrirJanela(novo ? 'Novo funcionário' : f.nome,
+    '<form id="f-form" novalidate><div class="db"><div class="sec">Dados pessoais</div>'
+    + fld('f-nome', 'Nome completo', f && f.nome, 'maxlength="120" autocomplete="off"' + ro)
+    + '<div class="g3">' + fld('f-rg', 'RG', f && f.rg, 'maxlength="20"' + ro) + fld('f-cpf', 'CPF', mCPF(f && f.cpf), 'inputmode="numeric" maxlength="14" autocomplete="off"' + ro) + '<label class="field" for="f-nasc">Data de nascimento<input id="f-nasc" type="date" value="' + esc(f && f.data_nascimento) + '"' + ro + '></label></div>'
+    + '<div class="g2">' + fld('f-tel', 'Telefone', mTel(f && f.telefone), 'inputmode="tel" maxlength="15"' + ro) + fld('f-email', 'E-mail', f && f.email, 'type="email" autocomplete="off"' + ro) + '</div>'
+    + '<div class="sec">Na empresa</div>'
+    + '<div class="g2"><label class="field" for="f-adm">Data de admissão<input id="f-adm" type="date" value="' + esc(f && f.data_admissao) + '"' + ro + '></label>'
+    + '<label class="field" for="f-ina">Data de inativação <small>(deixe em branco enquanto estiver ativo)</small><input id="f-ina" type="date" value="' + esc(f && f.data_inativacao) + '"' + (edita && (novo || pode('funcionarios.inativar')) ? '' : ' disabled') + '></label></div>'
+    + '<div class="g2">' + fld('f-cargo', 'Cargo na empresa', f && f.cargo, 'maxlength="60" list="f-cargos"' + ro) + '<datalist id="f-cargos">' + D.perfis.map(p => '<option value="' + esc(p.nome) + '">').join('') + '</datalist>'
+    + '<label class="field" for="f-perfil">Perfil de acesso<select id="f-perfil"' + ro + '><option value="">Escolha...</option>' + perfisOk.map(p => '<option value="' + p.id + '"' + (f && f.perfil_id === p.id ? ' selected' : '') + '>' + esc(p.nome) + (p.ativo ? '' : ' (inativo)') + '</option>').join('') + '</select></label></div>'
+    + '<div class="field"><span>Unidades onde atua</span><div class="chks" id="f-uns">' + (D.unidades.filter(u => u.ativa || minhasUn.includes(u.id)).map(u => '<label class="chk"><input type="checkbox" value="' + u.id + '"' + (minhasUn.includes(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') || '<span class="sub">Cadastre uma unidade primeiro.</span>') + '</div></div>'
+    + '<div class="sec">Acesso ao sistema</div>'
+    + '<div class="g2">' + '<label class="field" for="f-login">Login <small>(sugerido pelo sistema; 4 a 20 letras ou números)</small><input id="f-login" value="' + esc(f && f.login) + '" maxlength="20" autocapitalize="none" autocomplete="off" spellcheck="false"' + (novo && edita ? '' : ' readonly') + '></label>'
+    + (novo ? '<label class="field" for="f-senha">Senha inicial <small>(sugerida; anote para entregar)</small><span class="pw"><input id="f-senha" value="' + esc(senha0) + '" autocomplete="new-password"><button type="button" id="f-nova">Outra</button></span></label>' : '') + '</div>'
+    + (!novo && pode('funcionarios.senha') ? '<div><button class="btn ghost sm" type="button" id="f-altsenha">Alterar senha</button></div><div class="sen" id="f-sbox" hidden><label class="field" for="f-senha2">Nova senha<span class="pw"><input id="f-senha2" autocomplete="new-password"><button type="button" id="f-nova2">Outra</button></span></label><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn sm" type="button" id="f-ssalva">Salvar nova senha</button><button class="btn ghost sm" type="button" id="f-scanc">Cancelar</button></div><div class="err" id="f-serr" role="alert"></div><div class="ok-msg" id="f-sok"></div></div>' : '')
+    + '<div class="err" id="f-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="f-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="f-ok">' + (novo ? 'Cadastrar' : 'Salvar') + '</button>' : '') + '</div></form>');
+  $('#f-cancel').addEventListener('click', fecharJanela);
+  $('#f-cpf').addEventListener('input', e => e.target.value = mCPF(e.target.value));
+  $('#f-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
+  if (novo && edita) {
+    const usados = new Set(D.func.map(x => x.login)); let manual = false;
+    const sug = () => { $('#f-login').value = $('#f-nome').value.trim().length >= 2 ? loginSugerido($('#f-nome').value, usados) : ''; };
+    $('#f-nome').addEventListener('blur', () => { if (!manual) sug(); });
+    $('#f-login').addEventListener('input', e => { manual = true; e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''); });
+    $('#f-login').addEventListener('dblclick', () => { manual = false; sug(); });
+    $('#f-nova').addEventListener('click', () => { $('#f-senha').value = senhaSugerida(); });
+  }
+  const alt = $('#f-altsenha'); if (alt) {
+    alt.addEventListener('click', () => { $('#f-sbox').hidden = false; $('#f-senha2').value = senhaSugerida(); $('#f-sok').textContent = ''; alt.hidden = true; });
+    $('#f-scanc').addEventListener('click', () => { $('#f-sbox').hidden = true; alt.hidden = false; });
+    $('#f-nova2').addEventListener('click', () => { $('#f-senha2').value = senhaSugerida(); });
+    $('#f-ssalva').addEventListener('click', async () => {
+      const s = $('#f-senha2').value; $('#f-serr').textContent = ''; $('#f-sok').textContent = '';
+      if (s.length < 6) { $('#f-serr').textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; }
+      const b = $('#f-ssalva'); b.disabled = true; const r = await chamar({ acao: 'trocar_senha', id: f.id, senha: s }); b.disabled = false;
+      if (r.erro) { $('#f-serr').textContent = r.erro; return; }
+      $('#f-sok').textContent = 'Senha alterada. Nova senha: ' + s + ' (anote para entregar).';
+    });
+  }
+  $('#f-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return;
+    const er = $('#f-err'); er.textContent = '';
+    const v = id => $('#' + id).value.trim();
+    const cpf = dig(v('f-cpf'));
+    if (v('f-nome').length < 3) { er.textContent = 'Informe o nome completo.'; return; }
+    if (!v('f-rg')) { er.textContent = 'Informe o RG.'; return; }
+    if (!cpfOk(cpf)) { er.textContent = 'CPF inválido. Confira os números.'; return; }
+    if (!v('f-nasc')) { er.textContent = 'Informe a data de nascimento.'; return; }
+    if (!v('f-adm')) { er.textContent = 'Informe a data de admissão.'; return; }
+    if (v('f-ina') && v('f-ina') < v('f-adm')) { er.textContent = 'A inativação não pode ser antes da admissão.'; return; }
+    if (!v('f-cargo')) { er.textContent = 'Informe o cargo.'; return; }
+    if (!v('f-perfil')) { er.textContent = 'Escolha o perfil de acesso.'; return; }
+    if (v('f-email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('f-email'))) { er.textContent = 'E-mail inválido.'; return; }
+    if (!/^[a-z0-9]{4,20}$/.test(v('f-login'))) { er.textContent = 'O login precisa ter de 4 a 20 letras ou números.'; return; }
+    if (novo && v('f-senha').length < 6) { er.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; }
+    const corpo = { acao: novo ? 'criar' : 'atualizar', id: f && f.id, nome: v('f-nome'), rg: v('f-rg'), cpf, data_nascimento: v('f-nasc'), data_admissao: v('f-adm'), data_inativacao: v('f-ina') || null, cargo: v('f-cargo'), telefone: dig(v('f-tel')), email: v('f-email') || null, login: v('f-login'), perfil_id: Number(v('f-perfil')), unidades: $$('#f-uns input:checked').map(i => Number(i.value)) };
+    if (novo) corpo.senha = v('f-senha');
+    const b = $('#f-ok'); b.disabled = true; const r = await chamar(corpo); b.disabled = false;
+    if (r.erro) { er.textContent = r.erro; return; }
+    await funCarregar();
+    if (novo) {
+      abrirJanela('Funcionário cadastrado', '<div class="db"><p style="margin:0">Entregue o acesso para <b>' + esc(corpo.nome) + '</b>:</p><div class="cred"><span>Login: <code>' + esc(corpo.login) + '</code></span><span>Senha: <code>' + esc(corpo.senha) + '</code></span></div><p class="sub">Anote a senha agora. Depois ela não aparece mais, mas você pode trocar por uma nova quando quiser.</p></div><div class="df"><button class="btn ghost" type="button" id="c-copia">Copiar</button><button class="btn" type="button" id="c-ok">Pronto</button></div>');
+      $('#c-ok').addEventListener('click', fecharJanela);
+      $('#c-copia').addEventListener('click', async () => { try { await navigator.clipboard.writeText('Login: ' + corpo.login + '\nSenha: ' + corpo.senha); toast('Copiado.'); } catch (_) { toast('Não consegui copiar. Anote à mão.'); } });
+    } else { fecharJanela(); toast('Funcionário atualizado.'); }
+  });
+}
+
+/* ---------- PERFIS DE ACESSO ---------- */
+const PER = { sel: null };
+async function perCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.from('perfis').select('*').order('id'), sb.from('permissoes').select('*').order('ordem'), sb.from('perfil_permissoes').select('*')]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.perfis = rs[0].data; D.permissoes = rs[1].data; D.pp = rs[2].data;
+  if (PER.sel !== 'novo' && !D.perfis.some(p => p.id === PER.sel)) PER.sel = D.perfis[0] && D.perfis[0].id;
+  perDesenhar();
+}
+function perDesenhar(){
+  const gerir = pode('perfis.gerir'), novo = PER.sel === 'novo';
+  const p = novo ? { id: null, nome: '', descricao: '', ativo: true, acesso_total: false, sistema: false } : D.perfis.find(x => x.id === PER.sel);
+  const marc = new Set(novo ? [] : D.pp.filter(x => x.perfil_id === p.id).map(x => x.permissao));
+  const mods = []; D.permissoes.forEach(x => { let m = mods.find(y => y.n === x.modulo); if (!m) mods.push(m = { n: x.modulo, l: [] }); m.l.push(x); });
+  const trava = p.acesso_total || !gerir, nomeTrava = trava || p.sistema;
+  $('#area').innerHTML = '<div class="head"><div><h1>Perfis de acesso</h1><p class="sub">Marque, item a item, o que cada perfil pode fazer. O Diretor sempre tem acesso a tudo.</p></div></div>'
+    + '<div class="perf"><div class="card"><div class="pl" id="p-lista">' + D.perfis.map(x => '<button type="button" data-id="' + x.id + '" aria-current="' + (x.id === PER.sel) + '"><span>' + esc(x.nome) + '</span>' + (x.acesso_total ? '<span class="pill nu">Tudo</span>' : x.ativo ? '' : '<span class="pill off">Inativo</span>') + '</button>').join('') + '</div>'
+    + (gerir ? '<button class="btn ghost sm" type="button" id="p-novo" style="margin-top:12px;width:100%">+ Novo perfil</button>' : '') + '</div>'
+    + '<div class="card"><form id="p-form" novalidate><div class="g2"><label class="field" for="p-nome">Nome do perfil<input id="p-nome" maxlength="40" value="' + esc(p.nome) + '"' + (nomeTrava ? ' disabled' : '') + '></label><label class="field" for="p-desc">Descrição<input id="p-desc" maxlength="120" value="' + esc(p.descricao) + '"' + (trava ? ' disabled' : '') + '></label></div>'
+    + (p.acesso_total ? '<p class="sub" style="margin:14px 0 0">Este perfil tem acesso total e não pode ser alterado.</p>' : '')
+    + '<div style="margin-top:8px">' + mods.map(m => '<div class="mod"><div class="t"><span>' + esc(m.n) + '</span>' + (trava ? '' : '<button class="link" type="button" data-mod="' + esc(m.n) + '">Marcar todas</button>') + '</div>'
+      + m.l.map(x => '<label class="chk"><input type="checkbox" class="pm" data-m="' + esc(m.n) + '" value="' + esc(x.codigo) + '"' + (p.acesso_total || marc.has(x.codigo) ? ' checked' : '') + (trava ? ' disabled' : '') + '> ' + esc(x.rotulo) + '</label>').join('') + '</div>').join('') + '</div>'
+    + (!p.acesso_total && !novo ? '<label class="chk"><input type="checkbox" id="p-ativo"' + (p.ativo ? ' checked' : '') + (trava ? ' disabled' : '') + '> Perfil ativo (perfil inativo não dá acesso a ninguém)</label>' : '')
+    + '<div class="err" id="p-err" role="alert"></div>'
+    + (trava ? '' : '<div class="df" style="padding:14px 0 0;border:0">' + (novo ? '<button class="btn ghost" type="button" id="p-canc">Cancelar</button>' : '') + '<button class="btn" type="submit" id="p-ok">' + (novo ? 'Criar perfil' : 'Salvar perfil') + '</button></div>') + '</form></div></div>';
+  $$('#p-lista button').forEach(b => b.addEventListener('click', () => { PER.sel = Number(b.dataset.id); perDesenhar(); }));
+  const nv = $('#p-novo'); if (nv) nv.addEventListener('click', () => { PER.sel = 'novo'; perDesenhar(); $('#p-nome').focus(); });
+  const cc = $('#p-canc'); if (cc) cc.addEventListener('click', () => { PER.sel = D.perfis[0].id; perDesenhar(); });
+  $$('[data-mod]').forEach(b => b.addEventListener('click', () => { const cs = $$('.pm[data-m="' + b.dataset.mod + '"]'); const todas = cs.every(c => c.checked); cs.forEach(c => c.checked = !todas); b.textContent = todas ? 'Marcar todas' : 'Desmarcar todas'; }));
+  $('#p-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (trava) return;
+    const er = $('#p-err'); er.textContent = '';
+    const nome = $('#p-nome').value.trim();
+    if (nome.length < 2) { er.textContent = 'Dê um nome ao perfil.'; return; }
+    const querem = $$('.pm:checked').map(c => c.value), b = $('#p-ok'); b.disabled = true;
+    let id = p.id, r;
+    const dados = { descricao: $('#p-desc').value.trim() || null };
+    if (!p.sistema) dados.nome = nome;
+    if (novo) { r = await sb.from('perfis').insert({ nome, descricao: dados.descricao }).select('*').single(); if (r.error) { b.disabled = false; er.textContent = /duplicate|23505/.test((r.error.message || '') + r.error.code) ? 'Já existe um perfil com esse nome.' : erroTxt(r.error); return; } id = r.data.id; }
+    else { dados.ativo = $('#p-ativo').checked; r = await sb.from('perfis').update(dados).eq('id', id); if (r.error) { b.disabled = false; er.textContent = /duplicate|23505/.test((r.error.message || '') + r.error.code) ? 'Já existe um perfil com esse nome.' : erroTxt(r.error); return; } }
+    const tinha = new Set(novo ? [] : D.pp.filter(x => x.perfil_id === id).map(x => x.permissao));
+    const sai = [...tinha].filter(x => !querem.includes(x)), entra = querem.filter(x => !tinha.has(x));
+    if (sai.length) { r = await sb.from('perfil_permissoes').delete().eq('perfil_id', id).in('permissao', sai); if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; } }
+    if (entra.length) { r = await sb.from('perfil_permissoes').insert(entra.map(x => ({ perfil_id: id, permissao: x }))); if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; } }
+    b.disabled = false; PER.sel = id; toast(novo ? 'Perfil criado.' : 'Perfil salvo.'); perCarregar();
+  });
+}
+
+
+/* ---------- DENTISTAS ---------- */
+const CIVIL = ['Solteiro(a)', 'Casado(a)', 'Separado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União estável'];
+const NACION = ['Brasileiro(a)', 'Estrangeiro(a)'];
+const mMoeda = s => { const d = dig(s).replace(/^0+/, ''); if (!d) return ''; const p = d.padStart(3, '0'); return p.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p.slice(-2); };
+const moedaNum = s => dig(s) ? Number(dig(s)) / 100 : null;
+const moedaTxt = n => n == null || n === '' ? '' : mMoeda(String(Math.round(Number(n) * 100)));
+const brl = n => n == null ? '—' : Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+async function denCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.from('dentistas').select('*').order('nome'), sb.from('dentista_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('funcionarios').select('*').order('nome')]);
+  const er = rs.slice(0, 3).map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.dent = rs[0].data; D.du = rs[1].data; D.unidades = rs[2].data; D.func = rs[3].error ? [] : rs[3].data;
+  denLista();
+}
+function denLista(){
+  $('#area').innerHTML = '<div class="head"><div><h1>Dentistas</h1><p class="sub">Profissionais que atendem nas unidades.</p></div>' + (pode('dentistas.criar') ? '<button class="btn" type="button" id="d-novo">+ Novo dentista</button>' : '') + '</div>'
+    + '<div class="card"><div class="tools"><input id="d-q" type="search" placeholder="Buscar por nome, CRO ou CPF" aria-label="Buscar dentistas"><select id="d-st" aria-label="Situação"><option value="a">Ativos</option><option value="i">Inativos</option><option value="t">Todos</option></select></div><div class="lista" id="d-lista"></div></div>';
+  const desenhar = () => {
+    const q = $('#d-q').value.trim().toLowerCase(), qd = dig(q), st = $('#d-st').value;
+    const l = D.dent.filter(d => (st === 't' || (st === 'a') === d.ativo) && (!q || [d.nome, d.nome_social, d.cro].join(' ').toLowerCase().includes(q) || (qd && d.cpf.includes(qd))));
+    const sig = id => D.du.filter(x => x.dentista_id === id).map(x => (D.unidades.find(u => u.id === x.unidade_id) || {}).sigla).filter(Boolean).join(', ');
+    $('#d-lista').innerHTML = l.length ? l.map(d => '<button class="row f" type="button" data-id="' + d.id + '"><b>' + esc(d.nome) + '</b><span class="m x">CRO ' + esc(d.cro) + '</span><span class="m x">' + esc(mTel(d.celular)) + '</span><span class="m x">' + esc(sig(d.id) || 'Sem unidade') + '</span><span class="pill ' + (d.ativo ? 'on' : 'off') + '">' + (d.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nenhum dentista encontrado.</div>';
+    $$('#d-lista .row').forEach(b => b.addEventListener('click', () => denForm(D.dent.find(d => d.id === Number(b.dataset.id)))));
+  };
+  $('#d-q').addEventListener('input', desenhar); $('#d-st').addEventListener('change', desenhar); desenhar();
+  const n = $('#d-novo'); if (n) n.addEventListener('click', () => denForm(null));
+}
+function denForm(d){
+  const novo = !d, edita = novo ? pode('dentistas.criar') : pode('dentistas.editar'), ro = edita ? '' : ' disabled';
+  const minhas = novo ? [] : D.du.filter(x => x.dentista_id === d.id).map(x => x.unidade_id);
+  const usados = new Set(D.dent.filter(x => !d || x.id !== d.id).map(x => x.funcionario_id).filter(Boolean));
+  const acessos = D.func.filter(f => !usados.has(f.id) && (!inativoEm(f.data_inativacao) || (d && d.funcionario_id === f.id)));
+  const sel = (id, rot, lista, val) => '<label class="field" for="' + id + '">' + rot + '<select id="' + id + '"' + ro + '><option value=""></option>' + lista.map(x => '<option' + (val === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select></label>';
+  abrirJanela(novo ? 'Novo dentista' : d.nome,
+    '<form id="d-form" novalidate><div class="db"><div class="sec">Dados principais</div>'
+    + (novo ? '' : '<div><span class="pill ' + (d.ativo ? 'on' : 'off') + '">' + (d.ativo ? 'Ativo' : 'Inativo') + '</span></div>')
+    + '<div class="g2">' + fld('d-cpf', 'CPF', mCPF(d && d.cpf), 'inputmode="numeric" maxlength="14" autocomplete="off"' + ro) + fld('d-cro', 'CRO <small>(UF + número, ex.: MG066473)</small>', d && d.cro, 'maxlength="10" autocapitalize="characters" autocomplete="off"' + ro) + '</div>'
+    + '<div class="g2">' + fld('d-nome', 'Nome', d && d.nome, 'maxlength="120" autocomplete="off"' + ro) + fld('d-social', 'Nome social', d && d.nome_social, 'maxlength="120"' + ro) + '</div>'
+    + fld('d-email', 'E-mail', d && d.email, 'type="email" autocomplete="off"' + ro)
+    + '<div class="g2">' + fld('d-cel', 'Telefone celular', mTel(d && d.celular), 'inputmode="tel" maxlength="15"' + ro) + fld('d-res', 'Telefone residencial', mTel(d && d.telefone_residencial), 'inputmode="tel" maxlength="15"' + ro) + '</div>'
+    + '<div class="sec">Dados complementares</div>'
+    + '<div class="g3"><label class="field" for="d-ativ">Data de ativação<input id="d-ativ" type="date" value="' + esc(d ? d.data_ativacao : hoje()) + '"' + ro + '></label>' + fld('d-rg', 'RG', d && d.rg, 'maxlength="20"' + ro) + '<label class="field" for="d-nasc">Data de nascimento<input id="d-nasc" type="date" value="' + esc(d && d.data_nascimento) + '"' + ro + '></label></div>'
+    + '<div class="g3">' + sel('d-civil', 'Estado civil', CIVIL, d && d.estado_civil) + sel('d-nac', 'Nacionalidade', NACION, d ? d.nacionalidade : 'Brasileiro(a)') + '<label class="field" for="d-valor">Valor do atendimento<span class="pw"><input id="d-valor" inputmode="numeric" style="padding-left:40px" value="' + esc(moedaTxt(d && d.valor_atendimento)) + '"' + ro + '><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label></div>'
+    + '<label class="chk"><input type="checkbox" id="d-outros"' + (!d || d.atende_outros ? ' checked' : '') + ro + '> Permitir atendimento de pacientes de outros doutores</label>'
+    + '<div class="field"><span>Unidades onde atua</span><div class="chks" id="d-uns">' + (D.unidades.filter(u => u.ativa || minhas.includes(u.id)).map(u => '<label class="chk"><input type="checkbox" value="' + u.id + '"' + (minhas.includes(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') || '<span class="sub">Cadastre uma unidade primeiro.</span>') + '</div></div>'
+    + '<div class="sec">Endereço</div>'
+    + '<div class="g3"><label class="field" for="d-cep">CEP' + (edita ? ' <button class="link" type="button" id="d-nsei" style="padding:0 0 0 6px">Não sei o CEP</button>' : '') + '<input id="d-cep" inputmode="numeric" maxlength="9" value="' + esc(mCEP(d && d.cep)) + '"' + ro + '></label>' + fld('d-log', 'Logradouro', d && d.logradouro, ro) + fld('d-num', 'Número', d && d.numero, 'maxlength="10"' + ro) + '</div>'
+    + '<div id="d-cepres"></div>'
+    + '<div class="g3">' + fld('d-comp', 'Complemento', d && d.complemento, ro) + fld('d-bai', 'Bairro', d && d.bairro, ro) + fld('d-cid', 'Cidade', d && d.cidade, ro)
+    + '</div><div class="g3"><label class="field" for="d-uf">UF<select id="d-uf"' + ro + '><option value=""></option>' + UFS.map(x => '<option' + (d && d.uf === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label></div>'
+    + '<div class="sec">Acesso ao sistema</div>'
+    + '<label class="field" for="d-func">Login deste dentista <small>(opcional; é o funcionário cadastrado com perfil Dentista)</small><select id="d-func"' + ro + '><option value="">Sem acesso ao sistema</option>' + acessos.map(f => '<option value="' + f.id + '"' + (d && d.funcionario_id === f.id ? ' selected' : '') + '>' + esc(f.nome) + ' (' + esc(f.login) + ')</option>').join('') + '</select></label>'
+    + '<div class="err" id="d-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq">' + (!novo && pode('dentistas.inativar') ? '<button class="btn ' + (d.ativo ? 'danger' : 'ghost') + '" type="button" id="d-ina">' + (d.ativo ? 'Inativar dentista' : 'Reativar dentista') + '</button>' : '') + '</div>'
+    + '<button class="btn ghost" type="button" id="d-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="d-ok">Salvar</button>' : '') + '</div></form>');
+  $('#d-cancel').addEventListener('click', fecharJanela);
+  $('#d-cpf').addEventListener('input', e => e.target.value = mCPF(e.target.value));
+  $('#d-cro').addEventListener('input', e => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+  ['d-cel', 'd-res'].forEach(i => $('#' + i).addEventListener('input', e => e.target.value = mTel(e.target.value)));
+  $('#d-cep').addEventListener('input', e => e.target.value = mCEP(e.target.value));
+  $('#d-valor').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  const preenche = (j, forca) => { [['d-log', j.logradouro], ['d-bai', j.bairro], ['d-cid', j.localidade]].forEach(([id, v]) => { if (v && (forca || !$('#' + id).value)) $('#' + id).value = v; }); if (j.uf && (forca || !$('#d-uf').value)) $('#d-uf').value = j.uf; };
+  $('#d-cep').addEventListener('blur', async () => {
+    const c = dig($('#d-cep').value); if (c.length !== 8 || $('#d-cep').disabled) return;
+    try { const r = await fetch('https://viacep.com.br/ws/' + c + '/json/'); const j = await r.json(); if (!j.erro) preenche(j, false); } catch (_) {}
+  });
+  const ns = $('#d-nsei'); if (ns) ns.addEventListener('click', async () => {
+    const uf = $('#d-uf').value, cid = $('#d-cid').value.trim(), rua = $('#d-log').value.trim(), box = $('#d-cepres');
+    if (!uf || cid.length < 3 || rua.length < 3) { box.innerHTML = '<p class="sub">Para achar o CEP, preencha primeiro a UF, a cidade e o nome da rua.</p>'; return; }
+    box.innerHTML = '<p class="sub">Procurando...</p>';
+    try {
+      const r = await fetch('https://viacep.com.br/ws/' + uf + '/' + encodeURIComponent(cid) + '/' + encodeURIComponent(rua) + '/json/'); const l = await r.json();
+      if (!Array.isArray(l) || !l.length) { box.innerHTML = '<p class="sub">Não encontrei. Confira a grafia da cidade e da rua.</p>'; return; }
+      box.innerHTML = '<div class="lista">' + l.slice(0, 8).map((x, i) => '<button class="row" type="button" data-i="' + i + '" style="grid-template-columns:minmax(0,1fr) auto"><span>' + esc(x.logradouro) + (x.bairro ? ' — ' + esc(x.bairro) : '') + (x.complemento ? ' <span class="m">(' + esc(x.complemento) + ')</span>' : '') + '</span><b>' + esc(x.cep) + '</b></button>').join('') + '</div>';
+      $$('#d-cepres .row').forEach(b => b.addEventListener('click', () => { const x = l[Number(b.dataset.i)]; $('#d-cep').value = mCEP(x.cep); preenche(x, true); box.innerHTML = ''; }));
+    } catch (_) { box.innerHTML = '<p class="sub">Não consegui consultar agora. Digite o CEP à mão.</p>'; }
+  });
+  const ina = $('#d-ina'); if (ina) ina.addEventListener('click', async () => {
+    if (ina.dataset.c !== '1') { ina.dataset.c = '1'; ina.textContent = 'Confirmar'; return; }
+    const { error } = await sb.from('dentistas').update({ ativo: !d.ativo }).eq('id', d.id);
+    if (error) { $('#d-err').textContent = erroTxt(error); return; }
+    fecharJanela(); toast(d.ativo ? 'Dentista inativado.' : 'Dentista reativado.'); denCarregar();
+  });
+  $('#d-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return;
+    const er = $('#d-err'); er.textContent = '';
+    const v = id => $('#' + id).value.trim();
+    const cpf = dig(v('d-cpf')), cro = v('d-cro');
+    if (v('d-nome').length < 3) { er.textContent = 'Informe o nome.'; return; }
+    if (!cpfOk(cpf)) { er.textContent = 'CPF inválido. Confira os números.'; return; }
+    if (!/^[A-Z]{2}[0-9]{3,8}$/.test(cro)) { er.textContent = 'CRO inválido. Use a UF e o número, por exemplo MG066473.'; return; }
+    if (v('d-email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('d-email'))) { er.textContent = 'E-mail inválido.'; return; }
+    if (dig(v('d-cel')).length < 10) { er.textContent = 'Informe o celular com DDD.'; return; }
+    if (!v('d-ativ')) { er.textContent = 'Informe a data de ativação.'; return; }
+    const reg = { nome: v('d-nome'), nome_social: v('d-social') || null, cpf, cro, email: v('d-email') || null, celular: dig(v('d-cel')), telefone_residencial: dig(v('d-res')) || null,
+      data_ativacao: v('d-ativ'), rg: v('d-rg') || null, data_nascimento: v('d-nasc') || null, estado_civil: v('d-civil') || null, nacionalidade: v('d-nac') || null, valor_atendimento: moedaNum(v('d-valor')),
+      atende_outros: $('#d-outros').checked, cep: dig(v('d-cep')) || null, logradouro: v('d-log') || null, numero: v('d-num') || null, complemento: v('d-comp') || null, bairro: v('d-bai') || null, cidade: v('d-cid') || null, uf: v('d-uf') || null,
+      funcionario_id: v('d-func') ? Number(v('d-func')) : null };
+    const b = $('#d-ok'); b.disabled = true;
+    let r, id = d && d.id;
+    if (novo) { r = await sb.from('dentistas').insert(reg).select('*').single(); if (!r.error) id = r.data.id; }
+    else r = await sb.from('dentistas').update(reg).eq('id', id);
+    if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; }
+    const un = $$('#d-uns input:checked').map(i => Number(i.value));
+    r = await sb.from('dentista_unidades').delete().eq('dentista_id', id);
+    if (!r.error && un.length) r = await sb.from('dentista_unidades').insert(un.map(u => ({ dentista_id: id, unidade_id: u })));
+    b.disabled = false;
+    if (r.error) { er.textContent = 'Dentista salvo, mas as unidades não: ' + erroTxt(r.error); return; }
+    fecharJanela(); toast(novo ? 'Dentista cadastrado.' : 'Dentista atualizado.'); denCarregar();
+  });
+}
+
+iniciar();
+})();
+</script>
+</body>
+</html>
