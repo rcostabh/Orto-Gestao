@@ -153,8 +153,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .tit{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
 .tit h1{margin:0;font-size:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--accent-soft)}
-.pls span{border:1.5px solid var(--line);border-radius:99px;padding:6px 16px;font-size:13px;color:var(--muted)}
-.pls span.on{background:#5b6672;border-color:#5b6672;color:#fff;font-weight:600}
+.pls span,.pls button{border:1.5px solid var(--line);border-radius:99px;padding:6px 16px;font:inherit;font-size:13px;color:var(--muted);background:transparent}
+.pls button{cursor:pointer;color:var(--ink)}
+.pls span.on,.pls button.on{background:#5b6672;border-color:#5b6672;color:#fff;font-weight:600}
+.oc-t{white-space:nowrap}
 .tw{overflow:auto}.tb{width:100%;border-collapse:collapse;font-size:13.5px}
 .tb th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.02em;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 .tb td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -365,6 +367,7 @@ async function entrarNoApp(troca){
   if (EU.plataforma && EU.grupo) { md.hidden = false; md.innerHTML = '<span>Modo suporte · você está dentro de <b>' + esc(EU.grupo) + '</b>. O que você fizer aqui é registrado.</span><button class="btn ghost" type="button" id="modo-sai">Voltar ao painel da plataforma</button>'; $('#modo-sai').addEventListener('click', async () => { const r = await sb.rpc('sair_grupo'); if (r.error) { toast(erroTxt(r.error)); return; } await entrarNoApp(true); }); }
   else { md.hidden = true; md.innerHTML = ''; }
   montarMenu(); irPara(EU.fora ? 'p-grupos' : 'inicio'); avIniciar();
+  if (!EU.fora) sb.rpc('sou_dentista').then(r => { if (!r.error && EU) { EU.dentista = !!r.data; avDesenhar(); } });
   return true;
 }
 $('#l-ver').addEventListener('click', () => { const i = $('#l-senha'); const v = i.type === 'password'; i.type = v ? 'text' : 'password'; $('#l-ver').textContent = v ? 'Ocultar' : 'Mostrar'; });
@@ -439,6 +442,8 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.10.0', '2026-11-01', 'Ocorrências do paciente (cadastro, avaliação, reavaliações e atendimento do vendedor). Cada dentista avalia um paciente uma única vez; a reavaliação é feita por outro dentista, que registra o seu parecer. Corrigido o link que não reabria a avaliação.'],
+  ['0.9.4', '2026-11-01', 'Avaliação: o botão de atender só aparece para quem está ligado a um dentista; mensagem clara quando o usuário (ex.: Diretor) não é dentista.'],
   ['0.9.3', '2026-11-01', 'Qualquer dentista da unidade pode fazer a avaliação, em qualquer dia (antes só quem atendia na unidade naquele dia).'],
   ['0.9.2', '2026-11-01', 'Na ficha do paciente, o status da avaliação (Aguardando dentista / Em atendimento) é um link que abre a avaliação do dentista.'],
   ['0.9.1', '2026-11-01', 'Nova tela Avaliações no menu (dentista e gerência): lista de pacientes para avaliar, com Atender e Concluir (apto / não apto), sem depender só do sino.'],
@@ -1035,33 +1040,45 @@ const PROX_ST = { 'Prospecção': [['Pré-Ativo', 'Marcar como Pré-Ativo'], ['D
 async function pacFicha(id){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.from('pacientes').select('*').eq('id', id).single(), sb.rpc('avaliacoes_do_paciente', { p_paciente: id }), sb.from('unidades').select('*').order('sigla'),
-    sb.from('agendamentos').select('*').eq('paciente_id', id).order('data', { ascending: false }), sb.from('agendas').select('id,nome'), sb.from('procedimentos').select('id,nome')]);
+    sb.from('agendamentos').select('*').eq('paciente_id', id).order('data', { ascending: false }), sb.from('agendas').select('id,nome'), sb.from('procedimentos').select('id,nome'), sb.rpc('ocorrencias_do_paciente', { p_paciente: id })]);
   const er = rs.slice(0, 3).map(r => r.error).find(Boolean);
   if (er || !rs[0].data) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(er ? erroTxt(er) : 'Paciente não encontrado.') + '</div></div>'; return; }
   const p = rs[0].data, avs = rs[1].data || []; D.unidades = rs[2].data;
+  const ocs = rs[6].error ? [] : (rs[6].data || []), concl = avs.some(a => a.status === 'concluida'), jaAvaliei = avs.some(a => a.status === 'concluida' && a.minha);
   const marc = (rs[3].error ? [] : rs[3].data || []).filter(g => g.status !== 'cancelado'), nAg = id2 => ((rs[4].data || []).find(x => x.id === id2) || {}).nome || '', nPr = id2 => ((rs[5].data || []).find(x => x.id === id2) || {}).nome || '';
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
   const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
   const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
   $('#area').innerHTML = '<div class="card tit"><h1>' + p.id + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill nu">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
     + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' + (PROX_ST[p.status] || []).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
-    + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '') : (pode('avaliacoes.iniciar') ? '<button class="btn sm" type="button" id="fi-ini">Iniciar avaliação</button>' : '')) + '</div></div>'
+    + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '')
+      : p.status === 'Prospecção' ? (concl && pode('avaliacoes.atender') && souDent() && !jaAvaliei ? '<button class="btn sm" type="button" id="fi-rea" title="Outro dentista avalia e registra o seu parecer">Reavaliar (meu parecer)</button>' : '')
+        + (pode('avaliacoes.iniciar') ? '<button class="btn ' + (concl ? 'ghost ' : '') + 'sm" type="button" id="fi-ini">' + (concl ? 'Solicitar reavaliação' : 'Iniciar avaliação') + '</button>' : '') : '') + '</div></div>'
     + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
-    + '<div class="card"><div class="pls"><span class="on">Avaliações</span><span title="Em breve">Ocorrências</span><span title="Em breve">Anamnese</span></div><div class="tw">'
-    + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender')) || (a.status === 'em_atendimento' && (pode('avaliacoes.atender') || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : ST_AV[a.status]) + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
+    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button><span title="Em breve">Anamnese</span></div>'
+    + '<div class="tw" id="fi-oc"' + (aberta ? ' hidden' : '') + '>' + (ocs.length ? '<table class="tb"><thead><tr><th>#</th><th>Data</th><th>Ocorrência</th><th>Responsável</th><th>Resultado</th><th>Detalhes</th></tr></thead><tbody>' + ocs.map((o, i) => '<tr><td>' + (i + 1) + '</td><td class="oc-t">' + dtHora(o.quando) + '</td><td><b>' + esc(o.titulo) + '</b></td><td>' + esc(o.responsavel) + '</td><td>' + (o.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : o.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(o.resultado)) + '</td><td>' + esc(o.detalhe) + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma ocorrência ainda.</div>') + '</div>'
+    + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
+    + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
     + (marc.length ? '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Agendamentos</h2><div class="tw"><table class="tb"><thead><tr><th>Data</th><th>Hora</th><th>Agenda</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>'
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
+  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; }));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
     if (b.dataset.avs === 'aguardando') {
-      b.disabled = true; const r = await sb.rpc('atender_avaliacao', { p_id: avId });
-      if (r.error) { toast(erroTxt(r.error)); b.disabled = false; return; } avBuscar();
+      b.disabled = true; const r = await sb.rpc('atender_avaliacao', { p_id: avId }); b.disabled = false;
+      if (r.error) { toast(erroTxt(r.error)); return; } avBuscar(); recarrega();
     }
     avConcluirDialogo(avId, p.nome_social || p.nome, recarrega);
   }));
+  const rea = $('#fi-rea'); if (rea) rea.addEventListener('click', async () => {
+    if (rea.dataset.c !== '1') { rea.dataset.c = '1'; rea.textContent = 'Confirmar: vou reavaliar'; return; }
+    rea.disabled = true; const r = await sb.rpc('reavaliar_avaliacao', { p_paciente: id }); rea.disabled = false;
+    if (r.error) { toast(erroTxt(r.error)); rea.dataset.c = ''; rea.textContent = 'Reavaliar (meu parecer)'; return; }
+    avBuscar(); recarrega(); avConcluirDialogo(r.data, p.nome_social || p.nome, recarrega);
+  });
   $$('[data-st]').forEach(b => b.addEventListener('click', async () => {
     if (b.dataset.c !== '1') { b.dataset.c = '1'; b.textContent = 'Confirmar: ' + b.textContent; return; }
     b.disabled = true; const r = await sb.rpc('mudar_status_paciente', { p_id: id, p_status: b.dataset.st });
@@ -1092,6 +1109,7 @@ function avIniciarDialogo(p, aoFim){
 
 /* ---------- avaliações para fazer: aviso na barra lateral do dentista do dia e da gerência ---------- */
 const AV = { lista: [], vistos: null, timer: null };
+const souDent = () => !EU || EU.dentista !== false; // só quem está ligado a um dentista atende avaliações
 const avVe = () => pode('avaliacoes.atender') || pode('avaliacoes.ver_todas');
 function avIniciar(){
   avParar(); if (!avVe()) return;
@@ -1122,7 +1140,7 @@ function avCartoes(tela){
   return n ? AV.lista.map(a => '<div class="avc' + (a.meu ? ' meu' : '') + '"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><b>' + esc(a.nome_social || a.paciente_nome) + '</b><span class="pill ' + (a.status === 'aguardando' ? 'wr' : 'on') + '">' + ST_AV[a.status] + '</span></div>'
       + (a.nome_social ? '<span class="m">' + esc(a.paciente_nome) + '</span>' : '') + '<span class="m">' + esc(a.unidade_sigla) + ' · ' + esc(a.canal_venda) + ' · ' + minutosDesde(a.iniciada_em) + '</span>'
       + (a.dentista_nome ? '<span class="m">Dentista: ' + esc(a.dentista_nome) + '</span>' : '') + '<div class="ac">'
-      + (pode('avaliacoes.atender') && (a.status === 'aguardando' || a.meu) && a.status !== 'em_atendimento' ? '<button class="btn sm" type="button" data-atender="' + a.id + '">Atender</button>' : '')
+      + (pode('avaliacoes.atender') && souDent() && (a.status === 'aguardando' || a.meu) && a.status !== 'em_atendimento' ? '<button class="btn sm" type="button" data-atender="' + a.id + '">Atender</button>' : '')
       + (a.status === 'em_atendimento' && (a.meu || pode('avaliacoes.ver_todas')) ? '<button class="btn sm" type="button" data-concluir="' + a.id + '">Concluir</button>' : '')
       + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" data-abrir="' + a.paciente_id + '">Abrir paciente</button>' : '') + '</div></div>').join('')
     : tela ? '<div class="card"><p class="sub" style="margin:0">Nenhuma avaliação para fazer agora. Ela aparece aqui quando a recepção marcar que o paciente chegou ou quando um prospect tiver a avaliação iniciada. Qualquer dentista da unidade pode atender; você vê as avaliações da unidade escolhida na barra lateral.</p></div>'
