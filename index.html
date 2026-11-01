@@ -89,6 +89,23 @@ button{font-family:inherit}
 /* janelas */
 dialog{border:0;border-radius:20px;padding:0;width:min(760px,calc(100vw - 20px));max-height:calc(100vh - 20px);background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
 dialog::backdrop{background:rgba(8,18,22,.55)}
+/* transições suaves (só opacidade/posição; desligam com "reduzir movimento") */
+:root{--ease:cubic-bezier(.22,.8,.3,1)}
+dialog{opacity:0;transform:translateY(24px) scale(.96);transition:opacity .25s var(--ease),transform .3s var(--ease),overlay .3s allow-discrete,display .3s allow-discrete}
+dialog[open]{opacity:1;transform:none}
+@starting-style{dialog[open]{opacity:0;transform:translateY(24px) scale(.96)}}
+dialog::backdrop{background:rgba(8,18,22,0);backdrop-filter:blur(0);transition:background .3s,backdrop-filter .3s,overlay .3s allow-discrete,display .3s allow-discrete}
+dialog[open]::backdrop{background:rgba(8,18,22,.55);backdrop-filter:blur(3px)}
+@starting-style{dialog[open]::backdrop{background:rgba(8,18,22,0);backdrop-filter:blur(0)}}
+@keyframes og-sobe{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#area.entra{animation:og-sobe .28s var(--ease) backwards}
+#area.entra .row:nth-child(-n+9){animation:og-sobe .4s var(--ease) backwards}
+#area.entra .row:nth-child(2){animation-delay:40ms}#area.entra .row:nth-child(3){animation-delay:80ms}#area.entra .row:nth-child(4){animation-delay:120ms}#area.entra .row:nth-child(5){animation-delay:160ms}#area.entra .row:nth-child(6){animation-delay:200ms}#area.entra .row:nth-child(7){animation-delay:240ms}#area.entra .row:nth-child(8){animation-delay:280ms}#area.entra .row:nth-child(9){animation-delay:320ms}
+.btn{transition:transform .15s var(--ease),filter .2s,box-shadow .2s}.btn:active{transform:scale(.96)}
+.item,.row,.aba .at{transition:background .2s,color .2s}
+input,select,textarea{transition:border-color .2s,box-shadow .2s}
+.toast{transform:translate(-50%,24px);opacity:0;transition:transform .35s var(--ease),opacity .3s}.toast.v{transform:translate(-50%,0);opacity:1}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
 .dh h2{margin:0;font-size:18px}
 .dx{border:0;background:var(--surface-2);color:var(--ink);width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer}
@@ -218,7 +235,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .mod:first-of-type{border-top:0}
 .mod .t{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:650}
 .link{border:0;background:none;color:var(--accent-text);font:600 13px var(--font);cursor:pointer;padding:6px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:14px;z-index:99;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+.toast{position:fixed;left:50%;bottom:24px;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:14px;z-index:99;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
 
 @media (max-width:900px){
   #v-app{grid-template-columns:minmax(0,1fr)}
@@ -307,7 +324,12 @@ function cpfOk(p){
   for (let i = 0; i < 9; i++) s += d[i] * (10 - i); r = (s * 10) % 11; if (r === 10) r = 0; if (r !== d[9]) return false;
   s = 0; for (let i = 0; i < 10; i++) s += d[i] * (11 - i); r = (s * 10) % 11; if (r === 10) r = 0; return r === d[10];
 }
-let tt; function toast(m){ const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 3800); }
+let tt, tt2;
+function toast(m){
+  const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); clearTimeout(tt2);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('v')));
+  tt = setTimeout(() => { t.classList.remove('v'); tt2 = setTimeout(() => { t.hidden = true; }, 380); }, 3800);
+}
 const sorteio = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
 function senhaSugerida(){
   const al = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -337,6 +359,7 @@ async function chamar(body){
   return { ok: true, data };
 }
 const pode = p => !!EU && (EU.acesso_total || EU.permissoes.includes(p));
+const ehDir = () => !!EU && !!EU.acesso_total && !EU.fora && !EU.plataforma;
 
 /* ---------- janelas ---------- */
 const dlg = $('#dlg');
@@ -406,6 +429,8 @@ const IC = {
   procedimentos: '<path d="M9 3h6v5l4 9a3 3 0 0 1-2.7 4H7.700A3 3 0 0 1 5 17l4-9z"/><path d="M8 14h8"/>',
   vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
   agenda: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+  financeiro: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>',
+  tratamentos: '<path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 4-5 2-5 4 2 3 5 3 5-1 5-3"/>',
   cobranca: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>'
 };
 const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg>';
@@ -416,23 +441,25 @@ const MENU = [
   { g: 'Pacientes', itens: [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' } ] },
   { r: 'vendas', t: 'Vendas', p: 'vendas.ver' },
+  { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
   { g: 'Configurações', itens: [
     { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
     { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
     { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
+    { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
   { g: 'Em construção', soon: [['cobranca', 'Cobrança']] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
   if (EU.fora) { $('#menu').innerHTML = h; $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r))); return; }
   for (const m of MENU) {
     if (m.r) { if (!m.p || [].concat(m.p).some(x => pode(x))) h += btnMenu(m); }
-    else if (m.itens) { const v = m.itens.filter(i => pode(i.p)); if (v.length) h += '<div class="grp">' + m.g + '</div>' + v.map(btnMenu).join(''); }
+    else if (m.itens) { const v = m.itens.filter(i => i.p === 'diretor' ? !!EU.acesso_total : [].concat(i.p).some(x => pode(x))); if (v.length) h += '<div class="grp">' + m.g + '</div>' + v.map(btnMenu).join(''); }
     else h += '<div class="grp">' + m.g + '</div>' + m.soon.map(s => '<div class="item soon" aria-disabled="true">' + ico(s[0]) + s[1] + '<span class="tag">em breve</span></div>').join('');
   }
   $('#menu').innerHTML = h;
@@ -442,6 +469,8 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.11.1', '2026-11-01', 'Transições suaves: telas sobem ao abrir, janelas aparecem e somem com movimento, avisos deslizam. Tipos de tratamento e dias de vencimento passam a ser só do Diretor.'],
+  ['0.11.0', '2026-11-01', 'Venda vira Iniciar tratamento: cadastro completo do paciente, escolha do dentista e dia da semana, tipo de tratamento (prazo, mensalidade e desconto cadastrados pela diretoria) e dia de vencimento. Nova tela Financeiro com parcelas (Início, 1ª mensalidade...), baixa de pagamento e situações automáticas: Pré-Ativo → Ativo (1ª mensalidade paga) → Inativo (4ª mensalidade vencida).'],
   ['0.10.0', '2026-11-01', 'Ocorrências do paciente (cadastro, avaliação, reavaliações e atendimento do vendedor). Cada dentista avalia um paciente uma única vez; a reavaliação é feita por outro dentista, que registra o seu parecer. Corrigido o link que não reabria a avaliação.'],
   ['0.9.4', '2026-11-01', 'Avaliação: o botão de atender só aparece para quem está ligado a um dentista; mensagem clara quando o usuário (ex.: Diretor) não é dentista.'],
   ['0.9.3', '2026-11-01', 'Qualquer dentista da unidade pode fazer a avaliação, em qualquer dia (antes só quem atendia na unidade naquele dia).'],
@@ -499,7 +528,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'tratamentos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -515,6 +544,8 @@ function abrirRota(r, o){
   if (r === 'agendas') return agsCarregar();
   if (r === 'procedimentos') return prcCarregar();
   if (r === 'vendas') return vdCarregar();
+  if (r === 'financeiro') return finCarregar();
+  if (r === 'tratamentos') return ehDir() ? trtCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os tipos de tratamento.</div></div>');
   if (r === 'avaliacoes') return avTela();
   if (r === 'agenda') return agdCarregar();
   if (r === 'perfis') return perCarregar();
@@ -531,7 +562,11 @@ async function guardar(){
   try { await ABA.pronto; } catch (_) {}
   ABA.y = window.scrollY; ABA.frag.append(...$('#area').childNodes);
 }
+let ENTRA_T = 0, ENTRA_FIM;
+function entrando(){ const ar = $('#area'); ar.classList.remove('entra'); void ar.offsetWidth; ar.classList.add('entra'); clearTimeout(ENTRA_FIM); ENTRA_FIM = setTimeout(() => ar.classList.remove('entra'), 800); }
+new MutationObserver(() => { if (Date.now() - ENTRA_T < 1500) entrando(); }).observe(document.getElementById('area'), { childList: true });
 function mostrar(a){
+  ENTRA_T = Date.now();
   ABA = a; $('#area').replaceChildren(a.frag); window.scrollTo(0, a.y || 0);
   $$('#menu .item').forEach(b => b.dataset.r === a.rota ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
   $('#bar-t').textContent = a.titulo; renderAbas();
@@ -967,6 +1002,7 @@ const PAC = { q: '', canal: '', st: '' }, CANAIS = ['Promotor', 'Tele', 'Indica�
 const dtHora = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' + d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }); };
 const ST_AV = { aguardando: 'Aguardando dentista', em_atendimento: 'Em atendimento', concluida: 'Concluída', cancelada: 'Cancelada' };
 async function pacCarregar(){
+  await sb.rpc('financeiro_atualizar');
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.from('pacientes').select('*').order('id', { ascending: false }), sb.from('avaliacoes').select('*').in('status', ['aguardando', 'em_atendimento']), sb.from('unidades').select('*').order('sigla')]);
   const er = rs.map(r => r.error).find(Boolean);
@@ -975,7 +1011,7 @@ async function pacCarregar(){
   if (!UN) { $('#area').innerHTML = semUn('Prospects'); return; }
   D.pac = rs[0].data.filter(p => p.unidade_id === UN); D.avAb = rs[1].data.filter(a => a.unidade_id === UN);
   $('#area').innerHTML = '<div class="head"><div><h1>Pacientes e prospects</h1><p class="sub">Prospects são quem ainda não iniciou o tratamento. Cadastre, inicie a avaliação com o dentista do dia ou agende na Agenda.</p></div>' + (pode('pacientes.criar') ? '<button class="btn" type="button" id="pc-novo">+ Novo prospect</button>' : '') + '</div>'
-    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF ou código" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Concluído', 'Desistente'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div><div class="lista" id="pc-lista"></div></div>';
+    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF ou código" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Inativo', 'Concluído', 'Desistente'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div><div class="lista" id="pc-lista"></div></div>';
   pacLista();
   $('#pc-q').addEventListener('input', e => { PAC.q = e.target.value; pacLista(); });
   $('#pc-canal').addEventListener('change', e => { PAC.canal = e.target.value; pacLista(); });
@@ -992,6 +1028,33 @@ function pacLista(){
   $$('#pc-lista .row').forEach(b => b.addEventListener('click', () => abrirPaciente(D.pac.find(p => p.id === Number(b.dataset.id)))));
 }
 const abrirPaciente = p => irPara('paciente', { chave: 'paciente:' + p.id, titulo: (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '), id: p.id });
+
+/* ---------- cadastro completo do paciente: contato, endereço e responsável ---------- */
+const cadEndHtml = (pf, p, ro) => {
+  p = p || {}; ro = ro || '';
+  return '<div class="g3">' + fld(pf + '-email', 'E-mail', p.email, 'type="email" maxlength="120" autocomplete="off"' + ro) + fld(pf + '-cep', 'CEP', mCEP(p.cep), 'inputmode="numeric" maxlength="9" autocomplete="off"' + ro) + fld(pf + '-log', 'Rua / Avenida', p.logradouro, 'maxlength="120"' + ro) + '</div>'
+    + '<div class="g3">' + fld(pf + '-num', 'Número', p.numero, 'maxlength="10"' + ro) + fld(pf + '-comp', 'Complemento', p.complemento, 'maxlength="60"' + ro) + fld(pf + '-bai', 'Bairro', p.bairro, 'maxlength="80"' + ro) + '</div>'
+    + '<div class="g3">' + fld(pf + '-cid', 'Cidade', p.cidade, 'maxlength="80"' + ro) + '<label class="field" for="' + pf + '-uf">UF<select id="' + pf + '-uf"' + ro + '><option value=""></option>' + UFS.map(x => '<option' + (p.uf === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label><small id="' + pf + '-cepmsg" style="color:var(--muted)"></small></div>'
+    + '<div class="g3">' + fld(pf + '-rn', 'Responsável (se menor)', p.resp_nome, 'maxlength="120" autocomplete="off"' + ro) + fld(pf + '-rc', 'CPF do responsável', p.resp_cpf ? mCPF(p.resp_cpf) : '', 'inputmode="numeric" maxlength="14" autocomplete="off"' + ro) + fld(pf + '-rt', 'Telefone do responsável', p.resp_telefone ? mTel(p.resp_telefone) : '', 'inputmode="tel" maxlength="15" autocomplete="off"' + ro) + '</div>';
+};
+function cadEndLigar(pf){
+  let ult = '';
+  $('#' + pf + '-cep').addEventListener('input', e => { e.target.value = mCEP(e.target.value); const c = dig(e.target.value); if (c.length < 8) { ult = ''; $('#' + pf + '-cepmsg').textContent = ''; } else if (c !== ult) { ult = c; cepAuto(pf, c); } });
+  $('#' + pf + '-rc').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#' + pf + '-rt').addEventListener('input', e => { e.target.value = mTel(e.target.value); });
+}
+function cadEndLer(pf){
+  const v = id => ($('#' + pf + '-' + id).value || '').trim();
+  return { email: v('email') || null, cep: dig(v('cep')) || null, logradouro: v('log') || null, numero: v('num') || null, complemento: v('comp') || null, bairro: v('bai') || null, cidade: v('cid') || null, uf: v('uf') || null,
+    resp_nome: v('rn') || null, resp_cpf: dig(v('rc')) || null, resp_telefone: dig(v('rt')) || null };
+}
+function cadEndErro(c){
+  if (c.cep && c.cep.length < 8) return 'CEP incompleto.';
+  if (c.resp_cpf && !cpfOk(c.resp_cpf)) return 'CPF do responsável inválido.';
+  if (c.resp_telefone && c.resp_telefone.length < 10) return 'Telefone do responsável incompleto.';
+  if (c.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) return 'E-mail inválido.';
+  return '';
+}
 function pacForm(p, aoSalvar){
   const novo = !p, edita = novo ? pode('pacientes.criar') : pode('pacientes.editar'), ro = edita ? '' : ' disabled';
   const unid = MINHAS.slice();
@@ -1004,6 +1067,7 @@ function pacForm(p, aoSalvar){
     + '<div class="g3"><label class="field" for="pc-canalv">Canal de vendas *<select id="pc-canalv"' + ro + '><option value="">Escolha...</option>' + CANAIS.map(c => '<option' + (p && p.canal_venda === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pc-un">Unidade *<select id="pc-un"' + ro + '>' + unid.map(u => '<option value="' + u.id + '"' + (u.id === un0 ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pc-data">Data do cadastro<input id="pc-data" value="' + dBR(p ? p.data_cadastro : hoje()) + '" readonly></label></div>'
+    + (novo ? '' : cadEndHtml('pc', p, ro))
     + '<label class="field" for="pc-obs">Observação<textarea id="pc-obs" rows="3" maxlength="500"' + ro + '>' + esc(p && p.observacao) + '</textarea></label>'
     + '<div class="err" id="pc-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="pc-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>'
@@ -1011,6 +1075,7 @@ function pacForm(p, aoSalvar){
   $('#pc-cpf').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
   $('#pc-tel').addEventListener('input', e => { e.target.value = mTel(e.target.value); });
   $('#pc-cancel').addEventListener('click', fecharJanela);
+  if (!novo) cadEndLigar('pc');
   let quer = false;
   $$('#pc-form button[type=submit]').forEach(b => b.addEventListener('click', () => { quer = b.dataset.av === '1'; }));
   $('#pc-form').addEventListener('submit', async e => {
@@ -1023,6 +1088,7 @@ function pacForm(p, aoSalvar){
     if (tel && tel.length < 10) { er.textContent = 'Telefone incompleto.'; return; }
     if (!canal) { er.textContent = 'Escolha o canal de vendas.'; return; }
     const reg = { nome, nome_social: $('#pc-social').value.trim() || null, cpf: cpf || null, rg: $('#pc-rg').value.trim() || null, data_nascimento: nasc || null, telefone: tel || null, canal_venda: canal, unidade_id: Number($('#pc-un').value), observacao: $('#pc-obs').value.trim() || null };
+    if (!novo) { const ce = cadEndLer('pc'), me = cadEndErro(ce); if (me) { er.textContent = me; return; } Object.assign(reg, ce); }
     $$('#pc-form button[type=submit]').forEach(b => b.disabled = true);
     const r = novo ? await sb.from('pacientes').insert(reg).select('*').single() : await sb.from('pacientes').update(reg).eq('id', p.id);
     $$('#pc-form button[type=submit]').forEach(b => b.disabled = false);
@@ -1036,11 +1102,13 @@ function pacForm(p, aoSalvar){
 const ROTA_ATIVA = () => ABA ? ABA.rota : '';
 
 /* ---------- ficha do paciente (uma aba por paciente) ---------- */
-const PROX_ST = { 'Prospecção': [['Pré-Ativo', 'Marcar como Pré-Ativo'], ['Desistente', 'Desistiu']], 'Pré-Ativo': [['Ativo', 'Iniciar tratamento'], ['Desistente', 'Desistiu']], 'Ativo': [['Concluído', 'Concluir tratamento'], ['Desistente', 'Desistiu']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
+const PROX_ST = { 'Prospecção': [['Desistente', 'Desistiu']], 'Pré-Ativo': [['Desistente', 'Desistiu']], 'Ativo': [['Concluído', 'Concluir tratamento'], ['Desistente', 'Desistiu']], 'Inativo': [['Concluído', 'Concluir tratamento'], ['Desistente', 'Desistiu']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
+const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Desistente': 'off' };
 async function pacFicha(id){
+  await sb.rpc('financeiro_atualizar');
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.from('pacientes').select('*').eq('id', id).single(), sb.rpc('avaliacoes_do_paciente', { p_paciente: id }), sb.from('unidades').select('*').order('sigla'),
-    sb.from('agendamentos').select('*').eq('paciente_id', id).order('data', { ascending: false }), sb.from('agendas').select('id,nome'), sb.from('procedimentos').select('id,nome'), sb.rpc('ocorrencias_do_paciente', { p_paciente: id })]);
+    sb.from('agendamentos').select('*').eq('paciente_id', id).order('data', { ascending: false }), sb.from('agendas').select('id,nome'), sb.from('procedimentos').select('id,nome'), sb.rpc('ocorrencias_do_paciente', { p_paciente: id }), pode('financeiro.ver') ? sb.rpc('parcelas_do_paciente', { p_paciente: id }) : Promise.resolve({ data: [] })]);
   const er = rs.slice(0, 3).map(r => r.error).find(Boolean);
   if (er || !rs[0].data) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(er ? erroTxt(er) : 'Paciente não encontrado.') + '</div></div>'; return; }
   const p = rs[0].data, avs = rs[1].data || []; D.unidades = rs[2].data;
@@ -1049,22 +1117,25 @@ async function pacFicha(id){
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
   const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
   const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
-  $('#area').innerHTML = '<div class="card tit"><h1>' + p.id + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill nu">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
+  $('#area').innerHTML = '<div class="card tit"><h1>' + p.id + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
     + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' + (PROX_ST[p.status] || []).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
     + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '')
       : p.status === 'Prospecção' ? (concl && pode('avaliacoes.atender') && souDent() && !jaAvaliei ? '<button class="btn sm" type="button" id="fi-rea" title="Outro dentista avalia e registra o seu parecer">Reavaliar (meu parecer)</button>' : '')
         + (pode('avaliacoes.iniciar') ? '<button class="btn ' + (concl ? 'ghost ' : '') + 'sm" type="button" id="fi-ini">' + (concl ? 'Solicitar reavaliação' : 'Iniciar avaliação') + '</button>' : '') : '') + '</div></div>'
     + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
+    + kv('E-mail', p.email) + kv('Endereço', [p.logradouro && (p.logradouro + (p.numero ? ', ' + p.numero : '') + (p.complemento ? ' - ' + p.complemento : '')), p.bairro, p.cidade && (p.cidade + (p.uf ? '/' + p.uf : '')), p.cep && mCEP(p.cep)].filter(Boolean).join(' · ')) + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : '')) : '')
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
-    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button><span title="Em breve">Anamnese</span></div>'
+    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '<span title="Em breve">Anamnese</span></div>'
     + '<div class="tw" id="fi-oc"' + (aberta ? ' hidden' : '') + '>' + (ocs.length ? '<table class="tb"><thead><tr><th>#</th><th>Data</th><th>Ocorrência</th><th>Responsável</th><th>Resultado</th><th>Detalhes</th></tr></thead><tbody>' + ocs.map((o, i) => '<tr><td>' + (i + 1) + '</td><td class="oc-t">' + dtHora(o.quando) + '</td><td><b>' + esc(o.titulo) + '</b></td><td>' + esc(o.responsavel) + '</td><td>' + (o.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : o.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(o.resultado)) + '</td><td>' + esc(o.detalhe) + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma ocorrência ainda.</div>') + '</div>'
+    + '<div class="tw" id="fi-fn" hidden>' + fnTabela(rs[7].error ? [] : (rs[7].data || []), pode('financeiro.baixar')) + '</div>'
     + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
     + (marc.length ? '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Agendamentos</h2><div class="tw"><table class="tb"><thead><tr><th>Data</th><th>Hora</th><th>Agenda</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>'
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
-  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; }));
+  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; }));
+  $$('[data-rec]').forEach(b => b.addEventListener('click', () => { const x = (rs[7].data || []).find(y => y.id === Number(b.dataset.rec)); fnReceber(x, p.nome_social || p.nome, recarrega); }));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
     if (b.dataset.avs === 'aguardando') {
@@ -1390,57 +1461,88 @@ async function vdCarregar(){
   if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
   defUn(ru.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Vendas'); return; }
-  const rs = await Promise.all([sb.rpc('fila_venda', { p_unidade: UN }), sb.rpc('vendas_da_unidade', { p_unidade: UN }), sb.from('planos_tratamento').select('*').eq('ativo', true).order('id')]);
+  await sb.rpc('financeiro_atualizar');
+  const rs = await Promise.all([sb.rpc('fila_venda', { p_unidade: UN }), sb.rpc('vendas_da_unidade', { p_unidade: UN }), sb.from('planos_tratamento').select('*').eq('ativo', true).order('id'), sb.from('dias_vencimento').select('dia').order('dia')]);
   const er = rs.map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.fila = rs[0].data || []; D.vendas = rs[1].data || []; D.planos = rs[2].data || [];
+  D.fila = rs[0].data || []; D.vendas = rs[1].data || []; D.planos = rs[2].data || []; D.dv = (rs[3].data || []).map(x => x.dia);
   vdLista();
 }
 function vdLista(){
   const lib = D.fila.filter(f => f.apto), nao = D.fila.filter(f => !f.apto), ativas = D.vendas.filter(v => v.status === 'ativa');
   const abas = [['lib', 'Liberados para venda', lib.length], ['nao', 'Não aptos', nao.length], ['vend', 'Vendas realizadas', D.vendas.length]];
-  $('#area').innerHTML = '<div class="head"><div><h1>Vendas</h1><p class="sub">Pacientes que o dentista avaliou. Os aptos estão liberados para a venda de um plano de tratamento.</p></div></div>'
+  $('#area').innerHTML = '<div class="head"><div><h1>Vendas</h1><p class="sub">Pacientes que o dentista avaliou. Os aptos estão liberados: o vendedor apresenta, negocia e inicia o tratamento.</p></div></div>'
     + '<div class="card"><div class="tools" id="vd-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (VD.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (VD.aba === a[0]) + '" data-aba="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join('') + '</div><div class="lista" id="vd-lista"></div></div>';
   const nome = f => esc(f.nome_social || f.nome) + (f.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(f.nome) + ')</small>' : '');
   const av = f => '<span class="m x">Avaliado por ' + esc(f.dentista_nome || '—') + ' · ' + dtHora(f.concluida_em) + '</span><span class="m x">Clínico concomitante: ' + (f.tratamento_clinico ? 'sim' : 'não') + ' · Limpeza profunda: ' + (f.limpeza_profunda ? 'sim' : 'não') + '</span>';
   let h = '';
   if (VD.aba === 'lib') h = lib.length ? lib.map(f => '<div class="row f" data-pid="' + f.paciente_id + '"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.canal_venda) + '</span>'
-      + (pode('vendas.registrar') ? '<button class="btn sm" type="button" data-vender="' + f.paciente_id + '">Vender</button>' : '<span></span>') + '</div>').join('') : '<div class="vazio">Ninguém liberado para venda agora. Quando o dentista concluir uma avaliação como apto, o paciente aparece aqui.</div>';
+      + (pode('vendas.registrar') ? '<button class="btn sm" type="button" data-vender="' + f.paciente_id + '">Iniciar tratamento</button>' : '<span></span>') + '</div>').join('') : '<div class="vazio">Ninguém liberado para venda agora. Quando o dentista concluir uma avaliação como apto, o paciente aparece aqui.</div>';
   else if (VD.aba === 'nao') h = nao.length ? nao.map(f => '<div class="row f"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.observacao || '') + '</span><button class="btn ghost sm" type="button" data-ficha="' + f.paciente_id + '">Abrir ficha</button></div>').join('') : '<div class="vazio">Nenhum paciente não apto em acompanhamento.</div>';
-  else h = D.vendas.length ? D.vendas.map(v => '<button class="row f" type="button" data-venda="' + v.id + '"><b>' + esc(v.paciente_nome) + '</b><span class="m x">' + esc(v.plano_nome) + '</span><span class="m x">' + reais(v.valor) + '</span><span class="m x">' + esc(v.vendedor_nome || '') + ' · ' + dtHora(v.criado_em) + '</span><span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></button>').join('') : '<div class="vazio">Nenhuma venda registrada ainda.</div>';
+  else h = D.vendas.length ? D.vendas.map(v => '<button class="row f" type="button" data-venda="' + v.id + '"><b>' + esc(v.paciente_nome) + '</b><span class="m x">' + esc(v.plano_nome) + '</span><span class="m x">' + reais(v.valor) + '/mês' + (v.prazo_meses ? ' · ' + v.prazo_meses + ' meses' : '') + '</span><span class="m x">' + esc(v.vendedor_nome || '') + ' · ' + dtHora(v.criado_em) + '</span><span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></button>').join('') : '<div class="vazio">Nenhuma venda registrada ainda.</div>';
   $('#vd-lista').innerHTML = h;
   $$('#vd-abas [data-aba]').forEach(b => b.addEventListener('click', () => { VD.aba = b.dataset.aba; vdLista(); }));
   $$('[data-vender]').forEach(b => b.addEventListener('click', () => vdVender(D.fila.find(f => f.paciente_id === Number(b.dataset.vender)))));
   $$('[data-ficha]').forEach(b => b.addEventListener('click', () => { const f = D.fila.find(x => x.paciente_id === Number(b.dataset.ficha)); abrirPaciente({ id: f.paciente_id, nome: f.nome, nome_social: f.nome_social }); }));
   $$('[data-venda]').forEach(b => b.addEventListener('click', () => vdDetalhe(D.vendas.find(v => v.id === Number(b.dataset.venda)))));
 }
-function vdVender(f){
-  abrirJanela('Vender plano de tratamento',
+const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
+// vencimento da 1ª mensalidade (espelha a regra do banco): mês seguinte à venda; venda depois do dia 20 → dia 20
+const venc1 = (dataIso, dia) => { const [y, m, d] = dataIso.split('-').map(Number); const dt = new Date(y, m, d > 20 ? 20 : dia); return iso(dt); };
+async function vdVender(f){
+  const [rp, ro] = await Promise.all([sb.from('pacientes').select('*').eq('id', f.paciente_id).single(), sb.rpc('opcoes_tratamento', { p_paciente: f.paciente_id })]);
+  if (rp.error || ro.error) { toast(erroTxt(rp.error || ro.error)); return; }
+  const p = rp.data, ops = ro.data || [];
+  const opt = (v, t, sel, dis) => '<option value="' + esc(v) + '"' + (sel ? ' selected' : '') + (dis ? ' disabled' : '') + '>' + esc(t) + '</option>';
+  abrirJanela('Iniciar tratamento',
     '<form id="vv-form" novalidate><div class="db"><p style="margin:0;font-size:16px"><b>' + esc(f.nome_social || f.nome) + '</b> <span class="pill on">Apto</span></p>'
     + '<p class="sub" style="margin:0">Avaliado por ' + esc(f.dentista_nome || '—') + ' · Tratamento clínico concomitante: ' + (f.tratamento_clinico ? 'sim' : 'não') + ' · Limpeza profunda inicial: ' + (f.limpeza_profunda ? 'sim' : 'não') + (f.observacao ? '<br>' + esc(f.observacao) : '') + '</p>'
-    + '<div class="g2"><label class="field" for="vv-plano">Plano de tratamento *<select id="vv-plano"><option value="">Escolha...</option>' + D.planos.map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></label>'
-    + '<label class="field" for="vv-valor">Valor *<span class="pw"><input id="vv-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label></div>'
+    + '<p style="margin:8px 0 0;font-weight:700">Cadastro completo do paciente</p>'
+    + '<div class="g2">' + fld('vv-social', 'Nome social', p.nome_social, 'maxlength="120" autocomplete="off"') + fld('vv-cpf', 'CPF *', p.cpf ? mCPF(p.cpf) : '', 'inputmode="numeric" maxlength="14" autocomplete="off"') + '</div>'
+    + '<div class="g3">' + fld('vv-rg', 'RG', p.rg, 'maxlength="20" autocomplete="off"') + '<label class="field" for="vv-nasc">Data de nascimento *<input id="vv-nasc" type="date" value="' + esc(p.data_nascimento) + '" max="' + hoje() + '"></label>' + fld('vv-tel', 'Telefone *', p.telefone ? mTel(p.telefone) : '', 'inputmode="tel" maxlength="15" autocomplete="off"') + '</div>'
+    + cadEndHtml('vv', p, '')
+    + '<p style="margin:8px 0 0;font-weight:700">Tratamento</p>'
+    + '<label class="field" for="vv-plano">Tipo de tratamento *<select id="vv-plano"><option value="">Escolha...</option>' + D.planos.map(x => opt(x.id, x.nome + (x.mensalidade ? '' : ' (sem valor cadastrado)'), false, !x.mensalidade)).join('') + '</select></label>'
+    + '<p class="sub" id="vv-res" style="margin:0"></p>'
+    + '<div class="g2"><label class="field" for="vv-dd">Dia da semana e dentista responsável *<select id="vv-dd">' + (ops.length ? ops.map((o, i) => opt(o.dentista_id + '|' + o.dia_semana, cap1(NOMES_DIA[o.dia_semana]) + ' — ' + o.dentista_nome + (o.avaliou ? ' (avaliou)' : ''), i === 0)).join('') : '<option value="">Nenhum ortodontista com dia cadastrado</option>') + '</select></label>'
+    + '<label class="field" for="vv-dia">Dia do vencimento *<select id="vv-dia"><option value="">Escolha...</option>' + D.dv.map(d => opt(d, 'Dia ' + d)).join('') + '</select></label></div>'
+    + '<p class="sub" id="vv-venc" style="margin:0"></p>'
     + '<label class="field" for="vv-obs">Observação <small>(opcional)</small><textarea id="vv-obs" rows="2" maxlength="300"></textarea></label>'
-    + '<p class="sub" style="margin:0">Ao vender, o paciente passa a Pré-Ativo e já pode agendar a instalação.</p><div class="err" id="vv-err" role="alert"></div></div>'
-    + '<div class="df"><button class="btn ghost" type="button" id="vv-cancel">Cancelar</button><button class="btn" type="submit" id="vv-ok">Registrar venda</button></div></form>');
-  $('#vv-valor').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+    + '<p class="sub" style="margin:0">Ao iniciar, o paciente passa a Pré-Ativo e é gerada a parcela Início, que vence hoje. Pago o Início, é gerada a 1ª mensalidade. Pago a 1ª mensalidade, o paciente fica Ativo.</p><div class="err" id="vv-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="vv-cancel">Cancelar</button><button class="btn" type="submit" id="vv-ok">Iniciar tratamento</button></div></form>');
+  cadEndLigar('vv');
+  $('#vv-cpf').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#vv-tel').addEventListener('input', e => { e.target.value = mTel(e.target.value); });
   $('#vv-cancel').addEventListener('click', fecharJanela);
+  const res = () => {
+    const pl = D.planos.find(x => x.id === Number($('#vv-plano').value)), d = Number($('#vv-dia').value);
+    $('#vv-res').textContent = pl && pl.mensalidade ? 'Mensalidade ' + reais(pl.mensalidade) + ' · desconto de ' + reais(pl.desconto) + ' pagando até o vencimento · prazo médio de ' + pl.prazo_meses + ' meses · Início hoje: ' + reais(pl.mensalidade - pl.desconto) : '';
+    $('#vv-venc').textContent = d ? 'Início vence hoje (' + dBR(hoje()) + '). A 1ª mensalidade vence em ' + dBR(venc1(hoje(), d)) + (Number(hoje().slice(8)) > 20 ? ' (venda após o dia 20); as demais, todo dia ' + d + '.' : ', as demais todo dia ' + d + '.') : '';
+  };
+  $('#vv-plano').addEventListener('change', res); $('#vv-dia').addEventListener('change', res);
   $('#vv-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#vv-err'); er.textContent = '';
-    const plano = Number($('#vv-plano').value), valor = moedaNum($('#vv-valor').value);
-    if (!plano) { er.textContent = 'Escolha o plano de tratamento.'; return; }
-    if (!valor) { er.textContent = 'Informe o valor da venda.'; return; }
+    const plano = Number($('#vv-plano').value), dd = $('#vv-dd').value.split('|'), dia = Number($('#vv-dia').value), cpf = dig($('#vv-cpf').value), tel = dig($('#vv-tel').value), nasc = $('#vv-nasc').value;
+    if (!cpf || !cpfOk(cpf)) { er.textContent = 'Informe um CPF válido.'; return; }
+    if (!nasc || nasc > hoje()) { er.textContent = 'Informe a data de nascimento.'; return; }
+    if (tel.length < 10) { er.textContent = 'Informe o telefone com DDD.'; return; }
+    const ce = cadEndLer('vv'), me = cadEndErro(ce); if (me) { er.textContent = me; return; }
+    if (!ce.cep || !ce.logradouro || !ce.numero || !ce.bairro || !ce.cidade || !ce.uf) { er.textContent = 'Preencha o endereço completo: CEP, rua, número, bairro, cidade e UF.'; return; }
+    if (!plano) { er.textContent = 'Escolha o tipo de tratamento.'; return; }
+    if (!dd[0]) { er.textContent = 'Escolha o dia da semana e o dentista responsável.'; return; }
+    if (!dia) { er.textContent = 'Escolha o dia do vencimento.'; return; }
+    const cad = Object.assign({ nome_social: $('#vv-social').value.trim() || null, cpf, rg: $('#vv-rg').value.trim() || null, data_nascimento: nasc, telefone: tel }, ce);
     const b = $('#vv-ok'); b.disabled = true;
-    const r = await sb.rpc('registrar_venda', { p_paciente: f.paciente_id, p_plano: plano, p_valor: valor, p_obs: $('#vv-obs').value.trim() || null });
+    const r = await sb.rpc('iniciar_tratamento', { p_paciente: f.paciente_id, p_plano: plano, p_dentista: Number(dd[0]), p_dia_semana: Number(dd[1]), p_dia_venc: dia, p_obs: $('#vv-obs').value.trim() || null, p_cad: cad });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
-    fecharJanela(); toast('Venda registrada. O paciente agora é Pré-Ativo: agende a instalação na Agenda.'); VD.aba = 'vend'; vdCarregar();
+    fecharJanela(); toast('Tratamento iniciado. O paciente agora é Pré-Ativo: receba a parcela Início no Financeiro.'); VD.aba = 'vend'; vdCarregar();
   });
 }
 function vdDetalhe(v){
   const pode_c = v.status === 'ativa' && pode('vendas.cancelar');
   abrirJanela('Venda', '<div class="db"><p style="margin:0;font-size:16px"><b>' + esc(v.paciente_nome) + '</b> <span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></p>'
-    + '<div class="kv dkv"><span>Plano</span><b>' + esc(v.plano_nome) + '</b><span>Valor</span><b>' + reais(v.valor) + '</b><span>Vendedor</span><b>' + esc(v.vendedor_nome || '—') + '</b><span>Data</span><b>' + dtHora(v.criado_em) + '</b>' + (v.observacao ? '<span>Observação</span><b>' + esc(v.observacao) + '</b>' : '') + '</div>'
-    + (pode_c ? '<p class="sub" style="margin:0">Cancelar a venda devolve o paciente para prospecção e cancela os horários de tratamento ainda não realizados.</p>' : '') + '<div class="err" id="vc-err" role="alert"></div></div>'
+    + '<div class="kv dkv"><span>Plano</span><b>' + esc(v.plano_nome) + '</b><span>Mensalidade</span><b>' + reais(v.valor) + (v.desconto ? ' (desconto ' + reais(v.desconto) + ' até o vencimento)' : '') + '</b>' + (v.prazo_meses ? '<span>Prazo médio</span><b>' + v.prazo_meses + ' meses</b>' : '') + (v.dentista_nome ? '<span>Dentista</span><b>' + esc(v.dentista_nome) + ' — ' + NOMES_DIA[v.dia_semana] + '</b>' : '') + (v.dia_vencimento ? '<span>Vencimento</span><b>Todo dia ' + v.dia_vencimento + '</b>' : '') + '<span>Vendedor</span><b>' + esc(v.vendedor_nome || '—') + '</b><span>Data</span><b>' + dtHora(v.criado_em) + '</b>' + (v.observacao ? '<span>Observação</span><b>' + esc(v.observacao) + '</b>' : '') + '</div>'
+    + (pode_c ? '<p class="sub" style="margin:0">Cancelar a venda devolve o paciente para prospecção, cancela as parcelas em aberto e os horários de tratamento ainda não realizados. Não é possível cancelar depois de um pagamento.</p>' : '') + '<div class="err" id="vc-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (pode_c ? '<button class="btn danger" type="button" id="vc-canc">Cancelar venda</button>' : '') + '</div><button class="btn ghost" type="button" id="vc-x">Fechar</button></div>');
   $('#vc-x').addEventListener('click', fecharJanela);
   const c = $('#vc-canc'); if (c) c.addEventListener('click', async () => {
@@ -1448,6 +1550,135 @@ function vdDetalhe(v){
     c.disabled = true; const r = await sb.rpc('cancelar_venda', { p_id: v.id });
     if (r.error) { $('#vc-err').textContent = erroTxt(r.error); c.disabled = false; return; }
     fecharJanela(); toast('Venda cancelada.'); vdCarregar();
+  });
+}
+
+/* ---------- FINANCEIRO: parcelas e baixa de pagamento ---------- */
+const FN = { f: 'abertas', q: '' };
+const LBL_PARC = n => n === 0 ? 'Início' : n + 'ª mensalidade';
+const FORMAS_PGTO = ['PIX', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Boleto', 'Transferência'];
+function fnSit(x){
+  if (x.status === 'paga') return '<span class="pill on">Paga</span>';
+  return x.dias_atraso > 0 ? '<span class="pill off">Vencida há ' + x.dias_atraso + ' d</span>' : '<span class="pill wr">A vencer</span>';
+}
+function fnTabela(lista, baixa){
+  if (!lista.length) return '<div class="vazio">Nenhuma parcela ainda. Ela nasce quando o tratamento é iniciado.</div>';
+  return '<table class="tb"><thead><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead><tbody>' + lista.map(x => '<tr><td><b>' + LBL_PARC(x.numero) + '</b></td><td>' + dBR(x.vencimento) + '</td><td>'
+    + (x.status === 'paga' ? reais(x.valor_pago) : reais(x.valor_hoje) + (x.valor_hoje < x.valor_cheio ? '<br><small style="color:var(--muted)">com desconto até o vencimento</small>' : '')) + '</td><td>' + fnSit(x) + '</td><td>' + (x.status === 'paga' ? dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento) : '')
+    + '</td><td>' + (x.status === 'aberta' && baixa ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '') + '</td></tr>').join('') + '</tbody></table>';
+}
+function fnReceber(x, nome, aoFim){
+  if (!x) return;
+  abrirJanela('Receber — ' + LBL_PARC(x.numero), '<form id="rc-form" novalidate><div class="db"><p style="margin:0;font-size:16px"><b>' + esc(nome) + '</b></p>'
+    + '<div class="kv dkv"><span>Parcela</span><b>' + LBL_PARC(x.numero) + '</b><span>Vencimento</span><b>' + dBR(x.vencimento) + '</b><span>Valor cheio</span><b>' + reais(x.valor_cheio) + '</b><span>Desconto</span><b>' + reais(x.desconto) + ' (só pagando até o vencimento)</b></div>'
+    + '<div class="g2"><label class="field" for="rc-data">Data do pagamento<input id="rc-data" type="date" value="' + hoje() + '" max="' + hoje() + '"></label>'
+    + '<label class="field" for="rc-forma">Forma de pagamento *<select id="rc-forma"><option value="">Escolha...</option>' + FORMAS_PGTO.map(f => '<option>' + f + '</option>').join('') + '</select></label></div>'
+    + '<p id="rc-val" style="margin:0;font-size:17px;font-weight:700"></p><p class="sub" id="rc-nota" style="margin:0"></p><div class="err" id="rc-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="rc-cancel">Cancelar</button><button class="btn" type="submit" id="rc-ok">Confirmar recebimento</button></div></form>');
+  const calc = () => { const d = $('#rc-data').value || hoje(), com = d <= x.vencimento, v = com ? x.valor_cheio - x.desconto : x.valor_cheio;
+    $('#rc-val').textContent = 'Valor a receber: ' + reais(v); $('#rc-nota').textContent = com ? '' : 'Pago depois do vencimento: sem o desconto de ' + reais(x.desconto) + ' (não há juros).'; };
+  calc(); $('#rc-data').addEventListener('input', calc);
+  $('#rc-cancel').addEventListener('click', fecharJanela);
+  $('#rc-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#rc-err'); er.textContent = '';
+    const forma = $('#rc-forma').value; if (!forma) { er.textContent = 'Escolha a forma de pagamento.'; return; }
+    const b = $('#rc-ok'); b.disabled = true;
+    const r = await sb.rpc('baixar_parcela', { p_id: x.id, p_forma: forma, p_data: $('#rc-data').value || null });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast('Pagamento registrado.' + (x.numero === 0 ? ' Foi gerada a 1ª mensalidade.' : x.numero === 1 ? ' O paciente agora está Ativo.' : '')); if (aoFim) aoFim();
+  });
+}
+async function finCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Financeiro'); return; }
+  await sb.rpc('financeiro_atualizar');
+  const r = await sb.rpc('parcelas_da_unidade', { p_unidade: UN });
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  D.parc = r.data || []; finLista();
+}
+function finLista(){
+  const ab = D.parc.filter(x => x.status === 'aberta'), venc = ab.filter(x => x.dias_atraso > 0), avenc = ab.filter(x => x.dias_atraso === 0), pagas = D.parc.filter(x => x.status === 'paga');
+  const soma = l => l.reduce((t, x) => t + Number(x.valor_hoje), 0);
+  const abas = [['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas (60 dias)', pagas.length]];
+  $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento. Paga até o vencimento: com desconto. Depois: valor cheio, sem juros.</p></div></div>'
+    + '<div class="card"><p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
+    + '<div class="tools"><div id="fn-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (FN.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
+    + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div><div class="tw" id="fn-lista"></div></div>';
+  const pinta = () => {
+    const q = FN.q.trim().toLowerCase(); let l = FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
+    if (q) l = l.filter(x => x.paciente_nome.toLowerCase().includes(q));
+    $('#fn-lista').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '">' + esc(x.paciente_nome) + '</button><br><small style="color:var(--muted)">' + esc(x.paciente_status) + '</small></td><td>' + LBL_PARC(x.numero) + '</td><td>' + dBR(x.vencimento) + '</td><td>'
+      + (x.status === 'paga' ? reais(x.valor_pago) + '<br><small style="color:var(--muted)">' + dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento) + '</small>' : reais(x.valor_hoje) + (x.valor_hoje < x.valor_cheio ? '<br><small style="color:var(--muted)">com desconto</small>' : '')) + '</td><td>' + fnSit(x) + '</td><td>'
+      + (x.status === 'aberta' && pode('financeiro.baixar') ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nada por aqui.</div>';
+    $$('#fn-lista [data-rec]').forEach(b => b.addEventListener('click', () => { const x = D.parc.find(y => y.id === Number(b.dataset.rec)); fnReceber(x, x.paciente_nome, finCarregar); }));
+    $$('#fn-lista [data-pac]').forEach(b => b.addEventListener('click', () => { const x = D.parc.find(y => y.paciente_id === Number(b.dataset.pac)); abrirPaciente({ id: x.paciente_id, nome: x.paciente_nome, nome_social: null }); }));
+  };
+  pinta();
+  $$('#fn-abas [data-f]').forEach(b => b.addEventListener('click', () => { FN.f = b.dataset.f; finLista(); }));
+  $('#fn-q').addEventListener('input', e => { FN.q = e.target.value; pinta(); });
+}
+
+/* ---------- TIPOS DE TRATAMENTO e dias de vencimento ---------- */
+async function trtCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.from('planos_tratamento').select('*').order('id'), sb.from('dias_vencimento').select('dia').order('dia')]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.trt = rs[0].data; D.dv = rs[1].data.map(x => x.dia); trtLista();
+}
+function trtLista(){
+  const edDias = ehDir(), dias = []; for (let d = 1; d <= 28; d++) dias.push(d);
+  $('#area').innerHTML = '<div class="head"><div><h1>Tipos de tratamento</h1><p class="sub">Só o Diretor define estes valores. O vendedor apenas escolhe o tipo na venda. Cada tipo tem prazo médio, valor da mensalidade e desconto. O desconto vale para quem paga até o vencimento; depois disso o paciente paga o valor cheio, sem juros. Vale para todas as unidades do grupo.</p></div>'
+    + (ehDir() ? '<button class="btn" type="button" id="tr-novo">+ Novo tipo</button>' : '') + '</div>'
+    + '<div class="card"><div class="lista" id="tr-lista"></div></div>'
+    + '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 4px;font-size:16px">Dias de vencimento</h2><p class="sub" style="margin:0 0 10px">Dias que o vendedor pode escolher para o vencimento das mensalidades.</p>'
+    + '<div id="dv-dias" style="display:flex;flex-wrap:wrap;gap:6px 14px">' + dias.map(d => '<label class="chk" style="min-height:30px"><input type="checkbox" value="' + d + '"' + (D.dv.includes(d) ? ' checked' : '') + (edDias ? '' : ' disabled') + '> ' + d + '</label>').join('') + '</div>'
+    + (edDias ? '<div style="margin-top:10px"><button class="btn sm" type="button" id="dv-ok">Salvar dias</button> <span class="err" id="dv-err" role="alert"></span></div>' : '') + '</div>';
+  $('#tr-lista').innerHTML = D.trt.length ? D.trt.map(p => '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + '</b><span class="m x">' + (p.mensalidade ? reais(p.mensalidade) + '/mês' : 'sem valor') + '</span><span class="m x">' + (p.mensalidade ? 'desconto ' + reais(p.desconto) : '') + '</span><span class="m x">' + (p.prazo_meses ? p.prazo_meses + ' meses' : '') + '</span><span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nenhum tipo cadastrado.</div>';
+  $$('#tr-lista .row').forEach(b => b.addEventListener('click', () => trtForm(D.trt.find(p => p.id === Number(b.dataset.id)))));
+  const n = $('#tr-novo'); if (n) n.addEventListener('click', () => trtForm(null));
+  const ok = $('#dv-ok'); if (ok) ok.addEventListener('click', async () => {
+    const sel = $$('#dv-dias input:checked').map(i => Number(i.value)), er = $('#dv-err'); er.textContent = '';
+    if (!sel.length) { er.textContent = 'Escolha pelo menos um dia.'; return; }
+    ok.disabled = true; const r = await sb.rpc('definir_dias_vencimento', { p_dias: sel }); ok.disabled = false;
+    if (r.error) { er.textContent = erroTxt(r.error); return; } toast('Dias de vencimento salvos.'); trtCarregar();
+  });
+}
+function trtForm(p){
+  const novo = !p, edita = novo ? ehDir() : ehDir(), ro = edita ? '' : ' disabled';
+  abrirJanela(novo ? 'Novo tipo de tratamento' : 'Tipo de tratamento',
+    '<form id="tr-form" novalidate><div class="db">' + fld('tr-nome', 'Nome *', p && p.nome, 'maxlength="60" autocomplete="off"' + ro)
+    + '<div class="g3">' + fld('tr-prazo', 'Prazo médio (meses) *', p && p.prazo_meses, 'inputmode="numeric" maxlength="3"' + ro)
+    + '<label class="field" for="tr-mens">Mensalidade *<span class="pw"><input id="tr-mens" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(p && p.mensalidade)) + '"' + ro + '><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
+    + '<label class="field" for="tr-desc">Desconto *<span class="pw"><input id="tr-desc" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(p ? p.desconto : 0)) + '"' + ro + '><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label></div>'
+    + '<p class="sub" style="margin:0">Exemplo: mensalidade R$ 180,00 e desconto R$ 30,00 → quem paga até o vencimento paga R$ 150,00. Depois do vencimento paga R$ 180,00, sem juros. A parcela Início também sai com o desconto.</p><div class="err" id="tr-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq">' + (!novo && ehDir() ? '<button class="btn ' + (p.ativo ? 'danger' : 'ghost') + '" type="button" id="tr-ina">' + (p.ativo ? 'Inativar' : 'Reativar') + '</button>' : '') + '</div>'
+    + '<button class="btn ghost" type="button" id="tr-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="tr-ok">Salvar</button>' : '') + '</div></form>');
+  $('#tr-mens').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  $('#tr-desc').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  $('#tr-cancel').addEventListener('click', fecharJanela);
+  const ina = $('#tr-ina'); if (ina) ina.addEventListener('click', async () => {
+    if (ina.dataset.c !== '1') { ina.dataset.c = '1'; ina.textContent = 'Confirmar'; return; }
+    const r = await sb.from('planos_tratamento').update({ ativo: !p.ativo }).eq('id', p.id);
+    if (r.error) { $('#tr-err').textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast(p.ativo ? 'Tipo inativado.' : 'Tipo reativado.'); trtCarregar();
+  });
+  $('#tr-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return; const er = $('#tr-err'); er.textContent = '';
+    const nome = $('#tr-nome').value.trim().replace(/\s+/g, ' '), prazo = Number(dig($('#tr-prazo').value)), mens = moedaNum($('#tr-mens').value), desc = moedaNum($('#tr-desc').value) || 0;
+    if (!nome) { er.textContent = 'Dê um nome ao tipo de tratamento.'; return; }
+    if (!prazo || prazo > 120) { er.textContent = 'Informe o prazo médio em meses (1 a 120).'; return; }
+    if (!mens) { er.textContent = 'Informe o valor da mensalidade.'; return; }
+    if (desc > mens) { er.textContent = 'O desconto não pode ser maior que a mensalidade.'; return; }
+    const reg = { nome, prazo_meses: prazo, mensalidade: mens, desconto: desc };
+    const b = $('#tr-ok'); b.disabled = true;
+    const r = novo ? await sb.from('planos_tratamento').insert(reg) : await sb.from('planos_tratamento').update(reg).eq('id', p.id);
+    b.disabled = false;
+    if (r.error) { er.textContent = /planos_nome_uq|23505/.test((r.error.message || '') + r.error.code) ? 'Já existe um tipo com esse nome.' : erroTxt(r.error); return; }
+    fecharJanela(); toast(novo ? 'Tipo cadastrado.' : 'Tipo atualizado.'); trtCarregar();
   });
 }
 
