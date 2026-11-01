@@ -260,6 +260,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 }
 .rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
+.rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
 </style>
 </head>
 <body>
@@ -482,7 +483,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
-  ['0.15.1', '2026-11-01', 'Pesquisa financeira: colunas de valor por forma de pagamento (PIX, débito, crédito, dinheiro, boleto, transferência) com total no rodapé e filtros em todas as colunas do grid.'],
+  ['0.15.1', '2026-11-01', 'Pesquisa financeira: colunas de valor por forma de pagamento (PIX, débito, crédito, dinheiro, boleto, transferência) com total no rodapé e filtros estilo planilha (funil no título de cada coluna, com busca e seleção de valores).'],
   ['0.15.0', '2026-11-01', 'Cobranças avulsas: botão + Nova cobrança na ficha financeira do paciente (produto ou serviço, valor, vencimento). Cadastro de produtos e serviços só para o Diretor. A cobrança avulsa é recebida, estornada e isentada como as parcelas, sem mexer no contrato do tratamento.'],
   ['0.14.0', '2026-11-01', 'Financeiro: nova pesquisa por período, por recebimento (o que entrou de fato) ou por vencimento (previsão de faturamento), em grid de parcelas com totais fixos no rodapé e planilha CSV.'],
   ['0.13.0', '2026-11-01', 'Mais ações na ficha com Cancelar contrato (Gerente e Diretor cancelam; os demais solicitam e a gerência decide). Estorno de pagamento (Gerente e Diretor; sai do caixa de quem estorna). Isenção de parcela (só o Diretor; os demais pedem com observação) e nova tela Solicitações com aprovação uma a uma e isenção geral. O botão Desistiu foi retirado.'],
@@ -1730,17 +1731,44 @@ const relSitTxt = x => x.situacao === 'paga' ? 'Paga' : x.situacao === 'isenta' 
 const relFv = (x, f) => Number((x.formas || {})[f] || 0);
 function relCols(){
   const cols = [
-    { t: 'Cód', v: x => String(x.parcela_id) }, { t: 'Paciente', v: x => x.paciente_nome }, { t: 'Status', v: relSitTxt }, { t: 'Nº', v: x => x.numero == null ? '—' : String(x.numero + 1) },
-    { t: 'Tipo', v: x => x.descricao || LBL_TIPO(x.numero) }, { t: 'Vencimento', v: x => dBR(x.vencimento) }, { t: 'Parcela', n: 1, soma: x => x.valor_cheio, v: x => reais(x.valor_cheio) },
-    { t: 'Desconto', n: 1, soma: x => x.desconto, v: x => reais(x.desconto) }, { t: 'Recebimento', v: x => relQuando(x.quando) }, { t: 'Recebido', n: 1, soma: x => x.recebido, v: x => reais(x.recebido) },
-    { t: 'Saldo devedor', n: 1, soma: x => x.saldo, v: x => reais(x.saldo) }, { t: 'Meio pagamento', v: x => x.forma || '' }];
-  REL_FORMAS.forEach(f => cols.push({ t: f[1], n: 1, soma: x => relFv(x, f[0]), v: x => reais(relFv(x, f[0])) }));
+    { t: 'Cód', k: x => x.parcela_id, v: x => String(x.parcela_id) }, { t: 'Paciente', v: x => x.paciente_nome }, { t: 'Status', v: relSitTxt }, { t: 'Nº', k: x => x.numero == null ? -1 : x.numero, v: x => x.numero == null ? '—' : String(x.numero + 1) },
+    { t: 'Tipo', k: x => x.numero == null ? 9999 : x.numero, v: x => x.descricao || LBL_TIPO(x.numero) }, { t: 'Vencimento', k: x => x.vencimento, v: x => dBR(x.vencimento) },
+    { t: 'Parcela', n: 1, k: x => Number(x.valor_cheio), soma: x => x.valor_cheio, v: x => reais(x.valor_cheio) },
+    { t: 'Desconto', n: 1, k: x => Number(x.desconto), soma: x => x.desconto, v: x => reais(x.desconto) }, { t: 'Recebimento', k: x => x.quando || '', v: x => relQuando(x.quando) },
+    { t: 'Recebido', n: 1, k: x => Number(x.recebido), soma: x => x.recebido, v: x => reais(x.recebido) }, { t: 'Saldo devedor', n: 1, k: x => Number(x.saldo), soma: x => x.saldo, v: x => reais(x.saldo) }, { t: 'Meio pagamento', v: x => x.forma || '' }];
+  REL_FORMAS.forEach(f => cols.push({ t: f[1], n: 1, k: x => relFv(x, f[0]), soma: x => relFv(x, f[0]), v: x => reais(relFv(x, f[0])) }));
   return cols;
 }
 const relNorm = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 function relFiltrados(R){
-  const cols = relCols(), f = (R.f || []).map(relNorm);
-  return R.dados.filter(x => cols.every((c, i) => !f[i] || relNorm(c.v(x)).includes(f[i])));
+  const cols = relCols(), f = R.f || [];
+  return R.dados.filter(x => cols.every((c, i) => !f[i] || f[i].has(c.v(x))));
+}
+/* filtro estilo planilha: funil no título, busca, "selecionar todos", lista de valores, Filtrar e Limpar */
+function relPopFecha(){ const o = $('#rl-pop'); if (o) o.remove(); document.removeEventListener('mousedown', relPopFora, true); document.removeEventListener('keydown', relPopTecla, true); }
+function relPopFora(e){ const o = $('#rl-pop'); if (o && !o.contains(e.target) && !e.target.closest('[data-fx]')) relPopFecha(); }
+function relPopTecla(e){ if (e.key === 'Escape') relPopFecha(); }
+function relPop(i, btn){
+  const R = FN.rel, c = relCols()[i], jaAberto = $('#rl-pop') && $('#rl-pop').dataset.i === String(i); relPopFecha(); if (jaAberto) return;
+  const vistos = new Map(); R.dados.forEach(x => { const v = c.v(x); if (!vistos.has(v)) vistos.set(v, c.k ? c.k(x) : v); });
+  const valores = [...vistos.keys()].sort((a, b) => { const ka = vistos.get(a), kb = vistos.get(b); return typeof ka === 'number' && typeof kb === 'number' ? ka - kb : String(ka).localeCompare(String(kb), 'pt', { numeric: true }); });
+  const sel = new Set(R.f[i] || []), MAX = 800;
+  const o = document.createElement('div'); o.id = 'rl-pop'; o.className = 'rl-pop'; o.dataset.i = String(i); o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Filtrar ' + c.t);
+  o.innerHTML = '<div class="pq"><input type="search" id="rp-q" placeholder="Procurar" aria-label="Procurar valor" autocomplete="off"></div><label class="chk"><input type="checkbox" id="rp-all"> SELECIONAR TODOS</label><div class="pl" id="rp-lista"></div><p class="pn" id="rp-n"></p><div class="pb"><button class="btn sm" type="button" id="rp-ok">Filtrar</button><button class="btn ghost sm" type="button" id="rp-limpa">Limpar</button></div>';
+  document.body.appendChild(o);
+  const r = btn.getBoundingClientRect(), w = 260; o.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px'; o.style.top = Math.min(r.bottom + 4, window.innerHeight - 120) + 'px';
+  const visiveis = () => { const q = relNorm($('#rp-q').value); return valores.filter(v => !q || relNorm(v || '(vazio)').includes(q)); };
+  const pinta = () => { const l = visiveis(), mostra = l.slice(0, MAX);
+    $('#rp-lista').innerHTML = mostra.map(v => '<label class="chk"><input type="checkbox" data-v="' + esc(v) + '"' + (sel.has(v) ? ' checked' : '') + '> ' + (v === '' ? '(vazio)' : esc(v)) + '</label>').join('') + (l.length > MAX ? '<p class="pn">Mostrando ' + MAX + ' de ' + l.length + '. Refine a busca.</p>' : '') + (l.length ? '' : '<p class="pn">Nenhum valor.</p>');
+    $$('#rp-lista [data-v]').forEach(k => k.addEventListener('change', () => { if (k.checked) sel.add(k.dataset.v); else sel.delete(k.dataset.v); cont(); }));
+    cont(); };
+  const cont = () => { const l = visiveis(); $('#rp-n').textContent = sel.size + (sel.size === 1 ? ' item selecionado' : ' itens selecionados'); $('#rp-all').checked = l.length > 0 && l.every(v => sel.has(v)); };
+  $('#rp-q').addEventListener('input', pinta);
+  $('#rp-all').addEventListener('change', e => { visiveis().forEach(v => e.target.checked ? sel.add(v) : sel.delete(v)); pinta(); });
+  $('#rp-ok').addEventListener('click', () => { R.f[i] = sel.size ? new Set(sel) : null; relPopFecha(); relCorpo(); });
+  $('#rp-limpa').addEventListener('click', () => { R.f[i] = null; relPopFecha(); relCorpo(); });
+  document.addEventListener('mousedown', relPopFora, true); document.addEventListener('keydown', relPopTecla, true);
+  pinta(); $('#rp-q').focus();
 }
 function relCsv(R){
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', cols = relCols(), n = v => String(Number(v || 0).toFixed(2)).replace('.', ',');
@@ -1749,8 +1777,7 @@ function relCsv(R){
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'financeiro-' + R.modo + '-' + R.ini + '_' + R.fim + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 const LBL_TIPO = n => n === 0 ? 'Início' : n + 'ª mensalidade';
-function relAjusta(){ const g = $('#rl-tab'); if (!g) return; g.style.maxHeight = Math.max(260, window.innerHeight - g.getBoundingClientRect().top - 24) + 'px';
-  const h1 = $('#rl-tab thead tr'); if (h1) $$('#rl-tab thead tr.flt th').forEach(t => { t.style.top = h1.offsetHeight + 'px'; }); }
+function relAjusta(){ const g = $('#rl-tab'); if (!g) return; g.style.maxHeight = Math.max(260, window.innerHeight - g.getBoundingClientRect().top - 24) + 'px'; }
 function relCorpo(){
   const R = FN.rel, cols = relCols(), d = relFiltrados(R), pago = x => x.situacao === 'paga' || x.situacao === 'isenta';
   const soma = c => Math.round(d.reduce((t, x) => t + Number(c.soma(x)), 0) * 100) / 100;
@@ -1759,18 +1786,21 @@ function relCorpo(){
     + '<td class="n">' + (Number(x.saldo) > 0 ? '<span class="pill nu">' + cols[10].v(x) + '</span>' : cols[10].v(x)) + '</td><td>' + esc(cols[11].v(x)) + '</td>' + cols.slice(12).map(c => '<td class="n">' + c.v(x) + '</td>').join('') + '</tr>').join('')
     : '<tr><td colspan="' + cols.length + '" class="vazio">Nenhuma parcela com esses filtros.</td></tr>';
   const filtrando = (R.f || []).some(Boolean);
+  $$('#rl-tab [data-fx]').forEach(b => b.classList.toggle('on', !!R.f[Number(b.dataset.fx)]));
   $('#rl-tot').innerHTML = '<td colspan="6">Totais · <span id="rl-n">' + d.length + '</span> ' + (d.length === 1 ? 'linha' : 'linhas') + (filtrando ? ' de ' + R.dados.length : '') + '</td>'
     + cols.slice(6).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(soma(c)) : '') + '</td>').join('');
   $$('#rl-body [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
   $('#rl-csv').hidden = !R.dados.length;
 }
 function relPinta(){
+  relPopFecha();
   const R = FN.rel, box = $('#rl-res'), csv = $('#rl-csv'); if (!R.dados) { box.innerHTML = ''; csv.hidden = true; return; }
   if (!R.dados.length) { box.innerHTML = '<div class="card"><div class="vazio">' + (R.modo === 'recebido' ? 'Nenhum recebimento neste período.' : 'Nenhuma parcela vence neste período.') + '</div></div>'; csv.hidden = true; return; }
-  const cols = relCols(); R.f = R.f || [];
-  box.innerHTML = '<div class="card" style="padding:0;overflow:hidden"><div class="rlg" id="rl-tab"><table class="tb rl"><thead><tr>' + cols.map(c => '<th' + (c.n ? ' class="n"' : '') + '>' + c.t + '</th>').join('') + '</tr>'
-    + '<tr class="flt">' + cols.map((c, i) => '<th><input type="search" data-fi="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" placeholder="Filtrar" value="' + esc(R.f[i] || '') + '"></th>').join('') + '</tr></thead><tbody id="rl-body"></tbody><tfoot><tr id="rl-tot"></tr></tfoot></table></div></div>';
-  $$('#rl-tab [data-fi]').forEach(i => i.addEventListener('input', () => { R.f[Number(i.dataset.fi)] = i.value; relCorpo(); }));
+  const cols = relCols(); R.f = R.f && R.f.length ? R.f : [];
+  const funil = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
+  box.innerHTML = '<div class="card" style="padding:0;overflow:hidden"><div class="rlg" id="rl-tab"><table class="tb rl"><thead><tr>' + cols.map((c, i) => '<th' + (c.n ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + '</tr></thead><tbody id="rl-body"></tbody><tfoot><tr id="rl-tot"></tr></tfoot></table></div></div>';
+  $$('#rl-tab [data-fx]').forEach(b => b.addEventListener('click', () => relPop(Number(b.dataset.fx), b)));
+  ['wheel', 'touchmove'].forEach(ev => $('#rl-tab').addEventListener(ev, relPopFecha, { passive: true }));
   relCorpo(); relAjusta();
 }
 window.addEventListener('resize', () => { try { relAjusta(); } catch (e) {} });
