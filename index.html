@@ -439,6 +439,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.9.3', '2026-11-01', 'Qualquer dentista da unidade pode fazer a avaliação, em qualquer dia (antes só quem atendia na unidade naquele dia).'],
   ['0.9.2', '2026-11-01', 'Na ficha do paciente, o status da avaliação (Aguardando dentista / Em atendimento) é um link que abre a avaliação do dentista.'],
   ['0.9.1', '2026-11-01', 'Nova tela Avaliações no menu (dentista e gerência): lista de pacientes para avaliar, com Atender e Concluir (apto / não apto), sem depender só do sino.'],
   ['0.9.0', '2026-11-01', 'Avaliação com resultado: o dentista registra apto ou não apto, tratamento clínico concomitante e limpeza profunda inicial (fica identificado quem avaliou). Apto libera a venda de um plano de tratamento (Aparelho fixo, estético, Alinhador, Tratamento completo). Nova tela Vendas.'],
@@ -1124,7 +1125,7 @@ function avCartoes(tela){
       + (pode('avaliacoes.atender') && (a.status === 'aguardando' || a.meu) && a.status !== 'em_atendimento' ? '<button class="btn sm" type="button" data-atender="' + a.id + '">Atender</button>' : '')
       + (a.status === 'em_atendimento' && (a.meu || pode('avaliacoes.ver_todas')) ? '<button class="btn sm" type="button" data-concluir="' + a.id + '">Concluir</button>' : '')
       + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" data-abrir="' + a.paciente_id + '">Abrir paciente</button>' : '') + '</div></div>').join('')
-    : tela ? '<div class="card"><p class="sub" style="margin:0">Nenhuma avaliação para fazer agora. Ela aparece aqui quando a recepção marcar que o paciente chegou ou quando um prospect tiver a avaliação iniciada. Você só vê as avaliações da unidade escolhida e dos dias em que atende nela.</p></div>'
+    : tela ? '<div class="card"><p class="sub" style="margin:0">Nenhuma avaliação para fazer agora. Ela aparece aqui quando a recepção marcar que o paciente chegou ou quando um prospect tiver a avaliação iniciada. Qualquer dentista da unidade pode atender; você vê as avaliações da unidade escolhida na barra lateral.</p></div>'
     : '<p class="sub" style="margin:8px 4px">Nenhuma avaliação para fazer agora.</p>';
 }
 $('#sino').addEventListener('click', () => { const pn = $('#painel'); pn.hidden = !pn.hidden; $('#sino').setAttribute('aria-expanded', String(!pn.hidden)); if (!pn.hidden) { avDesenhar(); avBuscar(); } });
