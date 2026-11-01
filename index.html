@@ -101,8 +101,11 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}
 .sec{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-text);font-weight:700;margin:4px 0 -4px}
 .hor{display:grid;gap:8px}
-.hor .d{display:grid;grid-template-columns:120px 1fr 1fr;gap:10px;align-items:center}
-.hor .d label.c{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-height:40px}
+.hor .d{display:grid;grid-template-columns:118px repeat(4,minmax(0,1fr)) auto;gap:8px 10px;align-items:end;padding:8px 0;border-top:1px solid var(--line)}
+.hor .d:first-child{border-top:0}
+.hor .d .t{display:grid;gap:3px;font-size:11px;font-weight:600;color:var(--muted);min-width:0}
+.hor .d .link{padding:0 4px;min-height:40px;white-space:nowrap}
+.hor .d label.c{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-height:40px;align-self:end}
 .hor input[type=time]{font:400 15px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px;width:100%}
 .hor input:disabled{opacity:.4}
 .chk{display:flex;align-items:center;gap:9px;min-height:38px;font-size:14.5px;cursor:pointer}
@@ -134,7 +137,9 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   .row .m.x{display:none}
   .perf{grid-template-columns:minmax(0,1fr)}
   .g2,.g3{grid-template-columns:minmax(0,1fr)}
-  .hor .d{grid-template-columns:96px 1fr 1fr;gap:6px}
+  .hor .d{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .hor .d label.c{grid-column:1/-1}
+  .hor .d .link{grid-column:1/-1;justify-self:start}
   .df .esq{width:100%;margin-right:0}
   .df .btn{flex:1}
 }
@@ -335,6 +340,21 @@ function telaInicio(){
     + '</div>';
 }
 
+/* ---------- CEP: busca o endereço (base dos Correios, via ViaCEP) ao terminar de digitar ---------- */
+async function cepAuto(p, cep){
+  const msg = $('#' + p + '-cepmsg'); if (!msg) return;
+  msg.textContent = 'Buscando o endereço...';
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/'); const j = await r.json();
+    if (dig(($('#' + p + '-cep') || {}).value) !== cep) return;
+    if (j.erro) { msg.textContent = 'CEP não encontrado. Confira os números ou preencha o endereço à mão.'; return; }
+    [[p + '-log', j.logradouro], [p + '-bai', j.bairro], [p + '-cid', j.localidade]].forEach(([id, v]) => { if (v) $('#' + id).value = v; });
+    if (j.uf) $('#' + p + '-uf').value = j.uf;
+    msg.textContent = 'Endereço preenchido pelo CEP. Confira e informe o número.';
+    const n = $('#' + p + '-num'); if (n && !n.disabled) n.focus();
+  } catch (_) { msg.textContent = 'Não consegui consultar o CEP agora. Preencha o endereço à mão.'; }
+}
+
 /* ---------- UNIDADES ---------- */
 const DIAS = [[1, 'Segunda'], [2, 'Terça'], [3, 'Quarta'], [4, 'Quinta'], [5, 'Sexta'], [6, 'Sábado'], [0, 'Domingo']];
 const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
@@ -348,8 +368,10 @@ async function uniCarregar(){
 const horarioResumo = h => {
   const ab = DIAS.filter(d => h && h[d[0]]);
   if (!ab.length) return 'Sem horário';
-  const iguais = ab.every(d => h[d[0]].abre === h[ab[0][0]].abre && h[d[0]].fecha === h[ab[0][0]].fecha);
-  return ab.length + ' dia' + (ab.length > 1 ? 's' : '') + (iguais ? ' · ' + h[ab[0][0]].abre + ' às ' + h[ab[0][0]].fecha : '');
+  const x = h[ab[0][0]], igual = (a, b) => a.abre === b.abre && a.fecha === b.fecha && (a.almoco_ini || '') === (b.almoco_ini || '') && (a.almoco_fim || '') === (b.almoco_fim || '');
+  const todos = ab.every(d => igual(h[d[0]], x));
+  const txt = x.almoco_ini ? x.abre + '–' + x.almoco_ini + ' e ' + x.almoco_fim + '–' + x.fecha : x.abre + ' às ' + x.fecha;
+  return ab.length + ' dia' + (ab.length > 1 ? 's' : '') + (todos ? ' · ' + txt : '');
 };
 function uniLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Unidades</h1><p class="sub">Clínicas da rede.</p></div>' + (pode('unidades.criar') ? '<button class="btn" type="button" id="u-novo">+ Nova unidade</button>' : '') + '</div>'
@@ -367,33 +389,34 @@ const fld = (id, rot, val, extra) => '<label class="field" for="' + id + '">' + 
 function uniForm(u){
   const novo = !u, edita = novo ? pode('unidades.criar') : pode('unidades.editar'), ro = edita ? '' : ' disabled';
   const h = (u && u.horario) || {};
-  const horas = DIAS.map(d => { const x = h[d[0]]; return '<div class="d"><label class="c"><input type="checkbox" class="h-on" data-d="' + d[0] + '"' + (x ? ' checked' : '') + ro + '> ' + d[1] + '</label><input type="time" class="h-a" data-d="' + d[0] + '" value="' + esc(x ? x.abre : '08:00') + '" aria-label="Abre ' + d[1] + '"' + (x && edita ? '' : ' disabled') + '><input type="time" class="h-f" data-d="' + d[0] + '" value="' + esc(x ? x.fecha : '18:00') + '" aria-label="Fecha ' + d[1] + '"' + (x && edita ? '' : ' disabled') + '></div>'; }).join('');
+  const horas = DIAS.map(d => { const x = h[d[0]], dd = d[0], on = !!x && edita;
+    const t = (cl, rot, val) => '<label class="t">' + rot + '<input type="time" class="' + cl + '" data-d="' + dd + '" value="' + esc(val) + '" aria-label="' + rot + ' (' + d[1] + ')"' + (on ? '' : ' disabled') + '></label>';
+    return '<div class="d"><label class="c"><input type="checkbox" class="h-on" data-d="' + dd + '"' + (x ? ' checked' : '') + ro + '> ' + d[1] + '</label>'
+      + t('h-a', 'Abre', x ? x.abre : '08:00') + t('h-i', 'Sai p/ almoço', x ? x.almoco_ini || '' : '12:00') + t('h-v', 'Volta do almoço', x ? x.almoco_fim || '' : '13:00') + t('h-f', 'Fecha', x ? x.fecha : '18:00')
+      + (edita ? '<button class="link h-sem" type="button" data-d="' + dd + '"' + (on ? '' : ' disabled') + '>Sem almoço</button>' : '') + '</div>'; }).join('');
   abrirJanela(novo ? 'Nova unidade' : 'Unidade ' + u.sigla,
     '<form id="u-form" novalidate><div class="db"><div class="sec">Identificação</div>'
     + '<div class="g2">' + fld('u-razao', 'Razão social', u && u.razao_social, 'maxlength="120"' + ro) + fld('u-sigla', 'Sigla <small>(2 a 8 letras ou números)</small>', u && u.sigla, 'maxlength="8" autocapitalize="characters"' + ro) + '</div>'
     + '<div class="g2">' + fld('u-tel', 'Telefone', mTel(u && u.telefone), 'inputmode="tel" maxlength="15"' + ro) + '</div>'
     + '<div class="sec">Endereço</div>'
     + '<div class="g3">' + fld('u-cep', 'CEP', mCEP(u && u.cep), 'inputmode="numeric" maxlength="9"' + ro) + fld('u-log', 'Rua / Avenida', u && u.logradouro, ro) + fld('u-num', 'Número', u && u.numero, 'maxlength="10"' + ro) + '</div>'
-    + '<div class="g3">' + fld('u-comp', 'Complemento', u && u.complemento, ro) + fld('u-bai', 'Bairro', u && u.bairro, ro) + fld('u-cid', 'Cidade', u && u.cidade, ro) + '</div>'
+    + '<div class="sub" id="u-cepmsg" style="margin:-6px 0 0" aria-live="polite"></div><div class="g3">' + fld('u-comp', 'Complemento', u && u.complemento, ro) + fld('u-bai', 'Bairro', u && u.bairro, ro) + fld('u-cid', 'Cidade', u && u.cidade, ro) + '</div>'
     + '<div class="g3"><label class="field" for="u-uf">UF<select id="u-uf"' + ro + '><option value=""></option>' + UFS.map(x => '<option' + (u && u.uf === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label></div>'
     + '<div class="sec">Horário de funcionamento</div><div class="hor" id="u-hor">' + horas + '</div>'
-    + (edita ? '<div><button class="link" type="button" id="u-rep">Repetir a segunda-feira de terça a sexta</button></div>' : '')
+    + (edita ? '<div><button class="link" type="button" id="u-rep">Repetir a segunda-feira de terça a sexta</button></div><p class="sub" style="margin:0">Se a clínica não para para o almoço, use "Sem almoço" no dia. Sem dentista na unidade não há atendimento, então o horário aqui é o de quando a clínica funciona.</p>' : '')
     + '<div class="err" id="u-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('unidades.inativar') ? '<button class="btn ' + (u.ativa ? 'danger' : 'ghost') + '" type="button" id="u-ina">' + (u.ativa ? 'Inativar unidade' : 'Reativar unidade') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="u-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="u-ok">Salvar</button>' : '') + '</div></form>');
-  const linhaDia = d => ({ on: $('.h-on[data-d="' + d + '"]'), a: $('.h-a[data-d="' + d + '"]'), f: $('.h-f[data-d="' + d + '"]') });
-  $$('.h-on').forEach(c => c.addEventListener('change', () => { const l = linhaDia(c.dataset.d); l.a.disabled = l.f.disabled = !c.checked; }));
-  const rep = $('#u-rep'); if (rep) rep.addEventListener('click', () => { const s = linhaDia(1); for (let d = 2; d <= 5; d++) { const l = linhaDia(d); l.on.checked = s.on.checked; l.a.value = s.a.value; l.f.value = s.f.value; l.a.disabled = l.f.disabled = !s.on.checked; } });
+  const linhaDia = d => ({ on: $('.h-on[data-d="' + d + '"]'), a: $('.h-a[data-d="' + d + '"]'), i: $('.h-i[data-d="' + d + '"]'), v: $('.h-v[data-d="' + d + '"]'), f: $('.h-f[data-d="' + d + '"]'), sem: $('.h-sem[data-d="' + d + '"]') });
+  const liga = (l, on) => { [l.a, l.i, l.v, l.f, l.sem].forEach(x => { if (x) x.disabled = !on; }); };
+  $$('.h-on').forEach(c => c.addEventListener('change', () => liga(linhaDia(c.dataset.d), c.checked)));
+  $$('.h-sem').forEach(b => b.addEventListener('click', () => { const l = linhaDia(b.dataset.d); l.i.value = ''; l.v.value = ''; }));
+  const rep = $('#u-rep'); if (rep) rep.addEventListener('click', () => { const s = linhaDia(1); for (let d = 2; d <= 5; d++) { const l = linhaDia(d); l.on.checked = s.on.checked; l.a.value = s.a.value; l.i.value = s.i.value; l.v.value = s.v.value; l.f.value = s.f.value; liga(l, s.on.checked); } });
   $('#u-cancel').addEventListener('click', fecharJanela);
   $('#u-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
-  $('#u-cep').addEventListener('input', e => e.target.value = mCEP(e.target.value));
+  let ultCep = dig(u && u.cep);
+  $('#u-cep').addEventListener('input', e => { e.target.value = mCEP(e.target.value); const c = dig(e.target.value); if (c.length < 8) { ultCep = ''; $('#u-cepmsg').textContent = ''; } else if (c !== ultCep) { ultCep = c; cepAuto('u', c); } });
   $('#u-sigla').addEventListener('input', e => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
-  $('#u-cep').addEventListener('blur', async () => {
-    const c = dig($('#u-cep').value); if (c.length !== 8 || $('#u-cep').disabled) return;
-    try { const r = await fetch('https://viacep.com.br/ws/' + c + '/json/'); const j = await r.json(); if (j.erro) return;
-      [['u-log', j.logradouro], ['u-bai', j.bairro], ['u-cid', j.localidade]].forEach(([id, v]) => { if (v && !$('#' + id).value) $('#' + id).value = v; });
-      if (j.uf && !$('#u-uf').value) $('#u-uf').value = j.uf; } catch (_) {}
-  });
   const ina = $('#u-ina'); if (ina) ina.addEventListener('click', async () => {
     if (ina.dataset.c !== '1') { ina.dataset.c = '1'; ina.textContent = 'Confirmar'; return; }
     const { error } = await sb.from('unidades').update({ ativa: !u.ativa }).eq('id', u.id);
@@ -405,7 +428,11 @@ function uniForm(u){
     const er = $('#u-err'); er.textContent = '';
     const v = id => $('#' + id).value.trim();
     const horario = {};
-    for (const d of DIAS) { const l = linhaDia(d[0]); if (l.on.checked) { if (!l.a.value || !l.f.value || l.f.value <= l.a.value) { er.textContent = 'Confira o horário de ' + d[1].toLowerCase() + ': o fechamento precisa ser depois da abertura.'; return; } horario[d[0]] = { abre: l.a.value, fecha: l.f.value }; } }
+    for (const d of DIAS) { const l = linhaDia(d[0]); if (!l.on.checked) continue; const nome = d[1].toLowerCase();
+      if (!l.a.value || !l.f.value || l.f.value <= l.a.value) { er.textContent = 'Confira o horário de ' + nome + ': o fechamento precisa ser depois da abertura.'; return; }
+      if (!!l.i.value !== !!l.v.value) { er.textContent = 'Em ' + nome + ', preencha a saída e a volta do almoço, ou use "Sem almoço".'; return; }
+      if (l.i.value && !(l.a.value < l.i.value && l.i.value < l.v.value && l.v.value < l.f.value)) { er.textContent = 'Confira o almoço de ' + nome + ': ele precisa começar depois da abertura, terminar antes do fechamento e a volta tem que ser depois da saída.'; return; }
+      horario[d[0]] = l.i.value ? { abre: l.a.value, almoco_ini: l.i.value, almoco_fim: l.v.value, fecha: l.f.value } : { abre: l.a.value, fecha: l.f.value }; }
     const sigla = v('u-sigla');
     if (v('u-razao').length < 3) { er.textContent = 'Informe a razão social.'; return; }
     if (!/^[A-Z0-9]{2,8}$/.test(sigla)) { er.textContent = 'A sigla precisa ter de 2 a 8 letras ou números.'; return; }
@@ -616,7 +643,7 @@ function denForm(d){
     + '<div class="field"><span>Unidades onde atua</span><div class="chks" id="d-uns">' + (D.unidades.filter(u => u.ativa || minhas.includes(u.id)).map(u => '<label class="chk"><input type="checkbox" value="' + u.id + '"' + (minhas.includes(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') || '<span class="sub">Cadastre uma unidade primeiro.</span>') + '</div></div>'
     + '<div class="sec">Endereço</div>'
     + '<div class="g3"><label class="field" for="d-cep">CEP' + (edita ? ' <button class="link" type="button" id="d-nsei" style="padding:0 0 0 6px">Não sei o CEP</button>' : '') + '<input id="d-cep" inputmode="numeric" maxlength="9" value="' + esc(mCEP(d && d.cep)) + '"' + ro + '></label>' + fld('d-log', 'Logradouro', d && d.logradouro, ro) + fld('d-num', 'Número', d && d.numero, 'maxlength="10"' + ro) + '</div>'
-    + '<div id="d-cepres"></div>'
+    + '<div class="sub" id="d-cepmsg" style="margin:-6px 0 0" aria-live="polite"></div><div id="d-cepres"></div>'
     + '<div class="g3">' + fld('d-comp', 'Complemento', d && d.complemento, ro) + fld('d-bai', 'Bairro', d && d.bairro, ro) + fld('d-cid', 'Cidade', d && d.cidade, ro)
     + '</div><div class="g3"><label class="field" for="d-uf">UF<select id="d-uf"' + ro + '><option value=""></option>' + UFS.map(x => '<option' + (d && d.uf === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label></div>'
     + '<div class="sec">Acesso ao sistema</div>'
@@ -628,13 +655,10 @@ function denForm(d){
   $('#d-cpf').addEventListener('input', e => e.target.value = mCPF(e.target.value));
   $('#d-cro').addEventListener('input', e => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
   ['d-cel', 'd-res'].forEach(i => $('#' + i).addEventListener('input', e => e.target.value = mTel(e.target.value)));
-  $('#d-cep').addEventListener('input', e => e.target.value = mCEP(e.target.value));
+  let ultCepD = dig(d && d.cep);
+  $('#d-cep').addEventListener('input', e => { e.target.value = mCEP(e.target.value); const c = dig(e.target.value); if (c.length < 8) { ultCepD = ''; $('#d-cepmsg').textContent = ''; } else if (c !== ultCepD) { ultCepD = c; cepAuto('d', c); } });
   $('#d-valor').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
   const preenche = (j, forca) => { [['d-log', j.logradouro], ['d-bai', j.bairro], ['d-cid', j.localidade]].forEach(([id, v]) => { if (v && (forca || !$('#' + id).value)) $('#' + id).value = v; }); if (j.uf && (forca || !$('#d-uf').value)) $('#d-uf').value = j.uf; };
-  $('#d-cep').addEventListener('blur', async () => {
-    const c = dig($('#d-cep').value); if (c.length !== 8 || $('#d-cep').disabled) return;
-    try { const r = await fetch('https://viacep.com.br/ws/' + c + '/json/'); const j = await r.json(); if (!j.erro) preenche(j, false); } catch (_) {}
-  });
   const ns = $('#d-nsei'); if (ns) ns.addEventListener('click', async () => {
     const uf = $('#d-uf').value, cid = $('#d-cid').value.trim(), rua = $('#d-log').value.trim(), box = $('#d-cepres');
     if (!uf || cid.length < 3 || rua.length < 3) { box.innerHTML = '<p class="sub">Para achar o CEP, preencha primeiro a UF, a cidade e o nome da rua.</p>'; return; }
