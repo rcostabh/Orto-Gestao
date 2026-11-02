@@ -297,6 +297,13 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
 .rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
 .cbk{display:grid;gap:4px;margin-top:14px}.cbk span{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.cbk1 b{font-size:34px;line-height:1.1;display:block}.cbk2 b{font-size:22px;color:var(--muted);display:block}.cbk3{margin-top:8px}.cbk3 b{font-size:22px;display:block}.pbar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px;max-width:520px}.pbar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}.cbc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}.cbc1{display:grid;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}.cbc1 .pill{justify-self:start}.cbc1 b{font-size:13px;font-weight:600;color:var(--muted)}.cbc1 strong{font-size:20px}.cbc1 small{color:var(--muted);font-size:12px}.cbc1.on,.cbc1:hover{border-color:var(--accent)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 12px}
+.kpi{background:var(--surface-2);border-radius:14px;padding:11px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi span{font-size:12.5px;color:var(--muted)} .kpi b{font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums} .kpi.al b{color:var(--red)} .kpi.ok b{color:var(--ok)}
+.cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}.cp-off{opacity:.65}
+.tools .chk input[type=checkbox]{flex:none;min-height:0;width:18px;height:18px;padding:0;border:0}
+.cbres{margin-top:3px;font:400 12.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 6px;max-width:150px}
 </style>
 </head>
 <body>
@@ -537,7 +544,7 @@ const MENU = [
     { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
     { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] },
     { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] } ] },
-  { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver'] },
+  { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver', 'cobranca.contatar'] },
   { g: 'Configurações', ic: 'unidades', itens: [
     { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
@@ -576,6 +583,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.29.0', '2026-11-02', 'Cobrança: novas abas Sem agendamento (lista diária de pacientes em tratamento sem próxima consulta), Faltas (controle por dia e por mês, com a lista de quem faltou e se já remarcou) e Campanhas (regra de quem entra, por faixa de cobrança, procedimento atrasado, sem consulta, sem atendimento ou faltas, mais a mensagem). Envio por WhatsApp em fila de 1 toque, com registro do contato e do resultado, e chave para exigir autorização de WhatsApp (LGPD). Quem recusou nunca recebe.'],
   ['0.28.0', '2026-11-02', 'Documentação do paciente: fotos extraorais e intraorais, raio-X e outros arquivos (importar, visualizar, excluir) no menu Pacientes e na ficha, guardados em armazenamento privado. Novo app de celular para fotografar o paciente.'],
   ['0.27.5', '2026-11-02', 'Dashboard do Diretor e do Gerente: o faturamento em destaque agora é o do mês atual; o mês anterior aparece menor, como comparativo.'],
   ['0.27.4', '2026-11-02', 'Dobráveis: o menu lateral fica fixo sempre que a tela é larga e alta o bastante (a partir de 600 px de largura e 560 px de altura), independente do modelo ou do zoom do aparelho.'],
@@ -2595,6 +2603,8 @@ async function cobCarregar(){
   if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
   defUn(ru.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Cobrança'); return; }
+  const cver = pode('cobranca.ver') || pode('financeiro.ver'); if (!CBX.aba || (CBX.aba === 'regua' && !cver) || (CBX.aba !== 'regua' && !pode('cobranca.contatar'))) CBX.aba = cver ? 'regua' : 'semag';
+  if (CBX.aba !== 'regua') return cobOutra();
   if (!CB.ini) { const l = mesLimites(); CB.ini = l[0]; CB.fim = l[1]; }
   await sb.rpc('financeiro_atualizar');
   const rs = await Promise.all([sb.rpc('cobranca_da_unidade', { p_unidade: UN }), sb.rpc('cobranca_resumo', { p_unidade: UN, p_ini: CB.ini, p_fim: CB.fim })]);
@@ -2606,7 +2616,7 @@ const cobValor = x => x.regua === 'preventivo' ? Number(x.a_vencer_mes) : Number
 function cobTela(){
   const R = CB.res || {}, pct = R.pct == null ? null : Number(R.pct), d = CB.dados;
   const por = k => d.filter(x => x.regua === k), soma = l => Math.round(l.reduce((t, x) => t + cobValor(x), 0) * 100) / 100;
-  $('#area').innerHTML = '<div class="head"><div><h1>Cobrança</h1><p class="sub">Régua de cobrança do momento: cada paciente fica na régua pela parcela vencida mais antiga, contada em meses do calendário. Só muda de régua quando o mês vira.</p></div></div>'
+  $('#area').innerHTML = '<div class="head"><div><h1>Cobrança</h1><p class="sub">Régua de cobrança do momento: cada paciente fica na régua pela parcela vencida mais antiga, contada em meses do calendário. Só muda de régua quando o mês vira.</p></div></div>' + cobAbasHtml()
     + '<div class="card"><form id="cb-per" novalidate><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end"><label class="field" for="cb-ini" style="margin:0">Data inicial<input id="cb-ini" type="date" value="' + esc(CB.ini) + '"></label><label class="field" for="cb-fim" style="margin:0">Data final<input id="cb-fim" type="date" value="' + esc(CB.fim) + '"></label>'
     + '<button class="btn" type="submit" id="cb-ok">Atualizar</button><button class="btn ghost" type="button" id="cb-mes">Mês atual</button></div><div class="err" id="cb-err" role="alert"></div></form>'
     + '<div class="cbk"><div class="cbk1"><span>Faturado até o momento</span><b id="cb-fat">' + reais(R.faturado || 0) + '</b></div>'
@@ -2628,7 +2638,7 @@ function cobTela(){
   $('#cb-q').addEventListener('input', e => { CB.q = e.target.value; cobCorpo(); });
   $('#cb-vi').addEventListener('change', e => { CB.vi = e.target.value; cobCorpo(); }); $('#cb-vf').addEventListener('change', e => { CB.vf = e.target.value; cobCorpo(); });
   $('#cb-vl').addEventListener('click', () => { CB.vi = CB.vf = ''; $('#cb-vi').value = ''; $('#cb-vf').value = ''; cobCorpo(); });
-  cobCorpo(); cobAjusta();
+  cobCorpo(); cobAjusta(); cobAbasLiga();
 }
 function cobAjusta(){ const g = $('#cb-tab'); if (g) g.style.maxHeight = Math.max(260, window.innerHeight - g.getBoundingClientRect().top - 24) + 'px'; }
 window.addEventListener('resize', () => { try { cobAjusta(); } catch (e) {} });
@@ -2645,6 +2655,274 @@ function cobCorpo(){
   $('#cb-tot').innerHTML = '<td colspan="4">Totais · ' + l.length + (l.length === 1 ? ' paciente' : ' pacientes') + (l.length !== CB.dados.length ? ' de ' + CB.dados.length : '') + '</td><td class="n">' + l.reduce((t, x) => t + x.qtd_atraso, 0) + '</td><td class="n">' + reais(sm(x => x.valor_atraso)) + '</td><td class="n">' + reais(sm(x => x.a_vencer_mes)) + '</td><td colspan="5"></td>';
   $$('#cb-body [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
   $$('#cb-body [data-rec]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.rec))));
+}
+
+/* ---------- COBRANÇA: abas Sem agendamento, Faltas e Campanhas (fila de WhatsApp de 1 toque) ---------- */
+const CBX = { aba: null, cfg: null, procs: [], camp: [], fila: null, fl: null, aut: null };
+const CB_RES = [['enviado', 'Enviado'], ['agendou', 'Agendou'], ['sem_resposta', 'Sem resposta'], ['numero_errado', 'Número errado'], ['nao_quer', 'Não quer']];
+const CB_BLOQ = { sem_telefone: 'Sem telefone', recusou: 'Recusou WhatsApp', sem_autorizacao: 'Sem autorização' };
+const CB_WPP = { sim: ['on', 'Autorizado'], nao: ['off', 'Recusou'], sem_registro: ['wr', 'Sem registro'] };
+const CB_VARS = [['primeiro_nome', 'Primeiro nome'], ['nome', 'Nome completo'], ['unidade', 'Unidade'], ['ultima_visita', 'Última visita'], ['procedimento', 'Procedimento'], ['valor_em_atraso', 'Valor em atraso'], ['data_falta', 'Data da falta']];
+const CB_STATUS = ['Ativo', 'Pré-Ativo', 'Contenção', 'Inativo', 'Concluído'];
+const CB_REGUAS = [['preventivo', 'Preventiva'], ['cob0', 'Cob 0'], ['cob30', 'Cob 30'], ['cob60', 'Cob 60'], ['cob90', 'Cob 90'], ['mais90', '+90']];
+const waNum = t => { let d = dig(t); if (d.length === 10 || d.length === 11) d = '55' + d; return d; };
+const cbCap = s => String(s || '').toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+const cbUnNome = () => { const u = MINHAS.find(x => x.id === UN) || {}; return u.razao_social || u.sigla || 'a clínica'; };
+const cbDias = d => { if (!d) return null; return Math.round((Date.parse(hoje() + 'T00:00:00') - Date.parse(d + 'T00:00:00')) / 86400000); };
+function cobMsg(tpl, x, ex){
+  ex = ex || {}; const nm = x.nome || x.paciente_nome || '', pn = cbCap(nm.trim().split(/\s+/)[0] || nm), uf = x.ultima_visita, df = x.data || x.ultima_falta;
+  const v = { primeiro_nome: pn, nome: cbCap(nm), unidade: cbUnNome(), ultima_visita: uf ? dBR(uf) : 'sua última consulta', procedimento: ex.procedimento || 'o procedimento',
+              valor_em_atraso: x.valor_atraso != null ? String(Number(x.valor_atraso).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '', data_falta: df ? dBR(df) : 'sua consulta' };
+  return String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => k in v ? v[k] : m);
+}
+function cobAbasHtml(){
+  const ver = pode('cobranca.ver') || pode('financeiro.ver'), con = pode('cobranca.contatar');
+  const t = [['regua', 'Régua de cobrança', ver], ['semag', 'Sem agendamento', con], ['faltas', 'Faltas', con], ['camp', 'Campanhas', con]].filter(a => a[2]);
+  return '<div class="tools" id="cb-nav" role="tablist" style="margin-top:4px">' + t.map(a => '<button class="btn ' + (CBX.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CBX.aba === a[0]) + '" data-cba="' + a[0] + '">' + a[1] + '</button>').join(' ') + '</div>';
+}
+function cobAbasLiga(){ $$('#cb-nav [data-cba]').forEach(b => b.addEventListener('click', () => { CBX.aba = b.dataset.cba; CBX.fila = null; cobCarregar(); })); }
+const cbCabeca = sub => '<div class="head"><div><h1>Cobrança</h1><p class="sub">' + sub + '</p></div></div>' + cobAbasHtml();
+async function cobOutra(){
+  const rs = await Promise.all([sb.rpc('cobranca_config_ler'), sb.from('procedimentos').select('id,nome').eq('ativo', true).order('nome')]);
+  const er = rs.map(r => r.error).find(Boolean); if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  CBX.cfg = rs[0].data; CBX.procs = rs[1].data || [];
+  if (CBX.aba === 'semag') return cbSemAg(); if (CBX.aba === 'faltas') return cbFaltas(); return cbCampanhas();
+}
+
+/* ----- botão de envio, resultado e registro do contato (comum às três abas) ----- */
+function cbAcao(x, msg){
+  if (x.bloqueio) return '<span class="pill off" title="' + (x.bloqueio === 'sem_autorizacao' ? 'A empresa exige autorização de WhatsApp e o paciente não tem registro. Registre na ficha do paciente.' : x.bloqueio === 'recusou' ? 'O paciente revogou o contato por WhatsApp.' : 'Cadastre o telefone na ficha do paciente.') + '">' + CB_BLOQ[x.bloqueio] + '</span>';
+  return '<a class="btn sm" href="https://wa.me/' + waNum(x.telefone) + '?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener" data-env="' + x.paciente_id + '">' + (x.ultimo_contato ? 'Enviar de novo' : 'Enviar WhatsApp') + '</a>';
+}
+function cbUltimo(x){
+  if (!x.ultimo_contato) return '<span style="color:var(--muted)">Nunca</span>';
+  const d = new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }), n = cbDias(d);
+  return dBR(d) + ' <small style="color:var(--muted)">' + (n === 0 ? 'hoje' : n === 1 ? 'ontem' : 'há ' + n + ' d') + '</small><br><select class="cbres" data-cid="' + x.ultimo_contato_id + '" aria-label="Resultado do contato">' + CB_RES.map(r => '<option value="' + r[0] + '"' + (r[0] === x.ultimo_resultado ? ' selected' : '') + '>' + r[1] + '</option>').join('') + '</select>';
+}
+function cbLigaEnvio(root, get, origem, campanha, tplFn, depois){
+  root.addEventListener('click', async e => {
+    const a = e.target.closest('[data-env]'); if (!a) return; const x = get(Number(a.dataset.env)); if (!x || x._busy) return; x._busy = true;
+    const r = await sb.rpc('cobranca_registrar_contato', { p_paciente: x.paciente_id, p_origem: origem, p_campanha: campanha || null, p_mensagem: tplFn(x) });
+    x._busy = false; if (r.error) { toast('O WhatsApp abriu, mas o contato não foi registrado: ' + erroTxt(r.error)); return; }
+    x.ultimo_contato = new Date().toISOString(); x.ultimo_resultado = 'enviado'; x.ultimo_contato_id = r.data; x._sessao = true; toast('Contato registrado.'); depois();
+  });
+  root.addEventListener('change', async e => {
+    const s = e.target.closest('.cbres'); if (!s) return; s.disabled = true;
+    const r = await sb.rpc('cobranca_contato_resultado', { p_id: Number(s.dataset.cid), p_resultado: s.value }); s.disabled = false;
+    if (r.error) { toast(erroTxt(r.error)); return; } const x = get(null, Number(s.dataset.cid)); if (x) x.ultimo_resultado = s.value; toast('Resultado salvo.'); depois(true);
+  });
+  root.addEventListener('click', e => { const l = e.target.closest('[data-pac]'); if (l) abrirPaciente({ id: Number(l.dataset.pac), nome: l.dataset.nm, nome_social: null }); });
+}
+const cbConfigBtn = () => pode('cobranca.campanhas') ? '<button class="btn ghost sm" type="button" id="cb-cfg">Mensagens e regras</button>' : '';
+const cbCfgLiga = () => { const b = $('#cb-cfg'); if (b) b.addEventListener('click', cbConfigDialogo); };
+
+/* ----- fila (lista do dia): serve para Sem agendamento e para cada campanha ----- */
+async function cbFila(cfg){
+  CBX.fila = { cfg, dados: [], q: '', ocultar: true, conv: null };
+  $('#area').innerHTML = cbCabeca(cfg.sub) + '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.rpc('cobranca_publico', { p_unidade: UN, p_filtro: cfg.filtro }), sb.rpc('cobranca_contatos', { p_unidade: UN, p_de: somaDias(hoje(), -30), p_ate: hoje() })]);
+  const er = rs.map(r => r.error).find(Boolean); if (er) { $('#area').innerHTML = cbCabeca(cfg.sub) + '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; cobAbasLiga(); return; }
+  const F = CBX.fila; F.dados = rs[0].data || [];
+  const ct = (rs[1].data || []).filter(c => c.origem === cfg.origem && (cfg.origem !== 'campanha' || c.campanha_nome === cfg.titulo)); F.conv = { n: ct.length, ok: ct.filter(c => c.agendou_depois || c.resultado === 'agendou').length };
+  cbFilaTela();
+}
+function cbFilaTela(){
+  const F = CBX.fila, cfg = F.cfg;
+  $('#area').innerHTML = cbCabeca(cfg.sub)
+    + (cfg.voltar ? '<div class="tools" style="margin:0 0 10px"><button class="btn ghost sm" type="button" id="cb-volta">← Campanhas</button></div>' : '')
+    + '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:17px">' + esc(cfg.titulo) + '</h2>' + cbConfigBtn() + '</div>'
+    + '<p class="sub" style="margin:6px 0 10px">' + esc(cfg.regra || '') + '</p>'
+    + '<details style="margin:0 0 12px"><summary style="cursor:pointer;font-weight:600;font-size:14px">Mensagem que será enviada</summary><p id="cb-msg" style="margin:8px 0 0;white-space:pre-wrap;font-size:14.5px"></p><p class="sub" style="margin:6px 0 0">O nome e os dados de cada paciente entram automaticamente.</p></details>'
+    + '<div class="kpis" id="cb-kpis"></div><p class="sub" id="cb-conv" style="margin:0 0 12px"></p>'
+    + '<div class="tools"><input id="cb-fq" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(F.q) + '"><label class="chk" style="flex:none"><input type="checkbox" id="cb-oc"' + (F.ocultar ? ' checked' : '') + '> Ocultar quem recebeu mensagem nos últimos ' + (CBX.cfg.cooldown_dias || 0) + ' dias</label></div>'
+    + '<div class="rlg" id="cb-ftab"><table class="tb rl"><thead><tr><th>Paciente</th><th>Telefone</th><th>WhatsApp</th><th>' + (cfg.col2 || 'Última visita') + '</th><th>Último contato</th><th>Enviar</th></tr></thead><tbody id="cb-fbody"></tbody></table></div></div>';
+  $('#cb-msg').textContent = cfg.tpl;
+  cobAbasLiga(); cbCfgLiga(); const vb = $('#cb-volta'); if (vb) vb.addEventListener('click', () => { CBX.fila = null; cbCampanhas(); });
+  $('#cb-fq').addEventListener('input', e => { F.q = e.target.value; cbFilaCorpo(); }); $('#cb-oc').addEventListener('change', e => { F.ocultar = e.target.checked; cbFilaCorpo(); });
+  const tpl = x => cobMsg(cfg.tpl, x, cfg.extra);
+  cbLigaEnvio($('#cb-fbody'), (pid, cid) => F.dados.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), cfg.origem, cfg.campanha, tpl, () => cbFilaCorpo());
+  cbFilaCorpo();
+}
+function cbOculto(x, F){
+  if (!F.ocultar || x._sessao || !x.ultimo_contato || !CBX.cfg.cooldown_dias) return false;
+  return (Date.now() - Date.parse(x.ultimo_contato)) < CBX.cfg.cooldown_dias * 86400000;
+}
+function cbFilaCorpo(){
+  const F = CBX.fila, cfg = F.cfg, q = relNorm(F.q.trim()), h = hoje(), d = F.dados;
+  const hojeCt = x => x.ultimo_contato && new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }) === h;
+  const liv = d.filter(x => !x.bloqueio && !cbOculto(x, F)), vis = d.filter(x => !cbOculto(x, F) && (!q || relNorm(x.nome).includes(q)));
+  $('#cb-kpis').innerHTML = [['Na lista', d.length, ''], ['Contatados hoje', d.filter(hojeCt).length, 'ok'], ['Para contatar agora', liv.filter(x => !hojeCt(x)).length, liv.some(x => !hojeCt(x)) ? 'al' : 'ok'], ['Sem como contatar', d.filter(x => x.bloqueio).length, '']]
+    .map(k => '<div class="kpi ' + k[2] + '"><span>' + k[0] + '</span><b>' + k[1] + '</b></div>').join('');
+  const cv = F.conv; $('#cb-conv').textContent = cv && cv.n ? 'Últimos 30 dias: ' + cv.n + ' contato' + (cv.n === 1 ? '' : 's') + ', ' + cv.ok + ' paciente' + (cv.ok === 1 ? '' : 's') + ' com consulta marcada depois (' + Math.round(cv.ok / cv.n * 100) + '%).' : 'Ainda não há contatos registrados nos últimos 30 dias.';
+  $('#cb-fbody').innerHTML = vis.length ? vis.map(x => {
+    const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro, n = cbDias(x.ultima_visita);
+    const c2 = cfg.regua ? (x.regua ? '<span class="pill nu">' + esc((CB_REGUAS.find(r => r[0] === x.regua) || [0, x.regua])[1]) + '</span> ' + (x.valor_atraso != null ? reais(x.valor_atraso) : '') : '—')
+      : x.ultima_visita ? dBR(x.ultima_visita) + ' <small style="color:var(--muted)">há ' + n + ' d</small>' : '<span style="color:var(--muted)">Sem atendimento</span>';
+    return '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.nome) + '">' + esc(cbCap(x.nome)) + '</button><br><small style="color:var(--muted)">' + esc(x.status) + '</small></td><td>' + (x.telefone ? mTel(x.telefone) : '—') + '</td><td><span class="pill ' + w[0] + '">' + w[1] + '</span></td><td>' + c2 + '</td><td>' + cbUltimo(x) + '</td><td>' + cbAcao(x, cobMsg(cfg.tpl, x, cfg.extra)) + '</td></tr>';
+  }).join('') : '<tr><td colspan="6" class="vazio">' + (d.length ? 'Todos os pacientes desta lista já receberam mensagem recentemente.' : (cfg.vazio || 'Nenhum paciente nesta lista. Bom sinal.')) + '</td></tr>';
+}
+async function cbSemAg(){
+  return cbFila({ origem: 'sem_agendamento', filtro: { sem_agendamento: true, com_visita: true, status: ['Ativo', 'Pré-Ativo', 'Contenção'] }, tpl: CBX.cfg.msg_semag,
+    titulo: 'Pacientes sem próxima consulta', sub: 'Todo dia, veja quem já veio à clínica e ainda não tem consulta marcada, e chame para agendar. Paciente que paga, faz o tratamento e some, precisa ser lembrado.',
+    regra: 'Entram os pacientes Ativos, Pré-Ativos e em Contenção que já tiveram atendimento e não têm nenhuma consulta marcada daqui para frente. Os mais tempo sem vir aparecem primeiro.', vazio: 'Todos os pacientes em tratamento têm consulta marcada.' });
+}
+
+/* ----- Faltas: controle diário e mensal + lista para recuperar o paciente ----- */
+const mesIni = (h, d) => { const a = Number(h.slice(0, 4)), m = Number(h.slice(5, 7)) + (d || 0), dt = new Date(a, m - 1, 1); return iso(dt); };
+const mesFim = ini => { const dt = dataLocal(ini); return iso(new Date(dt.getFullYear(), dt.getMonth() + 1, 0)); };
+async function cbFaltas(ini, fim){
+  const h = hoje(); if (!CBX.fl) CBX.fl = { ini: mesIni(h), fim: h, res: [], lista: [], q: '', so: true };
+  const L = CBX.fl; if (ini) { L.ini = ini; L.fim = fim; }
+  $('#area').innerHTML = cbCabeca('Controle de faltas por dia e por mês, e a lista de quem faltou para chamar de volta e remarcar.') + '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.rpc('faltas_resumo', { p_unidade: UN, p_de: L.ini, p_ate: L.fim }), sb.rpc('faltas_cobranca', { p_unidade: UN, p_de: L.ini, p_ate: L.fim })]);
+  const er = rs.map(r => r.error).find(Boolean); if (er) { $('#area').innerHTML = cbCabeca('Faltas') + '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; cobAbasLiga(); return; }
+  L.res = rs[0].data || []; L.lista = rs[1].data || []; cbFaltasTela();
+}
+function cbFaltasTela(){
+  const L = CBX.fl, h = hoje(), sm = k => L.res.reduce((t, r) => t + Number(r[k]), 0), fal = sm('faltas'), comp = sm('compareceram'), rec = sm('recuperadas'), base = fal + comp;
+  const pre = [['Hoje', h, h], ['Ontem', somaDias(h, -1), somaDias(h, -1)], ['Últimos 7 dias', somaDias(h, -6), h], ['Este mês', mesIni(h), h], ['Mês passado', mesIni(h, -1), mesFim(mesIni(h, -1))]];
+  $('#area').innerHTML = cbCabeca('Controle de faltas por dia e por mês, e a lista de quem faltou para chamar de volta e remarcar.')
+    + '<div class="card"><div class="tools" id="fl-pre">' + pre.map((p, i) => '<button class="btn ' + (L.ini === p[1] && L.fim === p[2] ? '' : 'ghost ') + 'sm" type="button" data-pre="' + i + '">' + p[0] + '</button>').join('') + '</div>'
+    + '<form id="fl-form" novalidate><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end"><label class="field" for="fl-ini" style="margin:0">De<input id="fl-ini" type="date" value="' + esc(L.ini) + '"></label><label class="field" for="fl-fim" style="margin:0">Até<input id="fl-fim" type="date" value="' + esc(L.fim) + '"></label><button class="btn" type="submit">Atualizar</button>' + cbConfigBtn() + '</div><div class="err" id="fl-err" role="alert"></div></form>'
+    + '<div class="kpis" style="margin-top:14px"><div class="kpi ' + (fal ? 'al' : 'ok') + '"><span>Faltas no período</span><b id="fl-k1">' + fal + '</b></div><div class="kpi"><span>Taxa de falta</span><b id="fl-k2">' + (base ? String(Math.round(fal / base * 1000) / 10).replace('.', ',') + '%' : '—') + '</b></div><div class="kpi"><span>Atendimentos</span><b>' + comp + '</b></div><div class="kpi ok"><span>Voltaram ou remarcaram</span><b id="fl-k3">' + rec + '</b></div></div>'
+    + (L.res.length > 1 ? '<h3 style="margin:6px 0 8px;font-size:15px">Dia a dia</h3><div class="rlg" style="max-height:260px"><table class="tb rl"><thead><tr><th>Data</th><th class="n">Agendados</th><th class="n">Atendidos</th><th class="n">Faltas</th><th class="n">% faltas</th><th class="n">Voltaram/remarcaram</th></tr></thead><tbody>'
+      + L.res.map(r => { const b = Number(r.faltas) + Number(r.compareceram); return '<tr><td>' + dBR(r.data) + '</td><td class="n">' + r.agendados + '</td><td class="n">' + r.compareceram + '</td><td class="n">' + (r.faltas > 0 ? '<b style="color:var(--red)">' + r.faltas + '</b>' : 0) + '</td><td class="n">' + (b ? Math.round(r.faltas / b * 100) + '%' : '—') + '</td><td class="n">' + r.recuperadas + '</td></tr>'; }).join('')
+      + '</tbody><tfoot><tr><td>Total</td><td class="n">' + sm('agendados') + '</td><td class="n">' + comp + '</td><td class="n">' + fal + '</td><td class="n">' + (base ? Math.round(fal / base * 100) + '%' : '—') + '</td><td class="n">' + rec + '</td></tr></tfoot></table></div>' : '')
+    + '<h3 style="margin:14px 0 8px;font-size:15px">Quem faltou</h3><div class="tools"><input id="fl-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(L.q) + '"><label class="chk" style="flex:none"><input type="checkbox" id="fl-so"' + (L.so ? ' checked' : '') + '> Só quem ainda não remarcou</label></div>'
+    + '<details style="margin:0 0 10px"><summary style="cursor:pointer;font-weight:600;font-size:14px">Mensagem que será enviada</summary><p id="fl-msg" style="margin:8px 0 0;white-space:pre-wrap;font-size:14.5px"></p></details>'
+    + '<div class="rlg" id="fl-tab"><table class="tb rl"><thead><tr><th>Quando</th><th>Paciente</th><th>Procedimento</th><th>Dentista</th><th>Remarcado para</th><th>WhatsApp</th><th>Último contato</th><th>Enviar</th></tr></thead><tbody id="fl-body"></tbody></table></div></div>';
+  $('#fl-msg').textContent = CBX.cfg.msg_falta; cobAbasLiga(); cbCfgLiga();
+  $$('#fl-pre [data-pre]').forEach(b => b.addEventListener('click', () => { const p = pre[Number(b.dataset.pre)]; cbFaltas(p[1], p[2]); }));
+  $('#fl-form').addEventListener('submit', e => { e.preventDefault(); const i = $('#fl-ini').value, f = $('#fl-fim').value, er = $('#fl-err'); er.textContent = '';
+    if (!i || !f) { er.textContent = 'Informe a data inicial e a final.'; return; } if (f < i) { er.textContent = 'A data final é anterior à inicial.'; return; } if (dataLocal(f) - dataLocal(i) > 120 * 86400000) { er.textContent = 'Escolha um período de até 120 dias.'; return; } cbFaltas(i, f); });
+  $('#fl-q').addEventListener('input', e => { L.q = e.target.value; cbFaltasCorpo(); }); $('#fl-so').addEventListener('change', e => { L.so = e.target.checked; cbFaltasCorpo(); });
+  cbLigaEnvio($('#fl-body'), (pid, cid) => L.lista.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), 'falta', null, x => cobMsg(CBX.cfg.msg_falta, x), () => cbFaltasCorpo());
+  cbFaltasCorpo();
+}
+function cbFaltasCorpo(){
+  const L = CBX.fl, q = relNorm(L.q.trim()), v = L.lista.filter(x => (!L.so || !x.remarcado_para) && (!q || relNorm(x.paciente_nome).includes(q)));
+  $('#fl-body').innerHTML = v.length ? v.map(x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro, hm = String(Math.floor(x.ini_min / 60)).padStart(2, '0') + ':' + String(x.ini_min % 60).padStart(2, '0'), a = Object.assign({}, x, { nome: x.paciente_nome });
+    return '<tr><td>' + dBR(x.data) + ' <small style="color:var(--muted)">' + hm + '</small></td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(cbCap(x.paciente_nome)) + '</button><br><small style="color:var(--muted)">' + (x.telefone ? mTel(x.telefone) : 'Sem telefone') + '</small></td><td>' + esc(x.procedimento) + '</td><td>' + esc(x.dentista_nome || '—') + '</td><td>' + (x.remarcado_para ? '<span class="pill on">' + dBR(x.remarcado_para) + '</span>' : '<span class="pill off">Não remarcou</span>') + '</td><td><span class="pill ' + w[0] + '">' + w[1] + '</span></td><td>' + cbUltimo(x) + '</td><td>' + cbAcao(a, cobMsg(CBX.cfg.msg_falta, x)) + '</td></tr>'; }).join('')
+    : '<tr><td colspan="8" class="vazio">' + (L.lista.length ? 'Nenhuma falta com estes filtros.' : 'Nenhuma falta no período.') + '</td></tr>';
+}
+
+/* ----- Campanhas ----- */
+const CB_MODELOS = [
+  { nome: 'Cobrança Cob 0 (mensalidade do mês)', filtro: { status: ['Ativo'], regua: ['cob0'] }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Identificamos uma mensalidade em aberto do seu tratamento (R$ {valor_em_atraso}). Podemos ajudar com o pagamento? Se já pagou, desconsidere esta mensagem.' },
+  { nome: 'Cobrança Cob 30 (venceu mês passado)', filtro: { status: ['Ativo'], regua: ['cob30'] }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Sua mensalidade do mês passado ainda está em aberto (R$ {valor_em_atraso}). Vamos regularizar para não atrapalhar seu tratamento? Posso te enviar as formas de pagamento.' },
+  { nome: 'Cobrança Cob 60', filtro: { status: ['Ativo'], regua: ['cob60'] }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Seu tratamento tem mensalidades em aberto há 2 meses (R$ {valor_em_atraso}). Queremos te ajudar a resolver: podemos conversar sobre a melhor forma de pagar?' },
+  { nome: 'Cobrança Cob 90', filtro: { status: ['Ativo'], regua: ['cob90'] }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Suas mensalidades estão em aberto há 3 meses (R$ {valor_em_atraso}). Para você não perder o andamento do tratamento, vamos negociar? Responda esta mensagem que te atendemos hoje.' },
+  { nome: 'Cobrança +90 (inativos)', filtro: { status: ['Ativo', 'Inativo'], regua: ['mais90'] }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Seu tratamento está parado por mensalidades em aberto (R$ {valor_em_atraso}). Temos condições especiais para você retomar. Podemos conversar?' },
+  { nome: 'Preventiva (mensalidade vence este mês)', filtro: { status: ['Ativo'], regua: ['preventivo'] }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Passando para lembrar que a mensalidade do seu tratamento vence neste mês. Qualquer dúvida sobre o pagamento, é só responder aqui.' },
+  { nome: 'Procedimento em atraso (ex.: limpeza profunda)', filtro: { status: ['Ativo', 'Contenção'], proc_meses: 5 }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Já faz um tempo desde a sua última {procedimento}. Vamos agendar? É rápido e faz muita diferença para a saúde da sua boca e do seu tratamento.' },
+  { nome: 'Sem consulta marcada', filtro: { status: ['Ativo', 'Pré-Ativo', 'Contenção'], sem_agendamento: true, com_visita: true }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Notamos que você ainda não tem a próxima consulta marcada. Vamos agendar? Me diga qual dia e período ficam melhores para você.' },
+  { nome: 'Faltou e não remarcou (30 dias)', filtro: { status: ['Ativo', 'Pré-Ativo', 'Contenção'], faltou_dias: 30 }, msg: 'Olá, {primeiro_nome}! Aqui é da {unidade}. Sentimos sua falta na consulta de {data_falta}. Vamos remarcar? Me diga qual dia e período ficam melhores para você.' }
+];
+function cbRegraTxt(f){
+  const p = [], st = (f.status && f.status.length ? f.status : ['Ativo', 'Pré-Ativo', 'Contenção']).join(', ');
+  p.push('Pacientes ' + st);
+  if (f.regua && f.regua.length) p.push('na faixa ' + f.regua.map(k => (CB_REGUAS.find(r => r[0] === k) || [0, k])[1]).join(', '));
+  if (f.proc_id) p.push('sem fazer ' + ((CBX.procs.find(x => x.id === Number(f.proc_id)) || {}).nome || 'o procedimento') + ' há mais de ' + f.proc_meses + ' meses');
+  if (f.sem_agendamento) p.push('sem consulta marcada'); if (f.com_visita) p.push('que já tiveram atendimento');
+  if (f.sem_visita_dias) p.push('sem atendimento há mais de ' + f.sem_visita_dias + ' dias'); if (f.faltou_dias) p.push('que faltaram nos últimos ' + f.faltou_dias + ' dias e não remarcaram');
+  return p.join(' · ');
+}
+async function cbCampanhas(){
+  $('#area').innerHTML = cbCabeca('Crie campanhas de WhatsApp: a regra de quem entra e a mensagem. A fila do dia mostra os pacientes e você envia com um toque.') + '<div class="card"><p class="sub">Carregando...</p></div>';
+  const rs = await Promise.all([sb.rpc('campanhas_listar'), sb.rpc('cobranca_autorizacao_resumo', { p_unidade: UN })]);
+  const er = rs.map(r => r.error).find(Boolean); if (er) { $('#area').innerHTML = cbCabeca('Campanhas') + '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; cobAbasLiga(); return; }
+  CBX.camp = rs[0].data || []; CBX.aut = rs[1].data || {}; const A = CBX.aut, ed = pode('cobranca.campanhas');
+  $('#area').innerHTML = cbCabeca('Crie campanhas de WhatsApp: a regra de quem entra e a mensagem. A fila do dia mostra os pacientes e você envia com um toque.')
+    + '<div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:16px">Autorização de WhatsApp</h2>' + cbConfigBtn() + '</div>'
+    + '<p class="sub" style="margin:6px 0 0" id="cb-aut">' + (CBX.cfg.exigir_whatsapp ? '<span class="pill on">Exigida</span> Só recebe quem autorizou o contato por WhatsApp.' : '<span class="pill wr">Não exigida</span> Hoje recebem todos os pacientes com telefone, exceto quem recusou. Quando as autorizações estiverem coletadas, ligue a exigência em Mensagens e regras.')
+    + '<br>Pacientes em tratamento desta unidade: <b>' + (A.sim || 0) + '</b> autorizaram · <b>' + (A.sem_registro || 0) + '</b> sem registro · <b>' + (A.nao || 0) + '</b> recusaram (total ' + (A.total || 0) + '). A autorização é registrada na ficha do paciente (anamnese ou aba LGPD).</p></div>'
+    + '<div class="tools"><span style="flex:1"></span>' + (ed ? '<button class="btn" type="button" id="cp-nova">+ Nova campanha</button>' : '') + '</div>'
+    + (CBX.camp.length ? '<div class="cpg" id="cp-lista">' + CBX.camp.map(c => '<div class="cp card' + (c.ativa ? '' : ' cp-off') + '"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><h3 style="margin:0;font-size:16px">' + esc(c.nome) + '</h3>' + (c.ativa ? '' : '<span class="pill nu">Inativa</span>') + '</div>'
+        + (c.descricao ? '<p class="sub" style="margin:4px 0 0">' + esc(c.descricao) + '</p>' : '') + '<p style="margin:8px 0;font-size:13.5px;color:var(--muted)">' + esc(cbRegraTxt(c.filtro)) + '</p>'
+        + '<p style="margin:0 0 10px;font-size:13px;color:var(--muted)">' + (c.usos > 0 ? c.usos + ' contato' + (c.usos === 1 ? '' : 's') + ' enviado' + (c.usos === 1 ? '' : 's') + ' · último em ' + dBR(new Date(c.ultimo_uso).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Ainda não usada') + '</p>'
+        + '<div class="tools" style="margin:0;gap:8px">' + (c.ativa ? '<button class="btn sm" type="button" data-cp="abrir" data-id="' + c.id + '">Abrir fila</button>' : '') + (ed ? '<button class="btn ghost sm" type="button" data-cp="editar" data-id="' + c.id + '">Editar</button><button class="btn ghost sm" type="button" data-cp="ativar" data-id="' + c.id + '">' + (c.ativa ? 'Inativar' : 'Ativar') + '</button><button class="btn ghost sm" type="button" data-cp="excluir" data-id="' + c.id + '">Excluir</button>' : '') + '</div></div>').join('') + '</div>'
+      : '<div class="card"><div class="vazio">Nenhuma campanha ainda.' + (ed ? ' Clique em + Nova campanha e comece por um modelo (Cob 0, Cob 30, limpeza profunda...).' : '') + '</div></div>');
+  cobAbasLiga(); cbCfgLiga(); const nv = $('#cp-nova'); if (nv) nv.addEventListener('click', () => cbCampDialogo(null));
+  const lst = $('#cp-lista'); if (lst) lst.addEventListener('click', async e => {
+    const b = e.target.closest('[data-cp]'); if (!b) return; const c = CBX.camp.find(x => x.id === Number(b.dataset.id)); if (!c) return;
+    if (b.dataset.cp === 'abrir') return cbFila({ origem: 'campanha', campanha: c.id, filtro: c.filtro, tpl: c.mensagem, titulo: c.nome, sub: 'Fila da campanha. Envie com um toque e marque o resultado.', regra: cbRegraTxt(c.filtro), regua: !!(c.filtro.regua && c.filtro.regua.length),
+      extra: { procedimento: c.filtro.proc_id ? ((CBX.procs.find(x => x.id === Number(c.filtro.proc_id)) || {}).nome || '').toLowerCase() : '' }, col2: c.filtro.regua ? 'Faixa e valor' : c.filtro.proc_id ? 'Última visita' : 'Última visita', voltar: true });
+    if (b.dataset.cp === 'editar') return cbCampDialogo(c);
+    if (b.dataset.cp === 'ativar') { const r = await sb.rpc('campanha_salvar', { p_id: c.id, p_nome: c.nome, p_descricao: c.descricao, p_filtro: c.filtro, p_mensagem: c.mensagem, p_ativa: !c.ativa }); if (r.error) { toast(erroTxt(r.error)); return; } toast(c.ativa ? 'Campanha inativada.' : 'Campanha ativada.'); return cbCampanhas(); }
+    if (b.dataset.cp === 'excluir') {
+      abrirJanela('Excluir campanha', '<div class="db"><p style="margin:0">Excluir a campanha <b>' + esc(c.nome) + '</b>? ' + (c.usos > 0 ? 'Ela já foi usada e tem contatos registrados: será apenas inativada, e o histórico fica guardado.' : 'Esta ação não pode ser desfeita.') + '</p></div><div class="df"><button class="btn ghost" type="button" id="cx-nao">Voltar</button><button class="btn danger" type="button" id="cx-sim">' + (c.usos > 0 ? 'Inativar' : 'Excluir') + '</button></div>');
+      $('#cx-nao').addEventListener('click', fecharJanela); $('#cx-sim').addEventListener('click', async () => { const r = await sb.rpc('campanha_excluir', { p_id: c.id }); if (r.error) { toast(erroTxt(r.error)); return; } fecharJanela(); toast(r.data === 'inativada' ? 'Campanha inativada.' : 'Campanha excluída.'); cbCampanhas(); });
+    }
+  });
+}
+function cbCampDialogo(c){
+  const f = c ? c.filtro : { status: ['Ativo', 'Pré-Ativo', 'Contenção'] }, st = f.status && f.status.length ? f.status : ['Ativo', 'Pré-Ativo', 'Contenção'];
+  abrirJanela(c ? 'Editar campanha' : 'Nova campanha', '<form id="cp-form" novalidate><div class="db">'
+    + (c ? '' : '<label class="field" for="cp-mod">Começar por um modelo<select id="cp-mod"><option value="">Em branco</option>' + CB_MODELOS.map((m, i) => '<option value="' + i + '">' + esc(m.nome) + '</option>').join('') + '</select></label>')
+    + fld('cp-nome', 'Nome da campanha *', c ? c.nome : '', 'maxlength="80" autocomplete="off"') + fld('cp-desc', 'Descrição (opcional)', c ? c.descricao || '' : '', 'maxlength="200" autocomplete="off"')
+    + '<fieldset style="border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;margin:0;min-width:0"><legend style="font-weight:700;font-size:14px;padding:0 6px">Quem entra na campanha</legend>'
+    + '<p class="sub" style="margin:0 0 4px">Situação do paciente</p><div style="display:flex;flex-wrap:wrap;gap:4px 16px" id="cp-st">' + CB_STATUS.map(s => '<label class="chk"><input type="checkbox" value="' + s + '"' + (st.includes(s) ? ' checked' : '') + '> ' + s + '</label>').join('') + '</div>'
+    + '<p class="sub" style="margin:8px 0 4px">Faixa de cobrança (opcional)</p><div style="display:flex;flex-wrap:wrap;gap:4px 16px" id="cp-rg">' + CB_REGUAS.map(r => '<label class="chk"><input type="checkbox" value="' + r[0] + '"' + ((f.regua || []).includes(r[0]) ? ' checked' : '') + '> ' + r[1] + '</label>').join('') + '</div>'
+    + '<div class="g2" style="margin-top:8px"><label class="field" for="cp-proc" style="margin:0">Procedimento (opcional)<select id="cp-proc"><option value="">Nenhum</option>' + CBX.procs.map(p => '<option value="' + p.id + '"' + (Number(f.proc_id) === p.id ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="cp-pm" style="margin:0">Sem fazer há mais de (meses)<input id="cp-pm" type="number" min="1" max="60" value="' + esc(f.proc_meses || '') + '" inputmode="numeric"></label></div>'
+    + '<label class="chk"><input type="checkbox" id="cp-sa"' + (f.sem_agendamento ? ' checked' : '') + '> Sem consulta marcada daqui para frente</label>'
+    + '<label class="chk"><input type="checkbox" id="cp-cv"' + (f.com_visita ? ' checked' : '') + '> Só quem já teve atendimento</label>'
+    + '<div class="g2"><label class="chk" style="margin:0"><input type="checkbox" id="cp-svx"' + (f.sem_visita_dias ? ' checked' : '') + '> Sem atendimento há mais de</label><label class="field" for="cp-sv" style="margin:0"><input id="cp-sv" type="number" min="1" max="1500" placeholder="dias" value="' + esc(f.sem_visita_dias || '') + '" inputmode="numeric" aria-label="Dias sem atendimento"></label></div>'
+    + '<div class="g2"><label class="chk" style="margin:0"><input type="checkbox" id="cp-fx"' + (f.faltou_dias ? ' checked' : '') + '> Faltou nos últimos</label><label class="field" for="cp-fd" style="margin:0"><input id="cp-fd" type="number" min="1" max="120" placeholder="dias" value="' + esc(f.faltou_dias || '') + '" inputmode="numeric" aria-label="Dias desde a falta"></label></div>'
+    + '<p class="sub" style="margin:6px 0 0">Todos os critérios marcados valem ao mesmo tempo. Paciente que recusou WhatsApp nunca entra na fila de envio.</p></fieldset>'
+    + '<label class="field" for="cp-msg">Mensagem *<textarea id="cp-msg" rows="5" maxlength="1000" style="resize:vertical">' + esc(c ? c.mensagem : '') + '</textarea></label>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px" id="cp-vars">' + CB_VARS.map(v => '<button type="button" class="btn ghost sm" data-v="' + v[0] + '">+ ' + v[1] + '</button>').join('') + '</div>'
+    + '<p class="sub" style="margin:0"><b>Prévia:</b> <span id="cp-prev"></span></p>'
+    + '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn ghost sm" type="button" id="cp-conta">Ver quantos pacientes entram</button><span class="sub" id="cp-qtd" style="margin:0"></span></div>'
+    + '<div class="err" id="cp-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="cp-cancel">Voltar</button><button class="btn" type="submit" id="cp-ok">' + (c ? 'Salvar' : 'Criar campanha') + '</button></div></form>');
+  const le = () => {
+    const o = {}, sts = $$('#cp-st input:checked').map(i => i.value), rg = $$('#cp-rg input:checked').map(i => i.value);
+    o.status = sts; if (rg.length) o.regua = rg; if ($('#cp-proc').value) { o.proc_id = Number($('#cp-proc').value); o.proc_meses = Number($('#cp-pm').value) || 0; }
+    if ($('#cp-sa').checked) o.sem_agendamento = true; if ($('#cp-cv').checked) o.com_visita = true; if ($('#cp-svx').checked) o.sem_visita_dias = Number($('#cp-sv').value) || 0; if ($('#cp-fx').checked) o.faltou_dias = Number($('#cp-fd').value) || 0; return o;
+  };
+  const prev = () => { const x = { nome: 'Maria da Silva', ultima_visita: somaDias(hoje(), -45), valor_atraso: 289.9, data: somaDias(hoje(), -3) }; $('#cp-prev').textContent = cobMsg($('#cp-msg').value, x, { procedimento: ($('#cp-proc').selectedOptions[0] || {}).value ? $('#cp-proc').selectedOptions[0].textContent.toLowerCase() : 'procedimento' }) || '—'; };
+  $('#cp-msg').addEventListener('input', prev); $('#cp-proc').addEventListener('change', prev); prev();
+  $('#cp-vars').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; const t = $('#cp-msg'), a = t.selectionStart || 0, z = t.selectionEnd || 0; t.value = t.value.slice(0, a) + '{' + b.dataset.v + '}' + t.value.slice(z); t.focus(); t.selectionStart = t.selectionEnd = a + b.dataset.v.length + 2; prev(); });
+  const mod = $('#cp-mod'); if (mod) mod.addEventListener('change', () => {
+    const m = CB_MODELOS[Number(mod.value)]; if (!m) return; $('#cp-nome').value = m.nome; $('#cp-msg').value = m.msg; const g = m.filtro;
+    $$('#cp-st input').forEach(i => i.checked = (g.status || []).includes(i.value)); $$('#cp-rg input').forEach(i => i.checked = (g.regua || []).includes(i.value));
+    const lp = CBX.procs.find(p => /limpeza/i.test(p.nome)); $('#cp-proc').value = g.proc_meses && lp ? String(lp.id) : ''; $('#cp-pm').value = g.proc_meses || '';
+    $('#cp-sa').checked = !!g.sem_agendamento; $('#cp-cv').checked = !!g.com_visita; $('#cp-svx').checked = !!g.sem_visita_dias; $('#cp-sv').value = g.sem_visita_dias || ''; $('#cp-fx').checked = !!g.faltou_dias; $('#cp-fd').value = g.faltou_dias || ''; prev();
+  });
+  $('#cp-conta').addEventListener('click', async () => {
+    const q = $('#cp-qtd'); q.textContent = 'Contando...'; const r = await sb.rpc('cobranca_publico', { p_unidade: UN, p_filtro: le() });
+    if (r.error) { q.textContent = erroTxt(r.error); return; } const l = r.data || [], b = l.filter(x => x.bloqueio).length; q.textContent = l.length + (l.length === 1 ? ' paciente entra' : ' pacientes entram') + ' nesta unidade' + (b ? ' (' + b + ' sem como contatar)' : '') + '.';
+  });
+  $('#cp-cancel').addEventListener('click', fecharJanela);
+  $('#cp-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#cp-err'); er.textContent = ''; const nome = $('#cp-nome').value.trim(), msg = $('#cp-msg').value.trim(), o = le();
+    if (nome.length < 3) { er.textContent = 'Dê um nome à campanha.'; return; } if (msg.length < 5) { er.textContent = 'Escreva a mensagem da campanha.'; return; }
+    if (!o.status.length) { er.textContent = 'Marque ao menos uma situação do paciente.'; return; }
+    if (o.proc_id && !(o.proc_meses >= 1)) { er.textContent = 'Informe há quantos meses o procedimento não é feito.'; return; }
+    if ('sem_visita_dias' in o && !(o.sem_visita_dias >= 1)) { er.textContent = 'Informe os dias sem atendimento.'; return; } if ('faltou_dias' in o && !(o.faltou_dias >= 1)) { er.textContent = 'Informe os dias desde a falta.'; return; }
+    if (!(o.regua || o.proc_id || o.sem_agendamento || o.sem_visita_dias || o.faltou_dias)) { er.textContent = 'Escolha pelo menos um critério: faixa de cobrança, procedimento, sem consulta marcada, sem atendimento ou faltas.'; return; }
+    const b = $('#cp-ok'); b.disabled = true;
+    const r = await sb.rpc('campanha_salvar', { p_id: c ? c.id : null, p_nome: nome, p_descricao: $('#cp-desc').value.trim() || null, p_filtro: o, p_mensagem: msg, p_ativa: c ? c.ativa : true });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast(c ? 'Campanha salva.' : 'Campanha criada.'); cbCampanhas();
+  });
+}
+function cbConfigDialogo(){
+  const C = CBX.cfg;
+  abrirJanela('Mensagens e regras da cobrança', '<form id="cf-form" novalidate><div class="db">'
+    + '<label class="chk"><input type="checkbox" id="cf-ex"' + (C.exigir_whatsapp ? ' checked' : '') + '> Exigir autorização de WhatsApp do paciente</label>'
+    + '<p class="sub" style="margin:0">Desligado: recebem todos os pacientes com telefone, menos quem recusou. Ligado: só recebe quem autorizou (registrado na anamnese ou na ficha). Quem recusou nunca recebe.</p>'
+    + '<label class="field" for="cf-cd" style="max-width:260px">Esconder da fila quem recebeu mensagem nos últimos (dias)<input id="cf-cd" type="number" min="0" max="90" value="' + esc(C.cooldown_dias) + '" inputmode="numeric"></label>'
+    + '<label class="field" for="cf-ms">Mensagem padrão: pacientes sem agendamento<textarea id="cf-ms" rows="4" maxlength="1000" style="resize:vertical">' + esc(C.msg_semag) + '</textarea></label>'
+    + '<label class="field" for="cf-mf">Mensagem padrão: faltas<textarea id="cf-mf" rows="4" maxlength="1000" style="resize:vertical">' + esc(C.msg_falta) + '</textarea></label>'
+    + '<p class="sub" style="margin:0">Variáveis: ' + CB_VARS.map(v => '{' + v[0] + '}').join(' ') + '</p><div class="err" id="cf-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="cf-cancel">Voltar</button><button class="btn" type="submit" id="cf-ok">Salvar</button></div></form>');
+  $('#cf-cancel').addEventListener('click', fecharJanela);
+  $('#cf-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#cf-err'); er.textContent = ''; const cd = Number($('#cf-cd').value);
+    if (!(cd >= 0 && cd <= 90) || $('#cf-cd').value === '') { er.textContent = 'Informe de 0 a 90 dias.'; return; }
+    if ($('#cf-ms').value.trim().length < 5 || $('#cf-mf').value.trim().length < 5) { er.textContent = 'As mensagens precisam ter pelo menos 5 caracteres.'; return; }
+    const b = $('#cf-ok'); b.disabled = true; const r = await sb.rpc('cobranca_config_salvar', { p_exigir: $('#cf-ex').checked, p_cooldown: cd, p_msg_semag: $('#cf-ms').value.trim(), p_msg_falta: $('#cf-mf').value.trim() });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Configurações salvas.'); cobCarregar();
+  });
 }
 
 /* ---------- Financeiro: pesquisa por período (recebido x vencimento) ---------- */
