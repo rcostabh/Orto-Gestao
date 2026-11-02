@@ -482,9 +482,9 @@ const MENU = [
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] },
   { g: 'Financeiro', ic: 'financeiro', itens: [
     { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
-    { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver'] },
     { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] },
     { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] } ] },
+  { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver'] },
   { g: 'Configurações', ic: 'unidades', itens: [
     { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
@@ -521,6 +521,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.19.1', '2026-11-02', 'Cobrança agora é um item próprio do menu, fora do Financeiro (espaço para novas funções de cobrança). Só o gestor da plataforma cadastra unidades: o botão e a permissão saíram do Diretor.'],
   ['0.19.0', '2026-11-01', 'Dashboard do Diretor no Início: pacientes ativos, visitas, avaliações atendidas, vendas (dia e mês) e faturamento, sempre mês anterior x mês atual, mais o faturamento das 1ªs mensalidades. A recepção continua com as faltas e a rotina do caixa.'],
   ['0.18.1', '2026-11-01', 'Ver como: o Diretor (qualquer perfil) e o Gerente (perfis sem acesso total nem Configurações) escolhem no nome do perfil, no menu lateral, como ver o sistema; menu e telas passam a mostrar só o que aquele perfil enxerga. Os demais perfis ficam só com o próprio.'],
   ['0.18.0', '2026-11-01', 'Início da recepção: faltas de hoje, de ontem e dos últimos 7 dias (com código, status, procedimento, telefone e próximo horário livre do dentista responsável), rotina do caixa (fechar o de ontem, pedir a abertura do de hoje ao gerente) e botão para a agenda do dia. Pacientes e prospects em grid com filtros e Situação como coluna. Financeiro abre em Todos.'],
@@ -571,7 +572,7 @@ function desenhaUn(){
   el.innerHTML = '<label class="ul" for="un-sel">Unidade</label><select id="un-sel">' + MINHAS.map(u => '<option value="' + u.id + '"' + (u.id === UN ? ' selected' : '') + '>' + nm(u) + '</option>').join('') + '</select>';
   $('#un-sel').addEventListener('change', e => trocarUnidade(Number(e.target.value)));
 }
-const semUn = t => '<div class="head"><h1>' + t + '</h1></div><div class="card"><div class="vazio">' + (pode('unidades.criar') ? 'Nenhuma unidade cadastrada ainda. Cadastre a primeira em Configurações › Unidades.' : 'Você ainda não está vinculado a nenhuma unidade. Peça a um Diretor para vincular você em Funcionários.') + '</div></div>';
+const semUn = t => '<div class="head"><h1>' + t + '</h1></div><div class="card"><div class="vazio">' + (ehDir() ? 'Nenhuma unidade cadastrada ainda. A primeira unidade é cadastrada pelo gestor da plataforma.' : 'Você ainda não está vinculado a nenhuma unidade. Peça a um Diretor para vincular você em Funcionários.') + '</div></div>';
 function trocarUnidade(id){
   FILA = FILA.then(async () => {
     if (id === UN) return;
@@ -783,7 +784,7 @@ const horarioResumo = h => {
   return ab.length + ' dia' + (ab.length > 1 ? 's' : '') + (todos ? ' · ' + txt : '');
 };
 function uniLista(){
-  $('#area').innerHTML = '<div class="head"><div><h1>Unidades</h1><p class="sub">Clínicas da rede.</p></div>' + (pode('unidades.criar') ? '<button class="btn" type="button" id="u-novo">+ Nova unidade</button>' : '') + '</div>'
+  $('#area').innerHTML = '<div class="head"><div><h1>Unidades</h1><p class="sub">Clínicas da rede.</p></div>' + '' + '</div>'
     + '<div class="card"><div class="tools"><input id="u-q" type="search" placeholder="Buscar por sigla, nome ou cidade" aria-label="Buscar unidades"><select id="u-st" aria-label="Situação"><option value="a">Ativas</option><option value="i">Inativas</option><option value="t">Todas</option></select></div><div class="lista" id="u-lista"></div></div>';
   const desenhar = () => {
     const q = $('#u-q').value.trim().toLowerCase(), st = $('#u-st').value;
