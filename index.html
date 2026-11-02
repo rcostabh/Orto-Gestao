@@ -485,7 +485,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
-  ['0.16.0', '2026-11-01', 'Cobrança: régua (preventiva, cob 0, 30, 60, 90 e +90), painel por régua, faturado x previsão de faturamento com aproveitamento da cobrança e filtro de datas. O paciente só começa a ter parcelas a pagar depois da 1ª mensalidade paga (Início pago = Pré-Ativo; 1ª mensalidade paga = Ativo); aí as mensalidades passam a ser geradas todo mês, pagas ou não. Com 4 meses de atraso (sem contar Início e 1ª mensalidade) o paciente vira Inativo e deixa de gerar parcelas.'],
+  ['0.16.0', '2026-11-01', 'Cobrança: régua (preventiva, cob 0, 30, 60, 90 e +90), painel por régua, faturado x previsão de faturamento com aproveitamento da cobrança e filtro de datas. O paciente só começa a ter parcelas a pagar depois da 1ª mensalidade paga (Início pago = Pré-Ativo; 1ª mensalidade paga = Ativo); aí as mensalidades passam a ser geradas todo mês, pagas ou não. Com 4 meses de atraso (sem contar Início e 1ª mensalidade) o paciente vira Inativo e deixa de gerar parcelas. A lista de parcelas do Financeiro passa a ser um grid com filtros por coluna (estilo planilha), Receber e totalizador no rodapé.'],
   ['0.15.1', '2026-11-01', 'Pesquisa financeira: colunas de valor por forma de pagamento (PIX, débito, crédito, dinheiro, boleto, transferência) com total no rodapé e filtros estilo planilha (funil no título de cada coluna, com busca e seleção de valores).'],
   ['0.15.0', '2026-11-01', 'Cobranças avulsas: botão + Nova cobrança na ficha financeira do paciente (produto ou serviço, valor, vencimento). Cadastro de produtos e serviços só para o Diretor. A cobrança avulsa é recebida, estornada e isentada como as parcelas, sem mexer no contrato do tratamento.'],
   ['0.14.0', '2026-11-01', 'Financeiro: nova pesquisa por período, por recebimento (o que entrou de fato) ou por vencimento (previsão de faturamento), em grid de parcelas com totais fixos no rodapé e planilha CSV.'],
@@ -1663,27 +1663,23 @@ async function finCarregar(){
   defUn(ru.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Financeiro'); return; }
   await sb.rpc('financeiro_atualizar');
-  const r = await sb.rpc('parcelas_da_unidade', { p_unidade: UN });
+  const r = await sb.rpc('relatorio_financeiro', { p_unidade: UN, p_ini: somaDias(hoje(), -330), p_fim: somaDias(hoje(), 60), p_modo: 'vencimento' });
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
-  D.parc = r.data || []; finLista();
+  FN.par = { dados: r.data || [], f: (FN.par && FN.par.f) || [], pre: null }; finLista();
 }
 function finLista(){
   if (FN.vis === 'rel') return finRel();
-  const ab = D.parc.filter(x => x.status === 'aberta'), venc = ab.filter(x => x.dias_atraso > 0), avenc = ab.filter(x => x.dias_atraso === 0), pagas = D.parc.filter(x => x.status !== 'aberta');
-  const soma = l => l.reduce((t, x) => t + Number(x.valor_hoje), 0);
-  const abas = [['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas e isentas (60 dias)', pagas.length]];
-  $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento. Paga até o vencimento: com desconto. Depois: valor cheio, sem juros.</p></div></div>' + finVis()
+  const P = FN.par, hj = hoje(), dd = P.dados, ab = dd.filter(x => x.situacao === 'aberta'), venc = ab.filter(x => x.vencimento < hj), avenc = ab.filter(x => x.vencimento >= hj), pagas = dd.filter(x => x.situacao === 'paga' || x.situacao === 'isenta');
+  const soma = l => l.reduce((t, x) => t + Number(x.saldo), 0);
+  const abas = [['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas e isentas', pagas.length]];
+  $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento (últimos 11 meses e próximos 2). Paga até o vencimento: com desconto. Depois: valor cheio, sem juros. Use o funil de cada coluna para filtrar.</p></div></div>' + finVis()
     + '<div class="card"><p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
     + '<div class="tools"><div id="fn-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (FN.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
-    + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div><div class="tw" id="fn-lista"></div></div>';
+    + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div></div><div id="fn-lista"></div>';
   const pinta = () => {
-    const q = FN.q.trim().toLowerCase(); let l = FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
-    if (q) l = l.filter(x => x.paciente_nome.toLowerCase().includes(q));
-    $('#fn-lista').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '">' + esc(x.paciente_nome) + '</button><br><small style="color:var(--muted)">' + esc(x.paciente_status) + '</small></td><td>' + lblp(x, 'numero') + '</td><td>' + dBR(x.vencimento) + '</td><td>'
-      + (x.status === 'isenta' ? 'isento ' + reais(x.valor_isento) + '<br><small style="color:var(--muted)">' + dBR(x.pago_em) + '</small>' : x.status === 'paga' ? reais(x.valor_pago) + '<br><small style="color:var(--muted)">' + dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento) + '</small>' : reais(x.valor_hoje) + (x.parcial ? '<br><small style="color:var(--muted)">saldo (já pago ' + reais(x.valor_pago) + ')</small>' : x.valor_hoje < x.valor_cheio ? '<br><small style="color:var(--muted)">com desconto</small>' : '')) + '</td><td>' + fnSit(x) + '</td><td>'
-      + (x.status === 'aberta' && pode('financeiro.baixar') ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nada por aqui.</div>';
-    $$('#fn-lista [data-rec]').forEach(b => b.addEventListener('click', () => { const x = D.parc.find(y => y.id === Number(b.dataset.rec)); caixaPaciente(x.paciente_id); }));
-    $$('#fn-lista [data-pac]').forEach(b => b.addEventListener('click', () => { const x = D.parc.find(y => y.paciente_id === Number(b.dataset.pac)); abrirPaciente({ id: x.paciente_id, nome: x.paciente_nome, nome_social: null }); }));
+    const q = relNorm(FN.q.trim()); let l = FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
+    if (q) l = l.filter(x => relNorm(x.paciente_nome).includes(q));
+    const S = new Set(l); P.pre = x => S.has(x); relGridMonta($('#fn-lista'));
   };
   pinta();
   $$('#fn-abas [data-f]').forEach(b => b.addEventListener('click', () => { FN.f = b.dataset.f; finLista(); }));
@@ -1795,6 +1791,8 @@ function finRel(){
 const REL_FORMAS = [['PIX', 'PIX'], ['Cartão de débito', 'Débito'], ['Cartão de crédito', 'Crédito'], ['Dinheiro', 'Dinheiro'], ['Boleto', 'Boleto'], ['Transferência', 'Transf.']];
 const relSitTxt = x => x.situacao === 'paga' ? 'Paga' : x.situacao === 'isenta' ? 'Isenta' : x.situacao === 'cancelada' ? 'Cancelada' : x.vencimento < hoje() ? 'Vencida' : Number(x.recebido) > 0 ? 'Pago em parte' : 'Em aberto';
 const relFv = (x, f) => Number((x.formas || {})[f] || 0);
+const RG = () => FN.vis === 'lista' ? FN.par : FN.rel;
+const relBase = R => R.pre ? R.dados.filter(R.pre) : R.dados;
 function relCols(){
   const cols = [
     { t: 'Cód', k: x => x.parcela_id, v: x => String(x.parcela_id) }, { t: 'Paciente', v: x => x.paciente_nome }, { t: 'Status', v: relSitTxt }, { t: 'Nº', k: x => x.numero == null ? -1 : x.numero, v: x => x.numero == null ? '—' : String(x.numero + 1) },
@@ -1808,15 +1806,15 @@ function relCols(){
 const relNorm = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 function relFiltrados(R){
   const cols = relCols(), f = R.f || [];
-  return R.dados.filter(x => cols.every((c, i) => !f[i] || f[i].has(c.v(x))));
+  return relBase(R).filter(x => cols.every((c, i) => !f[i] || f[i].has(c.v(x))));
 }
 /* filtro estilo planilha: funil no título, busca, "selecionar todos", lista de valores, Filtrar e Limpar */
 function relPopFecha(){ const o = $('#rl-pop'); if (o) o.remove(); document.removeEventListener('mousedown', relPopFora, true); document.removeEventListener('keydown', relPopTecla, true); }
 function relPopFora(e){ const o = $('#rl-pop'); if (o && !o.contains(e.target) && !e.target.closest('[data-fx]')) relPopFecha(); }
 function relPopTecla(e){ if (e.key === 'Escape') relPopFecha(); }
 function relPop(i, btn){
-  const R = FN.rel, c = relCols()[i], jaAberto = $('#rl-pop') && $('#rl-pop').dataset.i === String(i); relPopFecha(); if (jaAberto) return;
-  const vistos = new Map(); R.dados.forEach(x => { const v = c.v(x); if (!vistos.has(v)) vistos.set(v, c.k ? c.k(x) : v); });
+  const R = RG(), c = relCols()[i], jaAberto = $('#rl-pop') && $('#rl-pop').dataset.i === String(i); relPopFecha(); if (jaAberto) return;
+  const vistos = new Map(); relBase(R).forEach(x => { const v = c.v(x); if (!vistos.has(v)) vistos.set(v, c.k ? c.k(x) : v); });
   const valores = [...vistos.keys()].sort((a, b) => { const ka = vistos.get(a), kb = vistos.get(b); return typeof ka === 'number' && typeof kb === 'number' ? ka - kb : String(ka).localeCompare(String(kb), 'pt', { numeric: true }); });
   const sel = new Set(R.f[i] || []), MAX = 800;
   const o = document.createElement('div'); o.id = 'rl-pop'; o.className = 'rl-pop'; o.dataset.i = String(i); o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Filtrar ' + c.t);
@@ -1845,26 +1843,32 @@ function relCsv(R){
 const LBL_TIPO = n => n === 0 ? 'Início' : n + 'ª mensalidade';
 function relAjusta(){ const g = $('#rl-tab'); if (!g) return; g.style.maxHeight = Math.max(260, window.innerHeight - g.getBoundingClientRect().top - 24) + 'px'; }
 function relCorpo(){
-  const R = FN.rel, cols = relCols(), d = relFiltrados(R), pago = x => x.situacao === 'paga' || x.situacao === 'isenta';
+  const R = RG(), lista = FN.vis === 'lista', baixa = pode('financeiro.baixar'), cols = relCols(), d = relFiltrados(R), pago = x => x.situacao === 'paga' || x.situacao === 'isenta';
   const soma = c => Math.round(d.reduce((t, x) => t + Number(c.soma(x)), 0) * 100) / 100;
   $('#rl-body').innerHTML = d.length ? d.map(x => '<tr><td>' + x.parcela_id + '</td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button></td><td>' + relSit(x) + '</td><td>' + cols[3].v(x) + '</td><td>' + esc(cols[4].v(x)) + '</td>'
     + '<td' + (pago(x) ? ' style="text-decoration:line-through;color:var(--muted)"' : '') + '>' + cols[5].v(x) + '</td><td class="n">' + cols[6].v(x) + '</td><td class="n">' + cols[7].v(x) + '</td><td>' + cols[8].v(x) + '</td><td class="n">' + cols[9].v(x) + '</td>'
-    + '<td class="n">' + (Number(x.saldo) > 0 ? '<span class="pill nu">' + cols[10].v(x) + '</span>' : cols[10].v(x)) + '</td><td>' + esc(cols[11].v(x)) + '</td>' + cols.slice(12).map(c => '<td class="n">' + c.v(x) + '</td>').join('') + '</tr>').join('')
-    : '<tr><td colspan="' + cols.length + '" class="vazio">Nenhuma parcela com esses filtros.</td></tr>';
+    + '<td class="n">' + (Number(x.saldo) > 0 ? '<span class="pill nu">' + cols[10].v(x) + '</span>' : cols[10].v(x)) + '</td><td>' + esc(cols[11].v(x)) + '</td>' + cols.slice(12).map(c => '<td class="n">' + c.v(x) + '</td>').join('') + (lista ? '<td>' + (x.situacao === 'aberta' && baixa ? '<button class="btn sm" type="button" data-rec="' + x.paciente_id + '">Receber</button>' : '') + '</td>' : '') + '</tr>').join('')
+    : '<tr><td colspan="' + (cols.length + (lista ? 1 : 0)) + '" class="vazio">Nenhuma parcela com esses filtros.</td></tr>';
   const filtrando = (R.f || []).some(Boolean);
   $$('#rl-tab [data-fx]').forEach(b => b.classList.toggle('on', !!R.f[Number(b.dataset.fx)]));
-  $('#rl-tot').innerHTML = '<td colspan="6">Totais · <span id="rl-n">' + d.length + '</span> ' + (d.length === 1 ? 'linha' : 'linhas') + (filtrando ? ' de ' + R.dados.length : '') + '</td>'
-    + cols.slice(6).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(soma(c)) : '') + '</td>').join('');
+  $('#rl-tot').innerHTML = '<td colspan="6">Totais · <span id="rl-n">' + d.length + '</span> ' + (d.length === 1 ? 'linha' : 'linhas') + (filtrando ? ' de ' + relBase(R).length : '') + '</td>'
+    + cols.slice(6).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(soma(c)) : '') + '</td>').join('') + (lista ? '<td></td>' : '');
   $$('#rl-body [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
-  $('#rl-csv').hidden = !R.dados.length;
+  $$('#rl-body [data-rec]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.rec))));
+  const cv = $('#rl-csv'); if (cv) cv.hidden = !R.dados.length;
 }
 function relPinta(){
   relPopFecha();
   const R = FN.rel, box = $('#rl-res'), csv = $('#rl-csv'); if (!R.dados) { box.innerHTML = ''; csv.hidden = true; return; }
   if (!R.dados.length) { box.innerHTML = '<div class="card"><div class="vazio">' + (R.modo === 'recebido' ? 'Nenhum recebimento neste período.' : 'Nenhuma parcela vence neste período.') + '</div></div>'; csv.hidden = true; return; }
-  const cols = relCols(); R.f = R.f && R.f.length ? R.f : [];
+  R.f = R.f && R.f.length ? R.f : []; relGridMonta(box);
+}
+function relGridMonta(box){
+  relPopFecha();
+  const R = RG(), lista = FN.vis === 'lista', cols = relCols(); R.f = R.f || [];
+  if (!relBase(R).length) { box.innerHTML = '<div class="card"><div class="vazio">Nada por aqui.</div></div>'; return; }
   const funil = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
-  box.innerHTML = '<div class="card" style="padding:0;overflow:hidden"><div class="rlg" id="rl-tab"><table class="tb rl"><thead><tr>' + cols.map((c, i) => '<th' + (c.n ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + '</tr></thead><tbody id="rl-body"></tbody><tfoot><tr id="rl-tot"></tr></tfoot></table></div></div>';
+  box.innerHTML = '<div class="card" style="padding:0;overflow:hidden"><div class="rlg" id="rl-tab"><table class="tb rl"><thead><tr>' + cols.map((c, i) => '<th' + (c.n ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + (lista ? '<th></th>' : '') + '</tr></thead><tbody id="rl-body"></tbody><tfoot><tr id="rl-tot"></tr></tfoot></table></div></div>';
   $$('#rl-tab [data-fx]').forEach(b => b.addEventListener('click', () => relPop(Number(b.dataset.fx), b)));
   ['wheel', 'touchmove'].forEach(ev => $('#rl-tab').addEventListener(ev, relPopFecha, { passive: true }));
   relCorpo(); relAjusta();
