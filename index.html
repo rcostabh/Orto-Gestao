@@ -264,7 +264,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   .df .esq{width:100%;margin-right:0}
   .df .btn{flex:1}
 }
-#in-cx .card{margin-bottom:14px}.eu select{width:100%;margin:2px 0 6px;font-size:12px;padding:5px 6px;border-radius:8px}.eu select.sim{border-color:var(--brand,#ff6a00);outline:1px solid var(--brand,#ff6a00)}.rl tr.clk{cursor:pointer}.rl tr.clk:hover td,.rl tr.clk:focus td{background:rgba(127,127,127,.12)}.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
+#in-cx .card{margin-bottom:14px}.eu select{width:100%;margin:2px 0 6px;font-size:12px;padding:5px 6px;border-radius:8px}.eu select.sim{border-color:var(--brand,#ff6a00);outline:1px solid var(--brand,#ff6a00)}.dh{text-align:center;font-weight:500;font-size:20px;text-transform:uppercase;margin:26px 0 14px}.dg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}@media(max-width:900px){.dg{grid-template-columns:repeat(2,1fr)}}.dc{border:1px dashed var(--line,#bbb);border-radius:10px;background:var(--card,#fff);overflow:hidden}.dt{text-align:center;font-weight:700;font-size:13px;text-transform:uppercase;color:var(--muted);padding:12px 8px;border-bottom:1px solid var(--line,#ddd)}.dd{display:grid;grid-template-columns:1fr 1fr}.dd>div{text-align:center;padding:14px 6px}.dd>div+div{border-left:1px solid var(--line,#ddd)}.dd span,.dd1 span{display:block;font-size:13px;color:var(--muted)}.dd b{font-size:20px;color:var(--muted)}.dd1{text-align:center;padding:18px 8px}.dd1 b{font-size:20px}.rl tr.clk{cursor:pointer}.rl tr.clk:hover td,.rl tr.clk:focus td{background:rgba(127,127,127,.12)}.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
 .rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
 .cbk{display:grid;gap:4px;margin-top:14px}.cbk span{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.cbk1 b{font-size:34px;line-height:1.1;display:block}.cbk2 b{font-size:22px;color:var(--muted);display:block}.cbk3{margin-top:8px}.cbk3 b{font-size:22px;display:block}.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px;max-width:520px}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}.cbc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}.cbc1{display:grid;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}.cbc1 .pill{justify-self:start}.cbc1 b{font-size:13px;font-weight:600;color:var(--muted)}.cbc1 strong{font-size:20px}.cbc1 small{color:var(--muted);font-size:12px}.cbc1.on,.cbc1:hover{border-color:var(--accent)}
@@ -521,6 +521,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.19.0', '2026-11-01', 'Dashboard do Diretor no Início: pacientes ativos, visitas, avaliações atendidas, vendas (dia e mês) e faturamento, sempre mês anterior x mês atual, mais o faturamento das 1ªs mensalidades. A recepção continua com as faltas e a rotina do caixa.'],
   ['0.18.1', '2026-11-01', 'Ver como: o Diretor (qualquer perfil) e o Gerente (perfis sem acesso total nem Configurações) escolhem no nome do perfil, no menu lateral, como ver o sistema; menu e telas passam a mostrar só o que aquele perfil enxerga. Os demais perfis ficam só com o próprio.'],
   ['0.18.0', '2026-11-01', 'Início da recepção: faltas de hoje, de ontem e dos últimos 7 dias (com código, status, procedimento, telefone e próximo horário livre do dentista responsável), rotina do caixa (fechar o de ontem, pedir a abertura do de hoje ao gerente) e botão para a agenda do dia. Pacientes e prospects em grid com filtros e Situação como coluna. Financeiro abre em Todos.'],
   ['0.17.0', '2026-11-01', 'Paciente com código único de 8 dígitos e situação Contenção (manutenção periódica: fora da previsão e da régua, mas o que ele paga entra no recebido). Busca única por nome, CPF, código ou telefone. Ocorrências e financeiro do paciente em grid com filtros e totalizador.'],
@@ -673,25 +674,37 @@ const INI = { sel: 'hoje', f: [] };
 function telaInicio(){
   const primeiro = (EU.nome || '').split(' ')[0];
   const sem = !EU.acesso_total && !EU.permissoes.length;
-  const recep = pode('agenda.ver') && pode('agendamentos.recepcao'), cxr = pode('financeiro.baixar'), cxg = pode('caixa.abrir');
+  const dir = ehDir(), recep = !dir && pode('agenda.ver') && pode('agendamentos.recepcao'), cxr = !dir && pode('financeiro.baixar'), cxg = pode('caixa.abrir');
   $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
     + (pode('agenda.ver') ? '<button class="btn" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
-    + '<div id="in-cx"></div><div id="in-fal"></div>'
-    + (recep || cxr || cxg ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
+    + '<div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
+    + (recep || cxr || cxg || dir ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
       .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('') + '</div>');
   const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); });
-  if (recep || cxr || cxg) inicioCarrega(recep, cxr, cxg);
+  if (recep || cxr || cxg || dir) inicioCarrega(recep, cxr, cxg, dir);
 }
-async function inicioCarrega(recep, cxr, cxg){
+async function inicioCarrega(recep, cxr, cxg, dir){
   const ru = await sb.from('unidades').select('*').order('sigla'); if (ru.error) return; defUn(ru.data); if (!UN || ROTA_ATIVA() !== 'inicio') return;
   const h = hoje(), q = [recep ? sb.rpc('faltas_da_unidade', { p_unidade: UN, p_de: somaDias(h, -6), p_ate: h }) : Promise.resolve({ data: [] }),
     cxr || cxg ? sb.rpc('caixas_da_unidade', { p_unidade: UN, p_de: somaDias(h, -3), p_ate: h }) : Promise.resolve({ data: [] }),
     cxr ? sb.rpc('pedido_caixa_hoje', { p_unidade: UN }) : Promise.resolve({ data: null }),
-    cxg ? sb.rpc('pedidos_caixa_pendentes', { p_unidade: UN }) : Promise.resolve({ data: [] })];
-  const [rf, rc, rp, rg] = await Promise.all(q); if (ROTA_ATIVA() !== 'inicio' || !$('#in-cx')) return;
+    cxg ? sb.rpc('pedidos_caixa_pendentes', { p_unidade: UN }) : Promise.resolve({ data: [] }),
+    dir ? sb.rpc('dashboard_diretor', { p_unidade: UN }) : Promise.resolve({ data: null })];
+  const [rf, rc, rp, rg, rd] = await Promise.all(q); if (ROTA_ATIVA() !== 'inicio' || !$('#in-cx')) return;
   if (cxr || cxg) inicioCaixa(rc.data || [], rp.data, rg.data || [], cxr, cxg);
+  if (dir) inicioDash(rd.data, rd.error);
   if (recep) inicioFaltas(rf.error ? null : (rf.data || []), rf.error);
+}
+const MES3 = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+function inicioDash(d, erro){
+  const box = $('#in-dash'); if (!box) return; if (erro || !d) { box.innerHTML = '<div class="card"><div class="err">' + esc(erro ? erroTxt(erro) : 'Sem dados.') + '</div></div>'; return; }
+  const ml = k => MES3[Number(d[k].slice(5)) - 1], a = ml('mes_ant'), b = ml('mes_atual'), n = v => Number(v).toLocaleString('pt-BR');
+  const duo = (t, x, y) => '<div class="dc"><div class="dt">' + t + '</div><div class="dd"><div><span>' + a + '</span><b>' + n(x) + '</b></div><div><span>' + b + '</span><b>' + n(y) + '</b></div></div></div>';
+  const um = (t, v, sub) => '<div class="dc"><div class="dt">' + t + '</div><div class="dd1"><b>' + reais(v) + '</b>' + (sub ? '<span>' + sub + '</span>' : '') + '</div></div>';
+  box.innerHTML = '<h2 class="dh">Pacientes (' + n(d.ativos) + ' ativos)</h2><div class="dg">' + duo('Visitas', d.visitas_ant, d.visitas_atual) + duo('Av. atendidas', d.av_ant, d.av_atual) + duo('Vendas (diário)', d.vd_dia_ant, d.vd_dia_atual) + duo('Vendas (mês)', d.vd_mes_ant, d.vd_mes_atual) + '</div>'
+    + '<h2 class="dh">Faturamento</h2><div class="dg">' + um(a, d.fat_ant) + um(b, d.fat_atual) + um('1/' + a, d.fat1_ant) + um('1/' + b, d.fat1_atual) + '</div>'
+    + '<p class="sub" style="text-align:center">Faturamento = recebido no mês (estornos descontados). 1/' + a + ' = o que entrou de 1ª mensalidade. Vendas (diário): hoje contra o mesmo dia do mês anterior.</p>';
 }
 function inicioCaixa(cxs, pedido, pend, cxr, cxg){
   const h = hoje(), velho = cxs.find(c => c.meu && c.status === 'aberto' && c.data < h), meu = cxs.find(c => c.meu && c.data === h), hojeAb = cxs.find(c => c.meu && c.data === h && c.status === 'aberto');
