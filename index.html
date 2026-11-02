@@ -350,6 +350,7 @@ const hoje = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/S
 const dBR = d => d ? d.split('-').reverse().join('/') : '';
 const dig = s => String(s || '').replace(/\D/g, '');
 const mCPF = s => { const d = dig(s).slice(0, 11); return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2'); };
+const maskCPF = c => c ? '•••.•••.•••-' + String(c).slice(-2) : '', maskTel = t => { const d = dig(t || ''); return d ? '(' + d.slice(0, 2) + ') •••••-' + d.slice(-4) : ''; };
 const mTel = s => { const d = dig(s).slice(0, 11); if (d.length <= 2) return d ? '(' + d : ''; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
 const mCEP = s => { const d = dig(s).slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; };
 function cpfOk(p){
@@ -430,6 +431,14 @@ function verComoAplica(id){
 }
 document.addEventListener('change', e => { if (e.target && e.target.id === 'eu-ver') verComoAplica(e.target.value); });
 
+/* encerra a sessão depois de 60 minutos sem usar o sistema */
+const INATIVO_MS = 60 * 60 * 1000; let inatT = null, inatFim = 0;
+function inatividadeLiga(){
+  const bate = () => { inatFim = Date.now() + INATIVO_MS; };
+  bate(); if (inatT) return;
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => document.addEventListener(ev, bate, { passive: true }));
+  inatT = setInterval(() => { if (EU && Date.now() > inatFim) { toast('Sessão encerrada por inatividade.'); $('#sair').click(); inatFim = Date.now() + INATIVO_MS; } }, 30000);
+}
 async function entrarNoApp(troca){
   const { data, error } = await sb.rpc('meu_acesso');
   if (error || !data) return false;
@@ -443,7 +452,7 @@ async function entrarNoApp(troca){
   const md = $('#modo');
   if (EU.plataforma && EU.grupo) { md.hidden = false; md.innerHTML = '<span>Modo suporte · você está dentro de <b>' + esc(EU.grupo) + '</b>. O que você fizer aqui é registrado.</span><button class="btn ghost" type="button" id="modo-sai">Voltar ao painel da plataforma</button>'; $('#modo-sai').addEventListener('click', async () => { const r = await sb.rpc('sair_grupo'); if (r.error) { toast(erroTxt(r.error)); return; } await entrarNoApp(true); }); }
   else { md.hidden = true; md.innerHTML = ''; }
-  montarMenu(); irPara(EU.fora ? 'p-grupos' : 'inicio'); avIniciar(); verComoDesenha();
+  montarMenu(); irPara(EU.fora ? 'p-grupos' : 'inicio'); avIniciar(); verComoDesenha(); inatividadeLiga();
   if (!EU.fora && !EU.plataforma) sb.rpc('perfis_ver_como').then(r => { if (!r.error && EU) { VC.l = r.data || []; verComoDesenha(); } });
   if (!EU.fora) sb.rpc('sou_dentista').then(r => { if (!r.error && EU) { EU.dentista = !!r.data; avDesenhar(); } });
   return true;
@@ -470,6 +479,7 @@ $('#sair').addEventListener('click', async () => { await sb.auth.signOut(); avPa
 
 /* ---------- menu ---------- */
 const IC = {
+  privacidade: '<path d="M12 3l8 3v6c0 4.500-3.400 8-8 9-4.600-1-8-4.500-8-9V6z"/><path d="M9 12l2.200 2.200L15.500 10"/>',
   inicio: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
   unidades: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>',
   funcionarios: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5c2.2.6 3.5 2.4 3.5 5.5"/>',
@@ -513,9 +523,10 @@ const MENU = [
     { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
     { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
     { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
-    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] }
+    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' },
+    { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
 ];
-const TITULOS = { cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -541,6 +552,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.22.0', '2026-11-02', 'LGPD: registro de quem abre a ficha, exporta ou anonimiza; consentimentos do paciente (tratamento, WhatsApp, SMS e imagem) com versão do termo; exportação dos dados e anonimização; incidentes de segurança; textos de política e termo editáveis; CPF e telefone mascarados nas listas; sessão encerrada após 60 min sem uso.'],
   ['0.21.0', '2026-11-02', 'Dashboard do Diretor mais compacto e, quando o grupo tem mais de uma unidade, com o mapa de Minas Gerais: clicar numa região, numa unidade ou arrastar para várias muda os valores ao lado. Com uma unidade só, sem mapa.'],
   ['0.20.0', '2026-11-02', 'Dashboard do Diretor redesenhado: painel escuro futurista com anel da carteira (ativos, inativos, pré-ativos, contenção), faturamento do mês com comparativo e quadros de visitas, avaliações e vendas com variação.'],
   ['0.19.1', '2026-11-02', 'Cobrança agora é um item próprio do menu, fora do Financeiro (espaço para novas funções de cobrança). Só o gestor da plataforma cadastra unidades: o botão e a permissão saíram do Diretor.'],
@@ -613,7 +625,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -638,6 +650,7 @@ function abrirRota(r, o){
   if (r === 'avaliacoes') return avTela();
   if (r === 'agenda') return agdCarregar();
   if (r === 'perfis') return perCarregar();
+  if (r === 'privacidade') return ehDir() ? privCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa a Privacidade.</div></div>');
   if (r === 'prospects') return pacCarregar();
   if (r === 'paciente') return pacFicha(o.id);
   if (r === 'p-grupos') return pgrCarregar();
@@ -921,6 +934,106 @@ function inicioFaltas(l, erro){
   };
   pinta();
   $$('#in-tiles [data-t]').forEach(b => b.addEventListener('click', () => { INI.sel = b.dataset.t; INI.f = []; pinta(); }));
+}
+
+/* ---------- LGPD: consentimentos, exportação e anonimização na ficha ---------- */
+const CONS_TIPOS = [['tratamento', 'Tratamento dos dados (atendimento, agenda e cobrança)'], ['whatsapp', 'Contato por WhatsApp'], ['sms', 'Contato por SMS'], ['imagem', 'Uso de imagens do tratamento']];
+const baixaArquivo = (nome, texto, tipo) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto], { type: tipo || 'application/json' })); a.download = nome; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); };
+async function pacPrivacidade(p, recarrega){
+  const area = $('#area'); if (!area) return;
+  const r = await sb.rpc('lgpd_consentimentos_do_paciente', { p_paciente: p.id }); if (ROTA_ATIVA() !== 'paciente' || !$('#area .ficha')) return;
+  const lista = r.error ? [] : (r.data || []), atual = t => lista.find(x => x.tipo === t && x.atual), edita = pode('pacientes.editar') && !p.anonimizado_em;
+  const card = document.createElement('div'); card.className = 'card'; card.id = 'fi-priv'; card.style.marginTop = '16px';
+  const linha = ([t, rot]) => { const c = atual(t); const sit = !c ? '<span class="pill nu">Sem registro</span>' : c.aceito ? '<span class="pill on">Aceitou</span>' : '<span class="pill off">Revogou</span>';
+    return '<div class="row f" data-cons="' + t + '"><b>' + esc(rot) + '</b>' + sit + (c ? '<span class="m x">' + dBR(String(c.coletado_em).slice(0, 10)) + ' · ' + esc(c.coletado_nome || '') + (c.versao_termo ? ' · termo v' + c.versao_termo : '') + '</span>' : '')
+      + (edita ? '<span style="display:flex;gap:6px"><button class="btn ghost sm" type="button" data-ca="' + t + '">Registrar aceite</button>' + (c && c.aceito ? '<button class="btn ghost sm" type="button" data-cr="' + t + '">Revogar</button>' : '') + '</span>' : '') + '</div>'; };
+  card.innerHTML = '<h2 style="margin:0 0 4px;font-size:16px">Privacidade (LGPD)</h2><p class="sub" style="margin:0 0 10px">Autorizações do paciente para tratamento dos dados e contato. Cada registro guarda data, quem coletou e a versão do termo.' + (p.anonimizado_em ? ' <b>Dados anonimizados em ' + dBR(String(p.anonimizado_em).slice(0, 10)) + '.</b>' : '') + '</p>'
+    + (r.error ? '<div class="err">' + esc(erroTxt(r.error)) + '</div>' : CONS_TIPOS.map(linha).join(''))
+    + '<div class="tools" style="margin-top:12px"><button class="btn ghost sm" type="button" id="pv-termo">Ver / imprimir termo</button>'
+    + (ehGer() && !p.anonimizado_em ? '<button class="btn ghost sm" type="button" id="pv-exp">Exportar dados do paciente</button>' : '')
+    + (ehDir() && !p.anonimizado_em ? '<button class="btn danger sm" type="button" id="pv-anon">Anonimizar paciente</button>' : '') + '</div>';
+  area.appendChild(card);
+  const reg = async (t, aceito, obs) => { const x = await sb.rpc('lgpd_registrar_consentimento', { p_paciente: p.id, p_tipo: t, p_aceito: aceito, p_obs: obs || null }); if (x.error) { toast(erroTxt(x.error)); return; } toast(aceito ? 'Aceite registrado.' : 'Revogação registrada.'); recarrega(); };
+  $$('#fi-priv [data-ca]').forEach(b => b.addEventListener('click', () => reg(b.dataset.ca, true)));
+  $$('#fi-priv [data-cr]').forEach(b => b.addEventListener('click', () => reg(b.dataset.cr, false)));
+  $('#pv-termo').addEventListener('click', async () => {
+    const t = await sb.rpc('lgpd_texto', { p_chave: 'termo' }); if (t.error) { toast(erroTxt(t.error)); return; }
+    abrirJanela('Termo de consentimento', '<div class="db"><pre style="white-space:pre-wrap;font:inherit;margin:0">' + esc(t.data.texto) + '</pre>' + (t.data.padrao ? '<p class="sub">Este é o texto padrão (rascunho). O Diretor pode editar em Configurações › Privacidade (LGPD).</p>' : '<p class="sub">Versão ' + t.data.versao + '</p>') + '</div><div class="df"><button class="btn ghost" type="button" id="pv-x">Fechar</button><button class="btn" type="button" id="pv-imp">Imprimir</button></div>');
+    $('#pv-x').addEventListener('click', fecharJanela);
+    $('#pv-imp').addEventListener('click', () => { const w = window.open('', '_blank'); if (!w) { toast('O navegador bloqueou a janela de impressão.'); return; } w.document.write('<pre style="white-space:pre-wrap;font:15px/1.5 sans-serif;margin:32px">' + esc(t.data.texto) + '\n\nPaciente: ' + esc(p.nome) + '</pre>'); w.document.close(); w.focus(); w.print(); });
+  });
+  const ex = $('#pv-exp'); if (ex) ex.addEventListener('click', async () => { ex.disabled = true; const x = await sb.rpc('lgpd_exportar_paciente', { p_paciente: p.id }); ex.disabled = false; if (x.error) { toast(erroTxt(x.error)); return; } baixaArquivo('paciente-' + p.codigo + '.json', JSON.stringify(x.data, null, 2)); toast('Arquivo gerado. A exportação ficou registrada.'); });
+  const an = $('#pv-anon'); if (an) an.addEventListener('click', () => {
+    abrirJanela('Anonimizar paciente', '<form id="an-form" novalidate><div class="db"><p style="margin:0">Remove nome, CPF, RG, nascimento, contatos, endereço e responsável de <b>' + esc(p.nome) + '</b>. <b>Não dá para desfazer.</b> Parcelas, pagamentos e registros clínicos ficam, sem identificação, pelo prazo legal.</p>'
+      + '<label class="field" for="an-mot">Motivo *<input id="an-mot" maxlength="200" placeholder="Ex.: pedido do titular em 02/11" autocomplete="off"></label><div class="err" id="an-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="an-x">Cancelar</button><button class="btn danger" type="submit" id="an-ok">Anonimizar</button></div></form>');
+    $('#an-x').addEventListener('click', fecharJanela);
+    $('#an-form').addEventListener('submit', async e => { e.preventDefault(); const er = $('#an-err'); er.textContent = ''; const m = $('#an-mot').value.trim(); if (m.length < 5) { er.textContent = 'Informe o motivo.'; return; }
+      const b = $('#an-ok'); b.disabled = true; const x = await sb.rpc('lgpd_anonimizar_paciente', { p_paciente: p.id, p_motivo: m }); b.disabled = false; if (x.error) { er.textContent = erroTxt(x.error); return; } fecharJanela(); toast('Paciente anonimizado.'); recarrega(); });
+  });
+}
+
+/* ---------- tela Privacidade (LGPD): resumo, registro de acessos, incidentes e textos ---------- */
+const PRIV = { aba: 'resumo', f: [] };
+async function privCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla'); if (ru.data) defUn(ru.data);
+  const abas = [['resumo', 'Resumo'], ['acessos', 'Registro de acessos'], ['incidentes', 'Incidentes'], ['textos', 'Textos']];
+  $('#area').innerHTML = '<div class="head"><div><h1>Privacidade (LGPD)</h1><p class="sub">Controles técnicos de privacidade. Eles ajudam a cumprir a lei, mas não a substituem: revise os textos e as bases legais com seu advogado.</p></div></div>'
+    + '<div class="card"><div id="pv-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (PRIV.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" data-a="' + a[0] + '" aria-selected="' + (PRIV.aba === a[0]) + '">' + a[1] + '</button>').join(' ') + '</div><div id="pv-corpo" style="margin-top:14px"></div></div>';
+  $$('#pv-abas [data-a]').forEach(b => b.addEventListener('click', () => { PRIV.aba = b.dataset.a; PRIV.f = []; privCarregar(); }));
+  ({ resumo: privResumo, acessos: privAcessos, incidentes: privIncidentes, textos: privTextos })[PRIV.aba]();
+}
+async function privResumo(){
+  const r = await sb.rpc('lgpd_resumo'); const c = $('#pv-corpo'); if (r.error) { c.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+  const d = r.data, pc = (x, t) => t ? Math.round(x / t * 100) + '%' : '—';
+  c.innerHTML = '<div class="tres"><div class="card"><span class="sub">Pacientes cadastrados</span><h2 style="margin:4px 0">' + d.pacientes + '</h2><span class="sub">' + d.anonimizados + ' anonimizados</span></div>'
+    + '<div class="card"><span class="sub">Com consentimento de tratamento</span><h2 style="margin:4px 0">' + d.com_tratamento + ' <small style="font-weight:400">(' + pc(d.com_tratamento, d.pacientes) + ')</small></h2></div>'
+    + '<div class="card"><span class="sub">Autorizaram WhatsApp</span><h2 style="margin:4px 0">' + d.com_whatsapp + ' <small style="font-weight:400">(' + pc(d.com_whatsapp, d.pacientes) + ')</small></h2><span class="sub">' + d.incidentes_abertos + ' incidente(s) em aberto</span></div></div>'
+    + '<h3 style="margin:18px 0 6px">O que o sistema já faz</h3><ul style="margin:0;padding-left:20px;line-height:1.7"><li>Registra quem abriu a ficha de cada paciente, exportou ou anonimizou (aba Registro de acessos).</li><li>Guarda o consentimento do paciente (tratamento, WhatsApp, SMS e imagem) com data, responsável e versão do termo.</li><li>Exporta todos os dados de um paciente e anonimiza a identificação quando o titular pede.</li><li>Mostra CPF e telefone mascarados nas listas para quem não é Gerente ou Diretor.</li><li>Encerra a sessão depois de 60 minutos sem uso.</li></ul>'
+    + '<h3 style="margin:18px 0 6px">O que ainda é com você (fora do sistema)</h3><ul style="margin:0;padding-left:20px;line-height:1.7"><li><b>Backup:</b> no Supabase, confirme o plano com backups diários e teste uma restauração por trimestre. Para recuperar até o minuto, ative o Point-in-Time Recovery.</li><li><b>Senha e verificação em duas etapas:</b> em Authentication › Providers › Email do Supabase, exija senha forte; ative MFA para quem acessa o painel do Supabase.</li><li><b>Advogado:</b> bases legais, política de privacidade, contratos com clínicas clientes e definição do encarregado de dados.</li></ul>';
+}
+async function privAcessos(){
+  const c = $('#pv-corpo'), h = hoje(); PRIV.de = PRIV.de || somaDias(h, -7); PRIV.ate = PRIV.ate || h;
+  c.innerHTML = '<div class="tools"><label>De <input type="date" id="pa-de" value="' + PRIV.de + '"></label><label>Até <input type="date" id="pa-ate" value="' + PRIV.ate + '"></label><label>Unidade <select id="pa-un"><option value="">Todas</option>' + MINHAS.map(u => '<option value="' + u.id + '"' + (String(PRIV.un) === String(u.id) ? ' selected' : '') + '>' + esc(u.sigla) + '</option>').join('') + '</select></label></div><div id="pa-lista" style="margin-top:10px"><p class="sub">Carregando...</p></div>';
+  const carrega = async () => { PRIV.de = $('#pa-de').value; PRIV.ate = $('#pa-ate').value; PRIV.un = $('#pa-un').value; if (!PRIV.de || !PRIV.ate) return;
+    const r = await sb.rpc('lgpd_acessos_lista', { p_de: PRIV.de, p_ate: PRIV.ate, p_unidade: PRIV.un ? Number(PRIV.un) : null }); const box = $('#pa-lista'); if (!box) return;
+    if (r.error) { box.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+    const AC = { ver: 'Abriu a ficha', exportar: 'Exportou os dados', anonimizar: 'Anonimizou', consentimento: 'Consentimento' }, un = id => (MINHAS.find(u => u.id === id) || {}).sigla || '';
+    gradeF(box, { dados: r.data || [], f: PRIV.f, vazio: 'Nenhum acesso neste período.', maxH: 520, cols: [
+      { t: 'Quando', k: x => x.quando, v: x => dtHora(x.quando) }, { t: 'Quem', v: x => x.funcionario || '—' }, { t: 'Ação', v: x => AC[x.acao] || x.acao },
+      { t: 'Código', v: x => x.codigo ? String(x.codigo) : '—' }, { t: 'Paciente', v: x => x.paciente || '—' }, { t: 'Unidade', v: x => un(x.unidade_id) || '—' }, { t: 'Detalhe', v: x => x.detalhe || '' }] }); };
+  ['pa-de', 'pa-ate', 'pa-un'].forEach(i => $('#' + i).addEventListener('change', () => { PRIV.f = []; carrega(); })); carrega();
+}
+async function privIncidentes(){
+  const c = $('#pv-corpo'), r = await sb.rpc('lgpd_incidentes_lista'); if (r.error) { c.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+  const ST = { aberto: 'Aberto', em_analise: 'Em análise', comunicado: 'Comunicado à ANPD/titulares', encerrado: 'Encerrado' };
+  c.innerHTML = '<div class="tools"><p class="sub" style="margin:0;flex:1">Registre qualquer perda, vazamento ou acesso indevido a dados. A avaliação sobre comunicar a ANPD e os titulares deve ser feita com o advogado.</p><button class="btn" type="button" id="pi-novo">+ Registrar incidente</button></div><div id="pi-lista" style="margin-top:10px"></div>';
+  const dados = r.data || [];
+  gradeF($('#pi-lista'), { dados, f: PRIV.f, vazio: 'Nenhum incidente registrado.', clique: x => form(x), cols: [
+    { t: 'Ocorrido em', k: x => x.ocorrido_em, v: x => dBR(x.ocorrido_em) }, { t: 'Descrição', v: x => x.descricao, h: x => '<span style="white-space:normal;display:inline-block;min-width:240px">' + esc(x.descricao) + '</span>' },
+    { t: 'Titulares afetados', v: x => x.titulares_afetados == null ? '—' : String(x.titulares_afetados) }, { t: 'Situação', v: x => ST[x.status] || x.status }, { t: 'Registrado por', v: x => x.criado_por || '' }] });
+  function form(x){
+    x = x || {}; abrirJanela(x.id ? 'Incidente' : 'Registrar incidente', '<form id="in2-form" novalidate><div class="db">'
+      + '<label class="field" for="in2-d">Data em que ocorreu *<input id="in2-d" type="date" value="' + (x.ocorrido_em || hoje()) + '"></label>'
+      + '<label class="field" for="in2-t">O que aconteceu *<textarea id="in2-t" rows="3" maxlength="600">' + esc(x.descricao || '') + '</textarea></label>'
+      + '<label class="field" for="in2-a">Dados envolvidos<input id="in2-a" maxlength="200" value="' + esc(x.dados_afetados || '') + '" placeholder="Ex.: nomes e telefones"></label>'
+      + '<label class="field" for="in2-n">Titulares afetados (nº)<input id="in2-n" inputmode="numeric" maxlength="7" value="' + (x.titulares_afetados == null ? '' : x.titulares_afetados) + '"></label>'
+      + '<label class="field" for="in2-m">Medidas tomadas<textarea id="in2-m" rows="2" maxlength="600">' + esc(x.medidas || '') + '</textarea></label>'
+      + '<label class="field" for="in2-s">Situação<select id="in2-s">' + Object.keys(ST).map(k => '<option value="' + k + '"' + ((x.status || 'aberto') === k ? ' selected' : '') + '>' + ST[k] + '</option>').join('') + '</select></label><div class="err" id="in2-err" role="alert"></div></div>'
+      + '<div class="df"><button class="btn ghost" type="button" id="in2-x">Cancelar</button><button class="btn" type="submit" id="in2-ok">Salvar</button></div></form>');
+    $('#in2-x').addEventListener('click', fecharJanela);
+    $('#in2-form').addEventListener('submit', async e => { e.preventDefault(); const er = $('#in2-err'); er.textContent = ''; const n = dig($('#in2-n').value);
+      const b = $('#in2-ok'); b.disabled = true; const y = await sb.rpc('lgpd_incidente_salvar', { p_id: x.id || null, p_ocorrido: $('#in2-d').value, p_descricao: $('#in2-t').value, p_dados: $('#in2-a').value, p_titulares: n ? Number(n) : null, p_medidas: $('#in2-m').value, p_status: $('#in2-s').value }); b.disabled = false;
+      if (y.error) { er.textContent = erroTxt(y.error); return; } fecharJanela(); toast('Incidente salvo.'); privCarregar(); });
+  }
+  $('#pi-novo').addEventListener('click', () => form(null));
+}
+async function privTextos(){
+  const c = $('#pv-corpo'), rs = await Promise.all([sb.rpc('lgpd_texto', { p_chave: 'politica' }), sb.rpc('lgpd_texto', { p_chave: 'termo' })]); const er = rs.find(x => x.error); if (er) { c.innerHTML = '<div class="err">' + esc(erroTxt(er.error)) + '</div>'; return; }
+  const bloco = (chave, tit, r) => '<div style="margin-bottom:22px"><h3 style="margin:0 0 4px">' + tit + '</h3><p class="sub" style="margin:0 0 6px">' + (r.padrao ? 'Texto padrão (rascunho). Ao salvar, vira a versão 1.' : 'Versão ' + r.versao + (r.atualizado_por ? ' · por ' + esc(r.atualizado_por) : '')) + '</p>'
+    + '<textarea id="tx-' + chave + '" rows="12" style="width:100%" maxlength="12000">' + esc(r.texto) + '</textarea><div class="tools" style="margin-top:6px"><button class="btn sm" type="button" data-sv="' + chave + '">Salvar nova versão</button></div></div>';
+  c.innerHTML = bloco('termo', 'Termo de consentimento', rs[1].data) + bloco('politica', 'Política de privacidade', rs[0].data);
+  $$('#pv-corpo [data-sv]').forEach(b => b.addEventListener('click', async () => { b.disabled = true; const r = await sb.rpc('lgpd_salvar_texto', { p_chave: b.dataset.sv, p_texto: $('#tx-' + b.dataset.sv).value }); b.disabled = false; if (r.error) { toast(erroTxt(r.error)); return; } toast('Salvo como versão ' + r.data + '.'); privCarregar(); }));
 }
 
 /* ---------- CEP: busca o endereço (base dos Correios, via ViaCEP) ao terminar de digitar ---------- */
@@ -1348,8 +1461,8 @@ function pacLista(){
       { t: 'Paciente', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') },
       { t: 'Situação', v: p => p.status || 'Prospecção', h: p => '<span class="pill ' + (PILL_ST[p.status || 'Prospecção'] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' },
       { t: 'Avaliação', v: p => avT(p) || '—', h: p => avT(p) ? '<span class="pill wr">' + avT(p) + '</span>' : '<span style="color:var(--muted)">—</span>' },
-      { t: 'CPF', v: p => p.cpf ? mCPF(p.cpf) : 'sem CPF' },
-      { t: 'Telefone', v: p => p.telefone ? mTel(p.telefone) : '—' },
+      { t: 'CPF', v: p => p.cpf ? (ehGer() ? mCPF(p.cpf) : maskCPF(p.cpf)) : 'sem CPF' },
+      { t: 'Telefone', v: p => p.telefone ? (ehGer() ? mTel(p.telefone) : maskTel(p.telefone)) : '—' },
       { t: 'Canal', v: p => p.canal_venda || '—' },
       { t: 'Cadastro', v: p => dBR(p.data_cadastro) }
     ] });
@@ -1435,6 +1548,7 @@ const ROTA_ATIVA = () => ABA ? ABA.rota : '';
 const PROX_ST = { 'Ativo': [['Contenção', 'Passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Inativo': [['Contenção', 'Passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Concluído': [['Contenção', 'Passar para contenção']], 'Contenção': [['Concluído', 'Concluir (alta definitiva)']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
 const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Contenção': 'nu', 'Desistente': 'off' };
 async function pacFicha(id){
+  sb.rpc('lgpd_registrar_acesso', { p_paciente: id }).then(() => {}, () => {});
   await sb.rpc('financeiro_atualizar');
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.from('pacientes').select('*').eq('id', id).single(), sb.rpc('avaliacoes_do_paciente', { p_paciente: id }), sb.from('unidades').select('*').order('sigla'),
@@ -1465,6 +1579,7 @@ async function pacFicha(id){
     + (marc.length ? '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Agendamentos</h2><div class="tw"><table class="tb"><thead><tr><th>Data</th><th>Hora</th><th>Agenda</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>'
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
+  pacPrivacidade(p, recarrega);
   gradeF($('#fi-oc'), { vazio: 'Nenhuma ocorrência ainda.', dados: ocs.map((o, n) => Object.assign({ _n: n + 1 }, o)), cols: [
     { t: '#', k: x => x._n, v: x => String(x._n) }, { t: 'Data', k: x => x.quando || '', v: x => dtHora(x.quando) }, { t: 'Ocorrência', v: x => x.titulo || '', h: x => '<b>' + esc(x.titulo) + '</b>' }, { t: 'Responsável', v: x => x.responsavel || '' },
     { t: 'Resultado', v: x => x.resultado || '', h: x => x.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : x.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(x.resultado || '') },
