@@ -574,6 +574,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.27.3', '2026-11-02', 'Mapa de Minas: ao arrastar, aparece o retângulo tracejado mostrando a área selecionada.'],
   ['0.27.2', '2026-11-02', 'Telas dobráveis e pequenas: corrigida a barra do topo (menu) que ficava espremida; na tela aberta do dobrável o menu lateral fica fixo e o conteúdo se ajusta à largura.'],
   ['0.27.1', '2026-11-02', 'Procedimentos: nova opção "Todas as cadeiras" (principal e auxiliares). Funcionários: as unidades não são mais escolhidas no formulário.'],
   ['0.27.0', '2026-11-02', 'Uma pessoa, um login, várias empresas: consultores e gerentes podem atuar em outra empresa por convite aceito pela própria pessoa (ou pelo Diretor da empresa dela), com perfil e unidades próprios em cada empresa e troca de empresa no menu. Ao digitar um CPF já cadastrado, o sistema sugere importar o cadastro.'],
@@ -923,10 +924,10 @@ function dmEventos(svg){
   svg.addEventListener('pointerdown', e => { if (e.button !== 0) return; ini = { p: pt(e), cx: e.clientX, cy: e.clientY, alvo: e.target }; arrasto = false; });
   svg.addEventListener('pointermove', e => {
     if (!ini) return; if (!arrasto && Math.hypot(e.clientX - ini.cx, e.clientY - ini.cy) > 7) { arrasto = true; try { svg.setPointerCapture(e.pointerId); } catch (x) {} } if (!arrasto) return;
-    const a = ini.p, b = pt(e), r = $('#dm-sel'); r.hidden = false; r.setAttribute('x', Math.min(a.x, b.x)); r.setAttribute('y', Math.min(a.y, b.y)); r.setAttribute('width', Math.abs(a.x - b.x)); r.setAttribute('height', Math.abs(a.y - b.y));
+    const a = ini.p, b = pt(e), r = $('#dm-sel'); r.removeAttribute('hidden'); r.setAttribute('x', Math.min(a.x, b.x)); r.setAttribute('y', Math.min(a.y, b.y)); r.setAttribute('width', Math.abs(a.x - b.x)); r.setAttribute('height', Math.abs(a.y - b.y));
   });
   svg.addEventListener('pointerup', e => {
-    if (!ini) return; const a = ini.p, alvo = ini.alvo; ini = null; $('#dm-sel').hidden = true;
+    if (!ini) return; const a = ini.p, alvo = ini.alvo; ini = null; $('#dm-sel').setAttribute('hidden', '');
     if (arrasto) { arrasto = false; const b = pt(e), x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
       const ids = new Set(DM.us.filter(o => o.x != null && o.x >= x0 && o.x <= x1 && o.y >= y0 && o.y <= y1).map(o => o.u.id)); if (ids.size) dmFiltrar({ tipo: 'sel', ids, rotulo: 'Seleção no mapa' }); return; }
     const mk = alvo.closest && alvo.closest('.mk'), rg = alvo.closest && alvo.closest('[data-reg]');
@@ -935,7 +936,7 @@ function dmEventos(svg){
       if (ids.size) { const r = DM.regs.find(x => x.key === chave); dmFiltrar({ tipo: 'regiao', chave, ids, rotulo: 'Região ' + nomeReg(r && r.nome) }); } return; }
     if (DM.filtro) dmFiltrar(null);
   });
-  svg.addEventListener('pointercancel', () => { ini = null; arrasto = false; const r = $('#dm-sel'); if (r) r.hidden = true; });
+  svg.addEventListener('pointercancel', () => { ini = null; arrasto = false; const r = $('#dm-sel'); if (r) r.setAttribute('hidden', ''); });
   if (!DM.ev) { DM.ev = true; window.addEventListener('resize', dmVb); document.addEventListener('keydown', e => { if (e.key === 'Escape' && DM.filtro && $('#dm-svg')) dmFiltrar(null); }); }
 }
 function inicioCaixa(cxs, pedido, pend, cxr, cxg){
