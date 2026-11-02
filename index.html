@@ -391,8 +391,8 @@ const erroTxt = e => {
   if (e.code === '23505') { const m = e.message || ''; return /sigla/.test(m) ? 'Já existe uma unidade com essa sigla.' : /cpf/.test(m) ? 'Já existe um cadastro com esse CPF.' : /cro/.test(m) ? 'Já existe um dentista com esse CRO.' : /funcionario_id/.test(m) ? 'Esse acesso já está ligado a outro dentista.' : 'Já existe um cadastro igual a esse.'; }
   return e.message || 'Algo deu errado. Tente de novo.';
 };
-async function chamar(body){
-  const { data, error } = await sb.functions.invoke('gestao-funcionarios', { body });
+async function chamar(body, fn){
+  const { data, error } = await sb.functions.invoke(fn || 'gestao-funcionarios', { body });
   if (error) {
     try { if (error.context && error.context.json) { const j = await error.context.json(); if (j && j.erro) return { erro: j.erro }; } } catch (_) {}
     return { erro: 'Não foi possível falar com o servidor. Confira se a função está publicada.' };
@@ -532,9 +532,10 @@ const MENU = [
     { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
     { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
     { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' },
+    { r: 'email', t: 'E-mail', p: 'diretor' },
     { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
 ];
-const TITULOS = { privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -560,6 +561,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.24.0', '2026-11-02', 'E-mail: nova tela de configuração do Diretor (servidor SMTP do Zoho, remetente, teste de envio e histórico) e envio automático da anamnese por e-mail, com botão "Enviar e-mail agora" na ficha do paciente.'],
   ['0.23.0', '2026-11-02', 'Anamnese: formulário de saúde para ortodontia, link por e-mail para o paciente confirmar o CPF, responder e assinar pelo celular, gravada no sistema com data, dispositivo e código de verificação; visualização e impressão na ficha. As autorizações marcadas entram nos consentimentos do paciente.'],
   ['0.22.1', '2026-11-02', 'Pacientes e prospects: filtro por período de cadastro (de/até) com contagem de resultados.'],
   ['0.22.0', '2026-11-02', 'LGPD: registro de quem abre a ficha, exporta ou anonimiza; consentimentos do paciente (tratamento, WhatsApp, SMS e imagem) com versão do termo; exportação dos dados e anonimização; incidentes de segurança; textos de política e termo editáveis; CPF e telefone mascarados nas listas; sessão encerrada após 60 min sem uso.'],
@@ -660,6 +662,7 @@ function abrirRota(r, o){
   if (r === 'avaliacoes') return avTela();
   if (r === 'agenda') return agdCarregar();
   if (r === 'perfis') return perCarregar();
+  if (r === 'email') return ehDir() ? emailCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa a configuração de e-mail.</div></div>');
   if (r === 'privacidade') return ehDir() ? privCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa a Privacidade.</div></div>');
   if (r === 'prospects') return pacCarregar();
   if (r === 'paciente') return pacFicha(o.id);
@@ -946,6 +949,37 @@ function inicioFaltas(l, erro){
   $$('#in-tiles [data-t]').forEach(b => b.addEventListener('click', () => { INI.sel = b.dataset.t; INI.f = []; pinta(); }));
 }
 
+/* ---------- E-MAIL: configuração do SMTP (Zoho) pelo Diretor, teste e histórico ---------- */
+async function emailCarregar(){
+  const area = $('#area'); area.innerHTML = '<div class="head"><div><h1>E-mail</h1><p class="sub">Servidor de e-mail que o sistema usa para enviar mensagens aos pacientes (anamnese e, em seguida, agenda e cobrança). Ao trocar de clínica ou de conta de e-mail, mude aqui.</p></div></div><div class="card"><p>Carregando...</p></div>';
+  const [rc, rl] = await Promise.all([sb.rpc('email_config_ver'), sb.rpc('email_envios_lista')]); if (ROTA_ATIVA() !== 'email') return;
+  if (rc.error) { area.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(rc.error)) + '</div></div>'; return; }
+  const c = rc.data, h = rl.error ? [] : (rl.data || []);
+  const f = (id, rot, val, ex) => '<label class="field" for="' + id + '">' + rot + '<input id="' + id + '" maxlength="160" value="' + esc(val || '') + '"' + (ex || '') + '></label>';
+  area.innerHTML = '<div class="head"><div><h1>E-mail</h1><p class="sub">Servidor de e-mail que o sistema usa para enviar mensagens aos pacientes (anamnese e, em seguida, agenda e cobrança). Ao trocar de clínica ou de conta de e-mail, mude aqui.</p></div></div>'
+    + '<form class="card" id="em-form" novalidate><h2 style="margin:0 0 4px;font-size:16px">Servidor de envio (SMTP)</h2><p class="sub" style="margin:0 0 12px">Padrão do Zoho: servidor <b>smtp.zoho.com</b>, porta <b>465</b>, segurança SSL. Se a sua conta Zoho tem verificação em duas etapas, use uma <b>senha de aplicativo</b>.</p>'
+    + '<div class="grid2">' + f('em-host', 'Servidor SMTP', c.host) + '<label class="field" for="em-porta">Porta<input id="em-porta" type="number" min="1" max="65535" value="' + esc(c.porta) + '"></label>'
+    + '<label class="field" for="em-seg">Segurança<select id="em-seg"><option value="ssl"' + (c.seguranca === 'ssl' ? ' selected' : '') + '>SSL (porta 465)</option><option value="starttls"' + (c.seguranca === 'starttls' ? ' selected' : '') + '>STARTTLS (porta 587)</option></select></label>'
+    + f('em-usu', 'Usuário (e-mail da conta)', c.usuario, ' autocomplete="off"') + '<label class="field" for="em-senha">Senha' + (c.tem_senha ? ' <span class="sub">(já salva — deixe vazio para manter)</span>' : '') + '<input id="em-senha" type="password" maxlength="200" autocomplete="new-password" placeholder="' + (c.tem_senha ? '••••••••' : '') + '"></label></div>'
+    + '<h2 style="margin:18px 0 8px;font-size:16px">Remetente</h2><div class="grid2">' + f('em-rnome', 'Nome que aparece para o paciente', c.remetente_nome) + f('em-remail', 'E-mail do remetente', c.remetente_email, ' type="email"') + f('em-resp', 'Respostas vão para (opcional)', c.responder_para, ' type="email"')
+    + f('em-site', 'Endereço do sistema (para os links)', c.site_url || (location.protocol === 'https:' ? location.origin + location.pathname.replace(/[^/]*$/, '').replace(/\/$/, '') : ''), ' placeholder="https://..."') + '</div>'
+    + '<label class="chk" style="margin-top:14px"><input type="checkbox" id="em-ativo"' + (c.ativo ? ' checked' : '') + '> <b>Envio automático ligado</b> <span class="sub">(se desligado, o sistema só abre o seu programa de e-mail)</span></label><div class="err" id="em-err" role="alert"></div>'
+    + '<div class="tools" style="margin-top:10px"><button class="btn" type="submit" id="em-salva">Salvar</button></div>' + (c.atualizado_em ? '<p class="sub" style="margin:8px 0 0">Última alteração: ' + dtHora(c.atualizado_em) + (c.atualizado_por ? ' por ' + esc(c.atualizado_por) : '') + '</p>' : '') + '</form>'
+    + '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 4px;font-size:16px">Enviar e-mail de teste</h2><p class="sub" style="margin:0 0 10px">Salve a configuração primeiro. O teste usa o que está salvo.</p><div class="tools"><input id="em-tpara" type="email" maxlength="120" placeholder="seu@email.com" aria-label="E-mail para o teste" style="min-width:260px"><button class="btn ghost" type="button" id="em-testa" ' + (c.configurado ? '' : 'disabled') + '>Enviar teste</button></div><div class="sub" id="em-tmsg" role="status" style="margin-top:8px"></div></div>'
+    + '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Últimos envios</h2>' + (h.length ? '<div class="tw"><table class="rl" id="em-hist"><thead><tr><th>Quando</th><th>Tipo</th><th>Para</th><th>Resultado</th><th>Por</th></tr></thead><tbody>' + h.map(x => '<tr><td>' + dtHora(x.criado_em) + '</td><td>' + esc(x.tipo === 'teste' ? 'Teste' : x.tipo === 'anamnese' ? 'Anamnese' : x.tipo) + '</td><td>' + esc(x.para) + '</td><td>' + (x.status === 'enviado' ? '<span class="pill on">Enviado</span>' : '<span class="pill off" title="' + esc(x.erro || '') + '">Erro</span>') + '</td><td>' + esc(x.enviado_por || '') + '</td></tr>').join('') + '</tbody></table></div>' : '<p class="sub" style="margin:0">Nenhum e-mail enviado ainda.</p>') + '</div>';
+  $('#em-seg').addEventListener('change', () => { const p = $('#em-porta'), v = $('#em-seg').value; if (p.value === '465' || p.value === '587') p.value = v === 'ssl' ? '465' : '587'; });
+  $('#em-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#em-err'); er.textContent = ''; const b = $('#em-salva'); b.disabled = true;
+    const r = await sb.rpc('email_config_salvar', { p_host: $('#em-host').value, p_porta: Number($('#em-porta').value), p_seguranca: $('#em-seg').value, p_usuario: $('#em-usu').value, p_senha: $('#em-senha').value, p_remetente_nome: $('#em-rnome').value, p_remetente_email: $('#em-remail').value, p_responder_para: $('#em-resp').value, p_site_url: $('#em-site').value, p_ativo: $('#em-ativo').checked });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } toast('Configuração de e-mail salva.'); emailCarregar();
+  });
+  $('#em-testa').addEventListener('click', async () => {
+    const m = $('#em-tmsg'), para = $('#em-tpara').value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(para)) { m.textContent = 'Digite um e-mail válido.'; return; }
+    const b = $('#em-testa'); b.disabled = true; m.textContent = 'Enviando...'; const r = await chamar({ acao: 'teste', para }, 'enviar-email'); b.disabled = false;
+    m.textContent = r.erro ? r.erro : 'Teste enviado para ' + para + '. Confira a caixa de entrada (e o spam).'; if (!r.erro) { const rl2 = await sb.rpc('email_envios_lista'); if (ROTA_ATIVA() === 'email' && !rl2.error) emailCarregar().then(() => { const mm = $('#em-tmsg'); if (mm) mm.textContent = 'Teste enviado para ' + para + '.'; }); }
+  });
+}
+
 /* ---------- ANAMNESE: formulário, link para o paciente assinar, visualização e impressão ---------- */
 const ANAM_DOENCAS = [['diabetes', 'Diabetes'], ['hipertensao', 'Pressão alta'], ['cardiopatia', 'Problema no coração'], ['febre_reumatica', 'Febre reumática'], ['hepatite', 'Hepatite'], ['hiv', 'HIV / aids'], ['renal', 'Doença nos rins'], ['respiratoria', 'Asma ou bronquite'], ['epilepsia', 'Epilepsia ou convulsões'], ['coagulacao', 'Hemorragia ou problema de coagulação'], ['osteoporose', 'Osteoporose (ou uso de bifosfonatos)'], ['cancer', 'Câncer ou radioterapia'], ['tireoide', 'Problema de tireoide'], ['anemia', 'Anemia'], ['tuberculose', 'Tuberculose'], ['psiquiatrico', 'Ansiedade, depressão ou outro tratamento psiquiátrico']];
 const ANAM_FORM = { versao: 1, secoes: [
@@ -1057,6 +1091,7 @@ const anamLink = tk => location.origin + location.pathname + '?anamnese=' + tk;
 async function pacAnamnese(p, recarrega){
   const area = $('#area'); if (!area || p.anonimizado_em) return;
   const r = await sb.rpc('anamnese_lista', { p_paciente: p.id }); if (ROTA_ATIVA() !== 'paciente' || !$('#area .ficha')) return;
+  const emOn = !!(await sb.rpc('email_ativo')).data; if (ROTA_ATIVA() !== 'paciente' || !$('#area .ficha')) return;
   const lista = r.error ? [] : (r.data || []), edita = pode('pacientes.editar'), pend = lista.find(x => x.status === 'pendente');
   const ST = { pendente: '<span class="pill wr">Aguardando o paciente</span>', respondida: '<span class="pill on">Assinada</span>', cancelada: '<span class="pill nu">Cancelada</span>', expirada: '<span class="pill off">Expirada</span>' };
   const card = document.createElement('div'); card.className = 'card'; card.id = 'fi-anam'; card.style.marginTop = '16px';
@@ -1070,7 +1105,8 @@ async function pacAnamnese(p, recarrega){
     const corpo = 'Olá, ' + prim + '!\n\nPara agilizar o seu atendimento' + (un ? ' na ' + un.razao_social : '') + ', preencha e assine a sua ficha de anamnese (histórico de saúde) por este link. Leva uns 5 minutos e vale por 14 dias:\n\n' + url + '\n\nObrigado!';
     abrirJanela('Link da anamnese', '<div class="db"><p style="margin:0">Envie este link ao paciente. Ele confirma o CPF, responde e assina pelo celular.</p><label class="field" for="an-url">Link<input id="an-url" readonly value="' + esc(url) + '"></label>'
       + '<label class="field" for="an-mail">E-mail do paciente<input id="an-mail" type="email" maxlength="120" value="' + esc(email || p.email || '') + '" placeholder="paciente@exemplo.com"></label><p class="sub" style="margin:0">O botão “Abrir e-mail” abre o seu programa de e-mail com a mensagem pronta, e você só confere e envia.</p></div>'
-      + '<div class="df" style="flex-wrap:wrap"><button class="btn ghost" type="button" id="an-copia">Copiar link</button><button class="btn ghost" type="button" id="an-agora">Preencher agora neste aparelho</button><button class="btn" type="button" id="an-mailto">Abrir e-mail</button></div>');
+      + '<div class="sub" id="an-emsg" role="status" style="margin:0 20px 6px"></div><div class="df" style="flex-wrap:wrap">' + (emOn ? '<button class="btn" type="button" id="an-auto">Enviar e-mail agora</button>' : '') + '<button class="btn ghost" type="button" id="an-copia">Copiar link</button><button class="btn ghost" type="button" id="an-agora">Preencher agora neste aparelho</button><button class="btn ' + (emOn ? 'ghost' : '') + '" type="button" id="an-mailto">Abrir e-mail</button></div>');
+    const au = $('#an-auto'); if (au) au.addEventListener('click', async () => { const em = $('#an-mail').value.trim(), m = $('#an-emsg'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { m.textContent = 'Digite um e-mail válido do paciente.'; return; } au.disabled = true; m.textContent = 'Enviando...'; const x = await chamar({ acao: 'anamnese', token: tk, para: em, site: location.origin + location.pathname.replace(/[^/]*$/, '') }, 'enviar-email'); au.disabled = false; m.textContent = x.erro ? x.erro : 'E-mail enviado para ' + em + '.'; });
     $('#an-copia').addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); toast('Link copiado.'); } catch (e) { $('#an-url').select(); toast('Copie o link selecionado.'); } });
     $('#an-agora').addEventListener('click', () => { window.open(url, '_blank'); });
     $('#an-mailto').addEventListener('click', () => { const em = $('#an-mail').value.trim(); if (!em || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Digite um e-mail válido do paciente.'); return; } location.href = 'mailto:' + encodeURIComponent(em) + '?subject=' + encodeURIComponent('Sua ficha de anamnese') + '&body=' + encodeURIComponent(corpo); });
