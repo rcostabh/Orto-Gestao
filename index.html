@@ -261,6 +261,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
 .rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
+.cbk{display:grid;gap:4px;margin-top:14px}.cbk span{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.cbk1 b{font-size:34px;line-height:1.1;display:block}.cbk2 b{font-size:22px;color:var(--muted);display:block}.cbk3{margin-top:8px}.cbk3 b{font-size:22px;display:block}.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px;max-width:520px}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}.cbc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}.cbc1{display:grid;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}.cbc1 .pill{justify-self:start}.cbc1 b{font-size:13px;font-weight:600;color:var(--muted)}.cbc1 strong{font-size:20px}.cbc1 small{color:var(--muted);font-size:12px}.cbc1.on,.cbc1:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -440,6 +441,7 @@ const IC = {
   financeiro: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>',
   solicitacoes: '<path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2zM9 9h6M9 13h4"/>',
   caixa: '<path d="M3 7h15a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7zM3 7l12-3v3M16 14h2"/>',
+  cobranca: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
   produtos: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
   tratamentos: '<path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 4-5 2-5 4 2 3 5 3 5-1 5-3"/>',
   cobranca: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>'
@@ -453,6 +455,7 @@ const MENU = [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' } ] },
   { r: 'vendas', t: 'Vendas', p: 'vendas.ver' },
   { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
+  { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver'] },
   { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] },
   { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] },
   { g: 'Configurações', itens: [
@@ -463,10 +466,9 @@ const MENU = [
     { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
     { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
     { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
-    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] },
-  { g: 'Em construção', soon: [['cobranca', 'Cobrança']] }
+    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' } ] }
 ];
-const TITULOS = { inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -483,6 +485,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.16.0', '2026-11-01', 'Cobrança: régua (preventiva, cob 0, 30, 60, 90 e +90), painel por régua, faturado x previsão de faturamento com aproveitamento da cobrança e filtro de datas. O paciente só começa a ter parcelas a pagar depois da 1ª mensalidade paga (Início pago = Pré-Ativo; 1ª mensalidade paga = Ativo); aí as mensalidades passam a ser geradas todo mês, pagas ou não. Com 4 meses de atraso (sem contar Início e 1ª mensalidade) o paciente vira Inativo e deixa de gerar parcelas.'],
   ['0.15.1', '2026-11-01', 'Pesquisa financeira: colunas de valor por forma de pagamento (PIX, débito, crédito, dinheiro, boleto, transferência) com total no rodapé e filtros estilo planilha (funil no título de cada coluna, com busca e seleção de valores).'],
   ['0.15.0', '2026-11-01', 'Cobranças avulsas: botão + Nova cobrança na ficha financeira do paciente (produto ou serviço, valor, vencimento). Cadastro de produtos e serviços só para o Diretor. A cobrança avulsa é recebida, estornada e isentada como as parcelas, sem mexer no contrato do tratamento.'],
   ['0.14.0', '2026-11-01', 'Financeiro: nova pesquisa por período, por recebimento (o que entrou de fato) ou por vencimento (previsão de faturamento), em grid de parcelas com totais fixos no rodapé e planilha CSV.'],
@@ -547,7 +550,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -564,6 +567,7 @@ function abrirRota(r, o){
   if (r === 'procedimentos') return prcCarregar();
   if (r === 'vendas') return vdCarregar();
   if (r === 'financeiro') return finCarregar();
+  if (r === 'cobranca') return cobCarregar();
   if (r === 'caixa') return caixaCarregar();
   if (r === 'solicitacoes') return solCarregar();
   if (r === 'produtos') return ehDir() ? prdCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os produtos e serviços.</div></div>');
@@ -1537,7 +1541,7 @@ async function vdVender(f){
     + '<label class="field" for="vv-dia">Dia do vencimento *<select id="vv-dia"><option value="">Escolha...</option>' + D.dv.map(d => opt(d, 'Dia ' + d)).join('') + '</select></label></div>'
     + '<p class="sub" id="vv-venc" style="margin:0"></p>'
     + '<label class="field" for="vv-obs">Observação <small>(opcional)</small><textarea id="vv-obs" rows="2" maxlength="300"></textarea></label>'
-    + '<p class="sub" style="margin:0">Ao iniciar, o paciente passa a Pré-Ativo e é gerada a parcela Início, que vence hoje. Pago o Início, é gerada a 1ª mensalidade. Pago a 1ª mensalidade, o paciente fica Ativo.</p><div class="err" id="vv-err" role="alert"></div></div>'
+    + '<p class="sub" style="margin:0">Ao iniciar, é gerada a parcela Início, que vence hoje, e o paciente continua em Prospecção até pagá-la (sem o Início pago não há contrato válido). Pago o Início, ele passa a Pré-Ativo e é gerada a 1ª mensalidade. Pago a 1ª mensalidade, o paciente fica Ativo e as demais mensalidades são geradas mês a mês.</p><div class="err" id="vv-err" role="alert"></div></div>'
     + '<div class="df"><button class="btn ghost" type="button" id="vv-cancel">Cancelar</button><button class="btn" type="submit" id="vv-ok">Iniciar tratamento</button></div></form>');
   cadEndLigar('vv');
   $('#vv-cpf').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
@@ -1564,7 +1568,7 @@ async function vdVender(f){
     const b = $('#vv-ok'); b.disabled = true;
     const r = await sb.rpc('iniciar_tratamento', { p_paciente: f.paciente_id, p_plano: plano, p_dentista: Number(dd[0]), p_dia_semana: Number(dd[1]), p_dia_venc: dia, p_obs: $('#vv-obs').value.trim() || null, p_cad: cad });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
-    fecharJanela(); toast('Tratamento iniciado. O paciente agora é Pré-Ativo: receba a parcela Início no Financeiro.'); VD.aba = 'vend'; vdCarregar();
+    fecharJanela(); toast('Tratamento iniciado. O paciente vira Pré-Ativo quando o Início for pago: receba a parcela no Financeiro.'); VD.aba = 'vend'; vdCarregar();
   });
 }
 function vdDetalhe(v){
@@ -1651,7 +1655,7 @@ function fnReceber(x, nome, aoFim){
     if (aoFim) aoFim(); else fecharJanela(); refrescaTela();
   });
 }
-function refrescaTela(){ if (ABA && ['caixa', 'financeiro', 'paciente', 'solicitacoes'].includes(ABA.rota)) abrirRota(ABA.rota, ABA.opc || {}); }
+function refrescaTela(){ if (ABA && ['caixa', 'financeiro', 'cobranca', 'paciente', 'solicitacoes'].includes(ABA.rota)) abrirRota(ABA.rota, ABA.opc || {}); }
 async function finCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const ru = await sb.from('unidades').select('*').order('sigla');
@@ -1685,6 +1689,68 @@ function finLista(){
   $$('#fn-abas [data-f]').forEach(b => b.addEventListener('click', () => { FN.f = b.dataset.f; finLista(); }));
   finVisLiga();
   $('#fn-q').addEventListener('input', e => { FN.q = e.target.value; pinta(); });
+}
+
+/* ---------- COBRANÇA: régua, painel por régua e previsão de faturamento ---------- */
+const REGUAS = [['preventivo', 'Preventiva', 'em dia · vencem este mês', 'on'], ['cob0', 'Cob 0', 'devem só o mês corrente', 'nu'], ['cob30', 'Cob 30', 'vencida do mês passado', 'wr'],
+                ['cob60', 'Cob 60', 'vencida há 2 meses', 'off'], ['cob90', 'Cob 90', 'vencida há 3 meses', 'off'], ['mais90', '+90', '4 meses ou mais · inativos', 'off']];
+const CB = { ini: null, fim: null, regua: 'todas', q: '', vi: '', vf: '', dados: [], res: null };
+async function cobCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Cobrança'); return; }
+  if (!CB.ini) { const l = mesLimites(); CB.ini = l[0]; CB.fim = l[1]; }
+  await sb.rpc('financeiro_atualizar');
+  const rs = await Promise.all([sb.rpc('cobranca_da_unidade', { p_unidade: UN }), sb.rpc('cobranca_resumo', { p_unidade: UN, p_ini: CB.ini, p_fim: CB.fim })]);
+  const er = rs.map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  CB.dados = rs[0].data || []; CB.res = rs[1].data; cobTela();
+}
+const cobValor = x => x.regua === 'preventivo' ? Number(x.a_vencer_mes) : Number(x.valor_atraso);
+function cobTela(){
+  const R = CB.res || {}, pct = R.pct == null ? null : Number(R.pct), d = CB.dados;
+  const por = k => d.filter(x => x.regua === k), soma = l => Math.round(l.reduce((t, x) => t + cobValor(x), 0) * 100) / 100;
+  $('#area').innerHTML = '<div class="head"><div><h1>Cobrança</h1><p class="sub">Régua de cobrança do momento: cada paciente fica na régua pela parcela vencida mais antiga, contada em meses do calendário. Só muda de régua quando o mês vira.</p></div></div>'
+    + '<div class="card"><form id="cb-per" novalidate><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end"><label class="field" for="cb-ini" style="margin:0">Data inicial<input id="cb-ini" type="date" value="' + esc(CB.ini) + '"></label><label class="field" for="cb-fim" style="margin:0">Data final<input id="cb-fim" type="date" value="' + esc(CB.fim) + '"></label>'
+    + '<button class="btn" type="submit" id="cb-ok">Atualizar</button><button class="btn ghost" type="button" id="cb-mes">Mês atual</button></div><div class="err" id="cb-err" role="alert"></div></form>'
+    + '<div class="cbk"><div class="cbk1"><span>Faturado até o momento</span><b id="cb-fat">' + reais(R.faturado || 0) + '</b></div>'
+    + '<div class="cbk2"><span>Previsão de faturamento</span><b id="cb-prev">' + reais(R.previsto || 0) + '</b></div>'
+    + '<div class="cbk3"><span>Aproveitamento da cobrança</span><b id="cb-pct">' + (pct == null ? '—' : String(pct).replace('.', ',') + '%') + '</b><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + (pct == null ? 0 : Math.min(100, pct)) + '"><i style="width:' + (pct == null ? 0 : Math.min(100, pct)) + '%"></i></div></div></div>'
+    + '<p class="sub" style="margin:10px 0 0" id="cb-det">Recuperado de meses anteriores: <b>' + reais(R.recuperado || 0) + '</b> · Parcelas já geradas no período: <b>' + reais(R.previsto_geradas || 0) + '</b>' + (Number(R.previsto_projetado) > 0 ? ' · Projeção dos meses ainda sem parcela: <b>' + reais(R.previsto_projetado) + '</b>' : '') + '</p></div>'
+    + '<div class="cbc" id="cb-cards">' + REGUAS.filter(r => r[0] !== 'mais90').map(r => '<button type="button" class="cbc1 ' + (CB.regua === r[0] ? 'on' : '') + '" data-rg="' + r[0] + '"><span class="pill ' + r[3] + '">' + r[1] + '</span><b>' + por(r[0]).length + (por(r[0]).length === 1 ? ' paciente' : ' pacientes') + '</b><strong>' + reais(soma(por(r[0]))) + '</strong><small>' + r[2] + '</small></button>').join('') + '</div>'
+    + '<div class="card" style="padding:0;overflow:hidden"><div class="tools" style="padding:12px 14px 0"><div id="cb-abas" role="tablist">' + [['todas', 'Todas', d.length]].concat(REGUAS.map(r => [r[0], r[1], por(r[0]).length])).map(a => '<button class="btn ' + (CB.regua === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CB.regua === a[0]) + '" data-rg="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
+    + '<input id="cb-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(CB.q) + '"></div>'
+    + '<div class="tools" style="padding:8px 14px 12px;gap:10px;align-items:end"><label class="field" for="cb-vi" style="margin:0">Parcela mais antiga vence entre<input id="cb-vi" type="date" value="' + esc(CB.vi) + '"></label><label class="field" for="cb-vf" style="margin:0">e<input id="cb-vf" type="date" value="' + esc(CB.vf) + '"></label><button class="btn ghost sm" type="button" id="cb-vl">Limpar datas</button></div>'
+    + '<div class="rlg" id="cb-tab"><table class="tb rl"><thead><tr><th>Paciente</th><th>Telefone</th><th>Status</th><th>Régua</th><th class="n">Parcelas em atraso</th><th class="n">Valor em atraso</th><th class="n">A vencer no mês</th><th>Vencimento mais antigo</th><th class="n">Dias de atraso</th><th>Último pagamento</th><th>Plano</th><th></th></tr></thead><tbody id="cb-body"></tbody><tfoot><tr id="cb-tot"></tr></tfoot></table></div></div>';
+  $('#cb-per').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#cb-err'); er.textContent = ''; const i = $('#cb-ini').value, f = $('#cb-fim').value;
+    if (!i || !f) { er.textContent = 'Informe a data inicial e a final.'; return; } if (f < i) { er.textContent = 'A data final é anterior à inicial.'; return; }
+    CB.ini = i; CB.fim = f; const b = $('#cb-ok'); b.disabled = true; await cobCarregar();
+  });
+  $('#cb-mes').addEventListener('click', () => { const l = mesLimites(); CB.ini = l[0]; CB.fim = l[1]; cobCarregar(); });
+  $$('[data-rg]').forEach(b => b.addEventListener('click', () => { CB.regua = CB.regua === b.dataset.rg && b.classList.contains('cbc1') ? 'todas' : b.dataset.rg; cobTela(); }));
+  $('#cb-q').addEventListener('input', e => { CB.q = e.target.value; cobCorpo(); });
+  $('#cb-vi').addEventListener('change', e => { CB.vi = e.target.value; cobCorpo(); }); $('#cb-vf').addEventListener('change', e => { CB.vf = e.target.value; cobCorpo(); });
+  $('#cb-vl').addEventListener('click', () => { CB.vi = CB.vf = ''; $('#cb-vi').value = ''; $('#cb-vf').value = ''; cobCorpo(); });
+  cobCorpo(); cobAjusta();
+}
+function cobAjusta(){ const g = $('#cb-tab'); if (g) g.style.maxHeight = Math.max(260, window.innerHeight - g.getBoundingClientRect().top - 24) + 'px'; }
+window.addEventListener('resize', () => { try { cobAjusta(); } catch (e) {} });
+function cobCorpo(){
+  const q = relNorm(CB.q.trim()); let l = CB.dados.filter(x => CB.regua === 'todas' || x.regua === CB.regua);
+  if (q) l = l.filter(x => relNorm(x.paciente_nome).includes(q));
+  if (CB.vi) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '') >= CB.vi); if (CB.vf) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '9999') <= CB.vf);
+  const rg = k => REGUAS.find(r => r[0] === k), baixa = pode('financeiro.baixar');
+  $('#cb-body').innerHTML = l.length ? l.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button></td><td>' + (x.telefone ? mTel(x.telefone) : '—') + '</td><td>' + esc(x.status) + '</td>'
+    + '<td><span class="pill ' + rg(x.regua)[3] + '">' + rg(x.regua)[1] + '</span></td><td class="n">' + x.qtd_atraso + '</td><td class="n">' + reais(x.valor_atraso) + '</td><td class="n">' + reais(x.a_vencer_mes) + '</td><td>' + (x.venc_antigo ? dBR(x.venc_antigo) : '—') + '</td><td class="n">' + (x.dias_atraso > 0 ? x.dias_atraso : '—') + '</td>'
+    + '<td>' + (x.ultimo_pgto ? dBR(x.ultimo_pgto) + '<br><small style="color:var(--muted)">' + reais(x.ultimo_valor) + '</small>' : '—') + '</td><td>' + esc(x.plano) + '</td><td>' + (baixa ? '<button class="btn sm" type="button" data-rec="' + x.paciente_id + '">Receber</button>' : '') + '</td></tr>').join('')
+    : '<tr><td colspan="12" class="vazio">Nenhum paciente nesta régua.</td></tr>';
+  const sm = f => Math.round(l.reduce((t, x) => t + Number(f(x)), 0) * 100) / 100;
+  $('#cb-tot').innerHTML = '<td colspan="4">Totais · ' + l.length + (l.length === 1 ? ' paciente' : ' pacientes') + (l.length !== CB.dados.length ? ' de ' + CB.dados.length : '') + '</td><td class="n">' + l.reduce((t, x) => t + x.qtd_atraso, 0) + '</td><td class="n">' + reais(sm(x => x.valor_atraso)) + '</td><td class="n">' + reais(sm(x => x.a_vencer_mes)) + '</td><td colspan="5"></td>';
+  $$('#cb-body [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
+  $$('#cb-body [data-rec]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.rec))));
 }
 
 /* ---------- Financeiro: pesquisa por período (recebido x vencimento) ---------- */
