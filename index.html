@@ -264,7 +264,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   .df .esq{width:100%;margin-right:0}
   .df .btn{flex:1}
 }
-.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
+#in-cx .card{margin-bottom:14px}.rl tr.clk{cursor:pointer}.rl tr.clk:hover td,.rl tr.clk:focus td{background:rgba(127,127,127,.12)}.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
 .rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
 .cbk{display:grid;gap:4px;margin-top:14px}.cbk span{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.cbk1 b{font-size:34px;line-height:1.1;display:block}.cbk2 b{font-size:22px;color:var(--muted);display:block}.cbk3{margin-top:8px}.cbk3 b{font-size:22px;display:block}.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px;max-width:520px}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}.cbc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}.cbc1{display:grid;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}.cbc1 .pill{justify-self:start}.cbc1 b{font-size:13px;font-weight:600;color:var(--muted)}.cbc1 strong{font-size:20px}.cbc1 small{color:var(--muted);font-size:12px}.cbc1.on,.cbc1:hover{border-color:var(--accent)}
@@ -501,6 +501,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.18.0', '2026-11-01', 'Início da recepção: faltas de hoje, de ontem e dos últimos 7 dias (com código, status, procedimento, telefone e próximo horário livre do dentista responsável), rotina do caixa (fechar o de ontem, pedir a abertura do de hoje ao gerente) e botão para a agenda do dia. Pacientes e prospects em grid com filtros e Situação como coluna. Financeiro abre em Todos.'],
   ['0.17.0', '2026-11-01', 'Paciente com código único de 8 dígitos e situação Contenção (manutenção periódica: fora da previsão e da régua, mas o que ele paga entra no recebido). Busca única por nome, CPF, código ou telefone. Ocorrências e financeiro do paciente em grid com filtros e totalizador.'],
   ['0.16.0', '2026-11-01', 'Cobrança: régua (preventiva, cob 0, 30, 60, 90 e +90), painel por régua, faturado x previsão de faturamento com aproveitamento da cobrança e filtro de datas. O paciente só começa a ter parcelas a pagar depois da 1ª mensalidade paga (Início pago = Pré-Ativo; 1ª mensalidade paga = Ativo); aí as mensalidades passam a ser geradas todo mês, pagas ou não. Com 4 meses de atraso (sem contar Início e 1ª mensalidade) o paciente vira Inativo e deixa de gerar parcelas. A lista de parcelas do Financeiro passa a ser um grid com filtros por coluna (estilo planilha), Receber e totalizador no rodapé.'],
   ['0.15.1', '2026-11-01', 'Pesquisa financeira: colunas de valor por forma de pagamento (PIX, débito, crédito, dinheiro, boleto, transferência) com total no rodapé e filtros estilo planilha (funil no título de cada coluna, com busca e seleção de valores).'],
@@ -567,7 +568,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -647,15 +648,71 @@ $('#abas').addEventListener('click', e => {
 $('#abre').addEventListener('click', () => $('#v-app').classList.toggle('aberto'));
 $('#side').addEventListener('click', e => { if (e.target.closest('.item[data-r]')) $('#v-app').classList.remove('aberto'); });
 
+const INI = { sel: 'hoje', f: [] };
 function telaInicio(){
   const primeiro = (EU.nome || '').split(' ')[0];
   const sem = !EU.acesso_total && !EU.permissoes.length;
-  $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div></div>'
+  const recep = pode('agenda.ver') && pode('agendamentos.recepcao'), cxr = pode('financeiro.baixar'), cxg = pode('caixa.abrir');
+  $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
+    + (pode('agenda.ver') ? '<button class="btn" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
-    + '<div class="tres">'
-    + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
-      .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('')
-    + '</div>';
+    + '<div id="in-cx"></div><div id="in-fal"></div>'
+    + (recep || cxr || cxg ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
+      .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('') + '</div>');
+  const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); });
+  if (recep || cxr || cxg) inicioCarrega(recep, cxr, cxg);
+}
+async function inicioCarrega(recep, cxr, cxg){
+  const ru = await sb.from('unidades').select('*').order('sigla'); if (ru.error) return; defUn(ru.data); if (!UN || ROTA_ATIVA() !== 'inicio') return;
+  const h = hoje(), q = [recep ? sb.rpc('faltas_da_unidade', { p_unidade: UN, p_de: somaDias(h, -6), p_ate: h }) : Promise.resolve({ data: [] }),
+    cxr || cxg ? sb.rpc('caixas_da_unidade', { p_unidade: UN, p_de: somaDias(h, -3), p_ate: h }) : Promise.resolve({ data: [] }),
+    cxr ? sb.rpc('pedido_caixa_hoje', { p_unidade: UN }) : Promise.resolve({ data: null }),
+    cxg ? sb.rpc('pedidos_caixa_pendentes', { p_unidade: UN }) : Promise.resolve({ data: [] })];
+  const [rf, rc, rp, rg] = await Promise.all(q); if (ROTA_ATIVA() !== 'inicio' || !$('#in-cx')) return;
+  if (cxr || cxg) inicioCaixa(rc.data || [], rp.data, rg.data || [], cxr, cxg);
+  if (recep) inicioFaltas(rf.error ? null : (rf.data || []), rf.error);
+}
+function inicioCaixa(cxs, pedido, pend, cxr, cxg){
+  const h = hoje(), velho = cxs.find(c => c.meu && c.status === 'aberto' && c.data < h), meu = cxs.find(c => c.meu && c.data === h), hojeAb = cxs.find(c => c.meu && c.data === h && c.status === 'aberto');
+  let t = '', bt = '';
+  if (cxr) {
+    if (velho) { t = '<b>Seu caixa de ' + dBR(velho.data) + ' ainda está aberto.</b> <span class="sub">Feche-o para poder abrir o de hoje.</span>'; bt = '<button class="btn" type="button" id="in-cxf">Fechar caixa de ' + dBR(velho.data) + '</button>'; }
+    else if (hojeAb) { t = '<b>Seu caixa de hoje está aberto</b> <span class="pill wr">desde ' + hhmm(hojeAb.aberto_em) + '</span>'; bt = '<button class="btn ghost" type="button" id="in-cxv">Ir para o caixa</button>'; }
+    else if (meu) { t = '<b>Seu caixa de hoje já foi fechado.</b>'; bt = '<button class="btn ghost" type="button" id="in-cxv">Ver caixa</button>'; }
+    else if (pedido) { t = '<b>Pedido de abertura enviado às ' + hhmm(pedido) + '.</b> <span class="sub">Aguardando o gerente abrir o seu caixa de hoje.</span>'; bt = '<button class="btn ghost" type="button" id="in-cxv">Ver caixa</button>'; }
+    else { t = '<b>Você ainda não tem caixa aberto hoje.</b> <span class="sub">Solicite a abertura ao gerente.</span>'; bt = '<button class="btn" type="button" id="in-cxs">Solicitar abertura do caixa</button>'; }
+  }
+  if (cxg && pend.length) { t += (t ? '<br>' : '') + '<b>' + pend.length + (pend.length === 1 ? ' pedido' : ' pedidos') + ' de abertura de caixa:</b> ' + pend.map(x => esc(x.funcionario_nome || x.nome || '')).join(', '); bt += ' <button class="btn" type="button" id="in-cxp">Abrir caixas</button>'; }
+  if (!t) return;
+  $('#in-cx').innerHTML = '<div class="card" id="in-cxc"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div>' + t + '</div><div style="display:flex;gap:8px;flex-wrap:wrap">' + bt + '</div></div></div>';
+  const on = (id, f) => { const e = $('#' + id); if (e) e.addEventListener('click', f); };
+  on('in-cxv', () => irPara('caixa')); on('in-cxp', () => irPara('caixa'));
+  on('in-cxf', () => caixaFechar(velho, () => telaInicio()));
+  on('in-cxs', async () => { const b = $('#in-cxs'); b.disabled = true; const r = await sb.rpc('solicitar_abertura_caixa', { p_unidade: UN }); b.disabled = false; if (r.error) { toast(erroTxt(r.error)); return; } toast('Pedido enviado ao gerente.'); telaInicio(); });
+}
+function inicioFaltas(l, erro){
+  const box = $('#in-fal'); if (erro) { box.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(erro)) + '</div></div>'; return; }
+  const h = hoje(), ont = somaDias(h, -1), n = { hoje: l.filter(x => x.data === h), ontem: l.filter(x => x.data === ont), semana: l };
+  const tiles = [['hoje', 'Faltas hoje'], ['ontem', 'Faltas ontem'], ['semana', 'Últimos 7 dias']];
+  box.innerHTML = '<div class="card"><h2 style="margin-top:0">Faltas</h2><div class="tres" id="in-tiles">' + tiles.map(t => '<button type="button" class="card" data-t="' + t[0] + '" aria-pressed="' + (INI.sel === t[0]) + '" style="text-align:left;cursor:pointer;' + (INI.sel === t[0] ? 'border-color:var(--brand,#0a7)' : '') + '"><span class="sub">' + t[1] + '</span><br><b style="font-size:28px">' + n[t[0]].length + '</b></button>').join('') + '</div>'
+    + '<div id="in-fl" style="margin-top:12px"></div></div>';
+  const pinta = () => {
+    $$('#in-tiles [data-t]').forEach(b => { const on = b.dataset.t === INI.sel; b.setAttribute('aria-pressed', on); b.style.borderColor = on ? 'var(--brand,#0a7)' : ''; });
+    const d = n[INI.sel], pr = x => x.remarcado_para ? 'Remarcado para ' + dBR(x.remarcado_para) : x.proxima_data ? dBR(x.proxima_data) + ' ' + hmDe(x.proxima_hora) : 'Sem horário livre';
+    gradeF($('#in-fl'), { dados: d, f: INI.f = (INI.f || []), vazio: 'Nenhuma falta neste período.', maxH: 420, clique: x => abrirPaciente({ id: x.paciente_id, nome: x.paciente_nome }),
+      cols: [
+        { t: 'Data', v: x => dBR(x.data) + ' ' + hmDe(x.ini_min) },
+        { t: 'Paciente', v: x => x.paciente_nome, h: x => '<b>' + esc(x.paciente_nome) + '</b>' },
+        { t: 'Código', v: x => String(x.codigo) },
+        { t: 'Status', v: x => x.paciente_status || '—', h: x => '<span class="pill ' + (PILL_ST[x.paciente_status] || 'nu') + '">' + esc(x.paciente_status || '—') + '</span>' },
+        { t: 'Procedimento', v: x => x.procedimento || '—' },
+        { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—' },
+        { t: 'Dentista responsável', v: x => x.dentista_nome || '—' },
+        { t: 'Próximo horário livre', v: pr }
+      ] });
+  };
+  pinta();
+  $$('#in-tiles [data-t]').forEach(b => b.addEventListener('click', () => { INI.sel = b.dataset.t; INI.f = []; pinta(); }));
 }
 
 /* ---------- CEP: busca o endereço (base dos Correios, via ViaCEP) ao terminar de digitar ---------- */
@@ -919,7 +976,7 @@ function perDesenhar(){
 /* ---------- DENTISTAS ---------- */
 const CIVIL = ['Solteiro(a)', 'Casado(a)', 'Separado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União estável'];
 const NACION = ['Brasileiro(a)', 'Estrangeiro(a)'];
-const mMoeda = s => { const d = dig(s).replace(/^0+/, ''); if (!d) return ''; const p = d.padStart(3, '0'); return p.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p.slice(-2); };
+const mMoeda = s => { const d = dig(s).replace(/^0+/, ''); if (!d) return dig(s) ? '0,00' : ''; const p = d.padStart(3, '0'); return p.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p.slice(-2); };
 const moedaNum = s => dig(s) ? Number(dig(s)) / 100 : null;
 const moedaTxt = n => n == null || n === '' ? '' : mMoeda(String(Math.round(Number(n) * 100)));
 const brl = n => n == null ? '—' : Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -1075,11 +1132,19 @@ function pacBusca(txt){
 function pacLista(){
   const bq = pacBusca(PAC.q), dica = $('#pc-dica'); if (dica) dica.textContent = bq ? 'Buscando por ' + (bq.rot === 'Nome' ? 'nome' : bq.rot) : '';
   const l = D.pac.filter(p => (!PAC.canal || p.canal_venda === PAC.canal) && (!PAC.st || p.status === PAC.st) && (!bq || bq.teste(p)));
-  $('#pc-lista').innerHTML = l.length ? l.map(p => { const av = D.avAb.find(a => a.paciente_id === p.id);
-    return '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') + '</b><span class="m x">Cód ' + p.codigo + '</span><span class="m x">' + (p.cpf ? mCPF(p.cpf) : 'sem CPF') + '</span><span class="m x">' + esc(p.canal_venda) + '</span><span class="m x">Cadastro ' + dBR(p.data_cadastro) + '</span>'
-      + '<span class="pill ' + (av ? 'wr' : 'nu') + '">' + (av ? (av.status === 'aguardando' ? 'Aguardando avaliação' : 'Em avaliação') : esc(p.status || 'Prospecção')) + '</span></button>'; }).join('')
-    : '<div class="vazio">' + (D.pac.length ? 'Nenhum cadastro encontrado.' : 'Nenhum prospect cadastrado ainda.') + '</div>';
-  $$('#pc-lista .row').forEach(b => b.addEventListener('click', () => abrirPaciente(D.pac.find(p => p.id === Number(b.dataset.id)))));
+  const av = p => D.avAb.find(a => a.paciente_id === p.id), avT = p => { const a = av(p); return a ? (a.status === 'aguardando' ? 'Aguardando avaliação' : 'Em avaliação') : ''; };
+  PAC.f = PAC.f || [];
+  gradeF($('#pc-lista'), { dados: l, f: PAC.f, vazio: D.pac.length ? 'Nenhum cadastro encontrado.' : 'Nenhum prospect cadastrado ainda.', maxH: 520, clique: abrirPaciente,
+    cols: [
+      { t: 'Código', v: p => String(p.codigo) },
+      { t: 'Paciente', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') },
+      { t: 'Situação', v: p => p.status || 'Prospecção', h: p => '<span class="pill ' + (PILL_ST[p.status || 'Prospecção'] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' },
+      { t: 'Avaliação', v: p => avT(p) || '—', h: p => avT(p) ? '<span class="pill wr">' + avT(p) + '</span>' : '<span style="color:var(--muted)">—</span>' },
+      { t: 'CPF', v: p => p.cpf ? mCPF(p.cpf) : 'sem CPF' },
+      { t: 'Telefone', v: p => p.telefone ? mTel(p.telefone) : '—' },
+      { t: 'Canal', v: p => p.canal_venda || '—' },
+      { t: 'Cadastro', v: p => dBR(p.data_cadastro) }
+    ] });
 }
 const abrirPaciente = p => irPara('paciente', { chave: 'paciente:' + p.id, titulo: (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '), id: p.id });
 
@@ -1653,7 +1718,7 @@ function cancelarContratoDialogo(p, aoFim){
 }
 
 /* ---------- FINANCEIRO: parcelas e baixa de pagamento ---------- */
-const FN = { f: 'abertas', q: '', vis: 'lista', rel: null };
+const FN = { f: 'todos', q: '', vis: 'lista', rel: null };
 const LBL_PARC = n => n === 0 ? 'Início' : n + 'ª mensalidade';
 const lblp = (x, k) => x.descricao || LBL_PARC(x[k || 'numero']);
 const FORMAS_PGTO = ['PIX', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Boleto', 'Transferência'];
@@ -1713,13 +1778,13 @@ function finLista(){
   if (FN.vis === 'rel') return finRel();
   const P = FN.par, hj = hoje(), dd = P.dados, ab = dd.filter(x => x.situacao === 'aberta'), venc = ab.filter(x => x.vencimento < hj), avenc = ab.filter(x => x.vencimento >= hj), pagas = dd.filter(x => x.situacao === 'paga' || x.situacao === 'isenta');
   const soma = l => l.reduce((t, x) => t + Number(x.saldo), 0);
-  const abas = [['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas e isentas', pagas.length]];
+  const abas = [['todos', 'Todos', dd.length], ['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas e isentas', pagas.length]];
   $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento (últimos 11 meses e próximos 2). Paga até o vencimento: com desconto. Depois: valor cheio, sem juros. Use o funil de cada coluna para filtrar.</p></div></div>' + finVis()
     + '<div class="card"><p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
     + '<div class="tools"><div id="fn-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (FN.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
     + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div></div><div id="fn-lista"></div>';
   const pinta = () => {
-    const q = relNorm(FN.q.trim()); let l = FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
+    const q = relNorm(FN.q.trim()); let l = FN.f === 'todos' ? dd : FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
     if (q) l = l.filter(x => relNorm(x.paciente_nome).includes(q));
     const S = new Set(l); P.pre = x => S.has(x); relGridMonta($('#fn-lista'));
   };
@@ -1931,12 +1996,13 @@ function gradeF(box, cfg){
 }
 function gradeCorpo(box, cfg, corpo){
   const cols = cfg.cols, d = cfg.dados.filter(x => cols.every((c, i) => !cfg.f[i] || cfg.f[i].has(c.v(x)))), nc = cols.length + (cfg.acao ? 1 : 0);
-  box.querySelector('tbody').innerHTML = d.length ? d.map(x => '<tr>' + cols.map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.h ? c.h(x) : esc(c.v(x))) + '</td>').join('') + (cfg.acao ? '<td>' + cfg.acao(x) + '</td>' : '') + '</tr>').join('')
+  box.querySelector('tbody').innerHTML = d.length ? d.map(x => '<tr' + (cfg.clique ? ' class="clk" tabindex="0" data-i="' + cfg.dados.indexOf(x) + '"' : '') + '>' + cols.map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.h ? c.h(x) : esc(c.v(x))) + '</td>').join('') + (cfg.acao ? '<td>' + cfg.acao(x) + '</td>' : '') + '</tr>').join('')
     : '<tr><td colspan="' + nc + '" class="vazio">Nenhum registro com esses filtros.</td></tr>';
   $$('[data-fx]', box).forEach(b => b.classList.toggle('on', !!cfg.f[Number(b.dataset.fx)]));
   const fi = cols.findIndex(c => c.n), filtrando = cfg.f.some(Boolean), txt = 'Totais · ' + d.length + (d.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + cfg.dados.length : '');
   box.querySelector('tfoot tr').innerHTML = fi < 0 ? '<td colspan="' + nc + '">' + txt + '</td>'
     : '<td colspan="' + fi + '">' + txt + '</td>' + cols.slice(fi).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(Math.round(d.reduce((t, x) => t + Number(c.soma(x)), 0) * 100) / 100) : '') + '</td>').join('') + (cfg.acao ? '<td></td>' : '');
+  if (cfg.clique) $$('tbody tr[data-i]', box).forEach(tr => { const go = () => cfg.clique(cfg.dados[Number(tr.dataset.i)]); tr.addEventListener('click', e => { if (!e.target.closest('button,a')) go(); }); tr.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }); });
   if (cfg.liga) cfg.liga(box);
 }
 
@@ -1951,10 +2017,10 @@ async function caixaCarregar(){
   defUn(ru.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Caixa'); return; }
   await sb.rpc('financeiro_atualizar');
-  const rs = await Promise.all([sb.rpc('caixas_da_unidade', { p_unidade: UN, p_de: somaDias(hoje(), -30), p_ate: hoje() }), pode('caixa.abrir') ? sb.rpc('responsaveis_caixa', { p_unidade: UN }) : Promise.resolve({ data: [] })]);
+  const rs = await Promise.all([sb.rpc('caixas_da_unidade', { p_unidade: UN, p_de: somaDias(hoje(), -30), p_ate: hoje() }), pode('caixa.abrir') ? sb.rpc('responsaveis_caixa', { p_unidade: UN }) : Promise.resolve({ data: [] }), pode('caixa.abrir') ? sb.rpc('pedidos_caixa_pendentes', { p_unidade: UN }) : Promise.resolve({ data: [] })]);
   const er = rs.map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.cxs = rs[0].data || []; D.resp = rs[1].data || []; caixaLista();
+  D.cxs = rs[0].data || []; D.resp = rs[1].data || []; D.pedCx = rs[2].data || []; caixaLista();
 }
 function caixaLista(){
   const h = hoje(), meu = D.cxs.find(c => c.meu && c.data === h && c.status === 'aberto'), velho = D.cxs.find(c => c.meu && c.status === 'aberto' && c.data < h);
@@ -1963,6 +2029,7 @@ function caixaLista(){
   const lista = D.cxs.filter(fl[CX.f]);
   $('#area').innerHTML = '<div class="head"><div><h1>Caixa</h1><p class="sub">Cada recepcionista trabalha com o seu caixa do dia. Toda baixa fica sob a responsabilidade de quem recebeu, e o relatório do caixa fechado segue para a administração conciliar com o banco.</p></div>'
     + (pode('caixa.abrir') ? '<button class="btn" type="button" id="cx-abrir">+ Abrir caixa</button>' : '') + '</div>'
+    + ((D.pedCx || []).length && pode('caixa.abrir') ? '<div class="card" id="cx-pedidos"><b>Pedidos de abertura de caixa</b>' + D.pedCx.map(x => '<div class="row f"><b>' + esc(x.funcionario_nome) + '</b><span class="m x">' + esc(x.cargo || '') + '</span><span class="m x">pediu às ' + hhmm(x.criado_em) + '</span><button class="btn sm" type="button" data-ped="' + x.funcionario_id + '">Abrir caixa</button></div>').join('') + '</div>' : '')
     + (velho ? '<div class="card" style="border-color:var(--red)"><b>Você tem um caixa de ' + dBR(velho.data) + ' ainda aberto.</b> Feche-o para poder abrir o de hoje.</div>' : '')
     + (meu ? '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><b>Meu caixa de hoje</b> <span class="pill wr">Aberto às ' + hhmm(meu.aberto_em) + '</span><br><small style="color:var(--muted)">Troco inicial ' + reais(meu.valor_inicial) + ' · recebido ' + reais(meu.total) + ' em ' + meu.qtd + ' pagamento(s)</small></div><button class="btn ghost" type="button" data-fechar="' + meu.id + '">Fechar meu caixa</button></div>'
       + '<label class="field" for="cx-q" style="margin-top:12px">Receber de um paciente<input id="cx-q" type="search" placeholder="Nome, CPF ou código do paciente" autocomplete="off"></label><div class="lista" id="cx-achados"></div></div>'
@@ -1973,15 +2040,16 @@ function caixaLista(){
   $$('#cx-abas [data-f]').forEach(b => b.addEventListener('click', () => { CX.f = b.dataset.f; caixaLista(); }));
   $$('[data-rel]').forEach(b => b.addEventListener('click', () => caixaRelatorio(Number(b.dataset.rel))));
   $$('[data-fechar]').forEach(b => b.addEventListener('click', () => caixaFechar(D.cxs.find(c => c.id === Number(b.dataset.fechar)))));
-  const ab = $('#cx-abrir'); if (ab) ab.addEventListener('click', caixaAbrir);
+  $$('#cx-pedidos [data-ped]').forEach(b => b.addEventListener('click', () => caixaAbrir(Number(b.dataset.ped))));
+  const ab = $('#cx-abrir'); if (ab) ab.addEventListener('click', () => caixaAbrir());
   const q = $('#cx-q'); if (q) { let tm, seq = 0;
     const busca = async () => { const n = ++seq; const r = await sb.rpc('buscar_pacientes_caixa', { p_unidade: UN, p_busca: q.value }); if (n !== seq) return; const el = $('#cx-achados'); if (!el) return;
       el.innerHTML = r.error ? '<div class="err">' + esc(erroTxt(r.error)) + '</div>' : (r.data || []).length ? r.data.map(x => '<button class="row f" type="button" data-pac="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">' + esc(x.status) + '</span><span class="m x">' + (x.abertas ? x.abertas + ' parcela(s) em aberto' : 'nada em aberto') + '</span><span>' + (x.vencidas ? '<span class="pill off">' + x.vencidas + ' vencida(s)</span>' : '') + '</span><span></span></button>').join('') : '<div class="vazio">Nenhum paciente em tratamento encontrado.</div>';
       $$('#cx-achados [data-pac]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.pac)))); };
     q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(busca, 250); }); busca(); }
 }
-function caixaAbrir(){
-  const eu = D.resp.find(r => r.id === EU.id);
+function caixaAbrir(pre){
+  const eu = D.resp.find(r => r.id === (pre || EU.id));
   abrirJanela('Abrir caixa', '<form id="ca-form" novalidate><div class="db"><p class="sub" style="margin:0">Indique quem vai receber hoje. Só essa pessoa (e o gerente) poderá fechar este caixa, e todas as baixas dela ficam sob a sua responsabilidade.</p>'
     + '<label class="field" for="ca-resp">Responsável pelo caixa *<select id="ca-resp"><option value="">Escolha...</option>' + D.resp.map(r => '<option value="' + r.id + '"' + (eu && eu.id === r.id ? ' selected' : '') + '>' + esc(r.nome) + (r.cargo ? ' — ' + esc(r.cargo) : '') + '</option>').join('') + '</select></label>'
     + '<label class="field" for="ca-ini">Troco inicial (dinheiro na gaveta)<span class="pw"><input id="ca-ini" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="0,00"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
@@ -1994,7 +2062,7 @@ function caixaAbrir(){
     if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Caixa aberto.'); caixaCarregar();
   });
 }
-async function caixaFechar(c){
+async function caixaFechar(c, aoFim){
   const r = await sb.rpc('caixa_relatorio', { p_id: c.id }); if (r.error) { toast(erroTxt(r.error)); return; }
   const d = r.data, cx = d.caixa, din = (d.formas.find(f => f.forma === 'Dinheiro') || { total: 0 }).total, esp = Number(cx.valor_inicial) + Number(din), tot = d.formas.reduce((t, f) => t + Number(f.total), 0);
   abrirJanela('Fechar caixa — ' + cx.responsavel, '<form id="cf-form" novalidate><div class="db"><p class="sub" style="margin:0">Caixa de ' + dBR(cx.data) + ' · ' + esc(cx.unidade) + '</p>'
@@ -2010,7 +2078,7 @@ async function caixaFechar(c){
     e.preventDefault(); const er = $('#cf-err'); er.textContent = ''; const v = moedaNum($('#cf-cont').value);
     if (v == null) { er.textContent = 'Informe o dinheiro contado na gaveta (zero, se não há).'; return; }
     const b = $('#cf-ok'); b.disabled = true; const x = await sb.rpc('fechar_caixa', { p_id: c.id, p_contado: v, p_obs: $('#cf-obs').value.trim() || null }); b.disabled = false;
-    if (x.error) { er.textContent = erroTxt(x.error); return; } toast('Caixa fechado. O relatório já está disponível para a administração.'); await caixaCarregar(); caixaRelatorio(c.id);
+    if (x.error) { er.textContent = erroTxt(x.error); return; } toast('Caixa fechado. O relatório já está disponível para a administração.'); if (aoFim) { fecharJanela(); aoFim(); return; } await caixaCarregar(); caixaRelatorio(c.id);
   });
 }
 function cxTexto(d){
