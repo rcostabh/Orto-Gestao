@@ -324,7 +324,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
     <button class="ver" id="ver" type="button" title="Registro de versões"></button>
     <div class="und" id="und"></div>
     <nav id="menu"></nav>
-    <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><select id="eu-ver" hidden aria-label="Ver o sistema como outro perfil" title="Ver o sistema como outro perfil"></select><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
+    <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><select id="eu-emp" hidden aria-label="Empresa" title="Trocar de empresa"></select><select id="eu-ver" hidden aria-label="Ver o sistema como outro perfil" title="Ver o sistema como outro perfil"></select><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
   </aside>
   <div class="col">
     <div class="bar"><button type="button" id="abre" aria-label="Abrir menu">☰</button><b id="bar-t"></b></div>
@@ -447,6 +447,11 @@ function inatividadeLiga(){
   ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => document.addEventListener(ev, bate, { passive: true }));
   inatT = setInterval(() => { if (EU && Date.now() > inatFim) { toast('Sessão encerrada por inatividade.'); $('#sair').click(); inatFim = Date.now() + INATIVO_MS; } }, 30000);
 }
+function empresaDesenha(){
+  const s = $('#eu-emp'); if (!s) return; const l = (EU && EU.empresas) || [];
+  if (l.length < 2) { s.hidden = true; s.innerHTML = ''; return; }
+  s.hidden = false; s.innerHTML = l.map(e => '<option value="' + e.id + '"' + (e.atual ? ' selected' : '') + '>' + esc(e.nome) + '</option>').join('');
+}
 async function entrarNoApp(troca){
   const { data, error } = await sb.rpc('meu_acesso');
   if (error || !data) return false;
@@ -454,7 +459,7 @@ async function entrarNoApp(troca){
   const manter = troca ? ABAS.filter(a => a.rota.startsWith('p-')) : [];
   EU = data; VC.l = []; VC.real = { perfil: data.perfil, acesso_total: data.acesso_total, permissoes: data.permissoes };
   $('#v-login').hidden = true; $('#v-app').hidden = false;
-  $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || '';
+  $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || ''; empresaDesenha();
   ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); ABAS.push(...manter);
   { const ru = await sb.from('unidades').select('*').order('sigla'); UN = null; defUn(ru.data || []); }
   const md = $('#modo');
@@ -465,6 +470,11 @@ async function entrarNoApp(troca){
   if (!EU.fora) sb.rpc('sou_dentista').then(r => { if (!r.error && EU) { EU.dentista = !!r.data; avDesenhar(); } });
   return true;
 }
+$('#eu-emp').addEventListener('change', async e => {
+  const id = Number(e.target.value), nome = (e.target.selectedOptions[0] || {}).textContent || '';
+  const r = await sb.rpc('empresa_trocar', { p_grupo: id }); if (r.error) { toast(erroTxt(r.error)); empresaDesenha(); return; }
+  await entrarNoApp(true); toast('Agora você está em ' + nome + '.');
+});
 $('#l-ver').addEventListener('click', () => { const i = $('#l-senha'); const v = i.type === 'password'; i.type = v ? 'text' : 'password'; $('#l-ver').textContent = v ? 'Ocultar' : 'Mostrar'; });
 $('#form-entrar').addEventListener('submit', async e => {
   e.preventDefault();
@@ -561,6 +571,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.27.0', '2026-11-02', 'Uma pessoa, um login, várias empresas: consultores e gerentes podem atuar em outra empresa por convite aceito pela própria pessoa (ou pelo Diretor da empresa dela), com perfil e unidades próprios em cada empresa e troca de empresa no menu. Ao digitar um CPF já cadastrado, o sistema sugere importar o cadastro.'],
   ['0.26.0', '2026-11-02', 'Gerente: Início com o mesmo dashboard do Diretor, com o mapa de Minas das unidades em que ele atua. Funcionários: botão Importar cadastro, que inclui na unidade quem já está cadastrado em outra unidade da empresa (pelo CPF, nunca como Diretor). Quem não é Diretor não apaga mais os vínculos de uma pessoa com unidades que ele não enxerga.'],
   ['0.25.0', '2026-11-02', 'Anamnese: nova ficha A4 profissional para visualizar, imprimir ou salvar em PDF, com a marca do sistema, destaque dos pontos de atenção, respostas em quadros e assinatura eletrônica com código de verificação.'],
   ['0.24.1', '2026-11-02', 'Ficha do paciente: a aba Anamnese (ao lado de Financeiro) agora funciona e abre o envio, o link e a anamnese assinada.'],
@@ -730,11 +741,24 @@ function telaInicio(){
   $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
     + (pode('agenda.ver') ? '<button class="btn" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
-    + '<div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
+    + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
     + (recep || cxr || cxg || dir ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
       .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('') + '</div>');
   const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); });
+  convitesCarrega();
   if (recep || cxr || cxg || dir) inicioCarrega(recep, cxr, cxg, dir);
+}
+/* convites para atuar em outra empresa: a pessoa (ou o Diretor da empresa dela) aceita ou recusa */
+async function convitesCarrega(){
+  const r = await sb.rpc('convites_listar'), box = $('#in-conv'); if (!box || r.error || ROTA_ATIVA() !== 'inicio') return;
+  const l = (r.data || []).filter(x => x.papel === 'aceitar'); if (!l.length) { box.innerHTML = ''; return; }
+  box.innerHTML = l.map(x => { const eu = x.funcionario_nome === (EU && EU.nome); return '<div class="card" data-cv="' + x.id + '" style="margin-bottom:14px;border-color:var(--brand,#ff6a00)"><h2 style="margin:0 0 6px;font-size:16px">Convite para atuar em outra empresa</h2>'
+    + '<p style="margin:0 0 6px">A empresa <b>' + esc(x.empresa) + '</b>, por <b>' + esc(x.convidado_por || '') + '</b>, convida ' + (eu ? '<b>você</b>' : '<b>' + esc(x.funcionario_nome) + '</b>') + ' para atuar como <b>' + esc(x.perfil) + '</b>' + (x.cargo ? ' (' + esc(x.cargo) + ')' : '') + ' na(s) unidade(s) <b>' + esc(x.unidades || '') + '</b>.</p>'
+    + '<p class="sub" style="margin:0 0 10px">Ao aceitar, essa empresa passa a ver o cadastro (nome, documentos, telefone e e-mail) e ' + (eu ? 'você poderá' : 'a pessoa poderá') + ' trocar de empresa pelo menu. Nada é compartilhado antes do aceite. Vale até ' + dBR(String(x.expira_em).slice(0, 10)) + '.</p>'
+    + '<div class="tools"><button class="btn" type="button" data-sim="' + x.id + '">Aceitar</button><button class="btn ghost" type="button" data-nao="' + x.id + '">Recusar</button></div></div>'; }).join('');
+  const resp = async (id, aceita, b) => { b.disabled = true; const q = await sb.rpc('convite_responder', { p_id: id, p_aceitar: aceita }); b.disabled = false; if (q.error) { toast(erroTxt(q.error)); return; } toast(aceita ? 'Convite aceito.' : 'Convite recusado.'); if (aceita && l.find(y => y.id === id).funcionario_nome === (EU && EU.nome)) await entrarNoApp(true); else convitesCarrega(); };
+  $$('#in-conv [data-sim]').forEach(b => b.addEventListener('click', () => resp(Number(b.dataset.sim), true, b)));
+  $$('#in-conv [data-nao]').forEach(b => b.addEventListener('click', () => resp(Number(b.dataset.nao), false, b)));
 }
 async function inicioCarrega(recep, cxr, cxg, dir){
   const ru = await sb.from('unidades').select('*').order('sigla'); if (ru.error) return; defUn(ru.data); if (!UN || ROTA_ATIVA() !== 'inicio') return;
@@ -1373,41 +1397,56 @@ function uniForm(u){
 /* ---------- FUNCIONÁRIOS ---------- */
 async function funCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
-  const rs = await Promise.all([sb.from('funcionarios').select('*').order('nome'), sb.from('funcionario_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('perfis').select('*').order('id')]);
-  const er = rs.map(r => r.error).find(Boolean);
+  const rs = await Promise.all([sb.from('funcionarios').select('*').order('nome'), sb.from('funcionario_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('perfis').select('*').order('id'), sb.rpc('funcionarios_externos'), sb.rpc('convites_listar')]);
+  const er = rs.slice(0, 4).map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  D.ext = rs[4].error ? [] : (rs[4].data || []); D.conv = rs[5].error ? [] : (rs[5].data || []).filter(x => x.papel === 'enviado');
   D.fu = rs[1].data; D.unidades = rs[2].data; D.perfis = rs[3].data; defUn(D.unidades);
   if (!UN) { $('#area').innerHTML = semUn('Funcionários'); return; }
   D.func = rs[0].data.filter(f => D.fu.some(x => x.funcionario_id === f.id && x.unidade_id === UN) || (D.perfis.find(p => p.id === f.perfil_id) || {}).acesso_total);
   funLista();
 }
 const nomePerfil = id => (D.perfis.find(p => p.id === id) || {}).nome || '—';
+const extDe = id => (D.ext || []).find(x => x.funcionario_id === id);
 function funLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Funcionários</h1><p class="sub">Quem trabalha na rede e o que cada um pode acessar.</p></div>' + (pode('funcionarios.criar') ? '<div class="tools"><button class="btn ghost" type="button" id="f-imp" title="Incluir nesta unidade alguém que já está cadastrado em outra unidade da empresa">Importar cadastro</button><button class="btn" type="button" id="f-novo">+ Novo funcionário</button></div>' : '') + '</div>'
-    + '<div class="card"><div class="tools"><input id="f-q" type="search" placeholder="Buscar por nome, login ou cargo" aria-label="Buscar funcionários"><select id="f-st" aria-label="Situação"><option value="a">Ativos</option><option value="i">Inativos</option><option value="t">Todos</option></select></div><div class="lista" id="f-lista"></div></div>';
+    + '<div class="card"><div class="tools"><input id="f-q" type="search" placeholder="Buscar por nome, login ou cargo" aria-label="Buscar funcionários"><select id="f-st" aria-label="Situação"><option value="a">Ativos</option><option value="i">Inativos</option><option value="t">Todos</option></select></div><div class="lista" id="f-lista"></div></div>'
+    + ((D.conv || []).length ? '<div class="card" id="f-conv" style="margin-top:16px"><h2 style="margin:0 0 6px;font-size:16px">Convites enviados, aguardando aceite</h2>' + D.conv.map(c => '<div class="row f"><b>' + esc(c.funcionario_nome) + '</b><span class="m x">' + esc(c.perfil) + (c.cargo ? ' · ' + esc(c.cargo) : '') + '</span><span class="m x">' + esc(c.unidades || '') + '</span><span class="m x">até ' + dBR(String(c.expira_em).slice(0, 10)) + '</span>' + (pode('funcionarios.criar') ? '<button class="btn ghost sm" type="button" data-cc="' + c.id + '">Cancelar convite</button>' : '') + '</div>').join('') + '</div>' : '');
   const desenhar = () => {
     const q = $('#f-q').value.trim().toLowerCase(), st = $('#f-st').value;
     const l = D.func.filter(f => (st === 't' || (st === 'a') === !inativoEm(f.data_inativacao)) && (!q || [f.nome, f.login, f.cargo].join(' ').toLowerCase().includes(q)));
-    $('#f-lista').innerHTML = l.length ? l.map(f => '<button class="row f" type="button" data-id="' + f.id + '"><b>' + esc(f.nome) + '</b><span class="m x">' + esc(f.cargo || '') + '</span><span class="m x">' + esc(nomePerfil(f.perfil_id)) + '</span><span class="m x">Login: ' + esc(f.login) + '</span><span class="pill ' + (inativoEm(f.data_inativacao) ? 'off' : 'on') + '">' + (inativoEm(f.data_inativacao) ? 'Inativo' : 'Ativo') + '</span></button>').join('') : '<div class="vazio">Nenhum funcionário encontrado.</div>';
-    $$('#f-lista .row').forEach(b => b.addEventListener('click', () => funForm(D.func.find(f => f.id === Number(b.dataset.id)))));
+    $('#f-lista').innerHTML = l.length ? l.map(f => { const xe = extDe(f.id); return '<button class="row f" type="button" data-id="' + f.id + '"><b>' + esc(f.nome) + '</b><span class="m x">' + esc((xe ? xe.cargo : '') || f.cargo || '') + '</span><span class="m x">' + esc(xe ? nomePerfil(xe.perfil_id) : nomePerfil(f.perfil_id)) + '</span><span class="m x">' + (xe ? 'Convidado de outra empresa' : 'Login: ' + esc(f.login)) + '</span><span class="pill ' + (inativoEm(f.data_inativacao) ? 'off' : 'on') + '">' + (inativoEm(f.data_inativacao) ? 'Inativo' : 'Ativo') + '</span></button>'; }).join('') : '<div class="vazio">Nenhum funcionário encontrado.</div>';
+    $$('#f-lista .row').forEach(b => b.addEventListener('click', () => { const f = D.func.find(x => x.id === Number(b.dataset.id)); if (extDe(f.id)) funFormExterno(f); else funForm(f); }));
   };
   $('#f-q').addEventListener('input', desenhar); $('#f-st').addEventListener('change', desenhar); desenhar();
   const n = $('#f-novo'); if (n) n.addEventListener('click', () => funForm(null));
-  const im = $('#f-imp'); if (im) im.addEventListener('click', funImportar);
+  const im = $('#f-imp'); if (im) im.addEventListener('click', () => funImportar());
+  $$('#f-conv [data-cc]').forEach(b => b.addEventListener('click', async () => { const q = await sb.rpc('convite_cancelar', { p_id: Number(b.dataset.cc) }); if (q.error) { toast(erroTxt(q.error)); return; } toast('Convite cancelado.'); funCarregar(); }));
 }
 /* importar o cadastro de quem já trabalha em outra unidade da empresa, pelo CPF */
-function funImportar(){
+function funImportar(pre){
   const un = D.unidades.find(u => u.id === UN) || {};
   abrirJanela('Importar cadastro', '<form id="fi-form" novalidate><div class="db"><p style="margin:0">Digite o CPF de quem já está cadastrado em outra unidade. Os dados são preenchidos e a pessoa é incluída em <b>' + esc(un.sigla || '') + '</b>, com o mesmo login de sempre.</p>'
     + '<div class="tools" style="margin-top:10px"><input id="fi-cpf" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00" aria-label="CPF do funcionário" style="min-width:200px"><button class="btn" type="submit" id="fi-busca">Buscar</button></div>'
     + '<div class="err" id="fi-err" role="alert"></div><div id="fi-res"></div></div><div class="df"><button class="btn ghost" type="button" id="fi-x">Fechar</button></div></form>');
   $('#fi-x').addEventListener('click', fecharJanela);
   $('#fi-cpf').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  if (pre) { $('#fi-cpf').value = mCPF(pre); setTimeout(() => $('#fi-busca').click(), 0); }
   $('#fi-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#fi-err'), res = $('#fi-res'); er.textContent = ''; res.innerHTML = '';
     const cpf = dig($('#fi-cpf').value); if (!cpfOk(cpf)) { er.textContent = 'CPF inválido. Confira os números.'; return; }
     const b = $('#fi-busca'); b.disabled = true; const r = await sb.rpc('funcionario_buscar_cpf', { p_cpf: cpf, p_unidade: UN }); b.disabled = false;
     if (r.error) { er.textContent = erroTxt(r.error); return; } const x = r.data;
+    if (x.externo_aqui) { res.innerHTML = '<p class="sub"><b>' + esc(x.nome) + '</b> já atua nesta empresa como convidado(a)' + (x.ja_na_unidade ? ' e já está nesta unidade' : '. Para incluir nesta unidade, abra o cadastro dele(a) na lista de Funcionários') + '.</p>'; return; }
+    if (x.outra_empresa) {
+      if (x.convite_pendente) { res.innerHTML = '<p class="sub">Já existe um convite pendente para <b>' + esc(x.nome_parcial) + '</b>. Aguarde o aceite.</p>'; return; }
+      const pfs = D.perfis.filter(p => p.ativo && !p.acesso_total);
+      res.innerHTML = '<div class="card" style="margin:10px 0 0"><p style="margin:0 0 6px">Já existe um cadastro com este CPF em <b>outra empresa</b> (<b>' + esc(x.nome_parcial) + '</b>). Para essa pessoa atuar aqui, envie um <b>convite</b>: ela (ou o Diretor da empresa dela) precisa aceitar. Os dados só ficam visíveis para vocês depois do aceite.</p>'
+        + '<div class="g2"><label class="field" for="fi-cargo">Cargo<input id="fi-cargo" maxlength="60" placeholder="Ex.: Consultor"></label><label class="field" for="fi-perfil">Perfil de acesso nesta empresa<select id="fi-perfil">' + pfs.map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></label></div>'
+        + '<p class="sub" style="margin:6px 0 0">Ela será incluída na unidade <b>' + esc(un.sigla || '') + '</b>. O perfil de Diretor não pode ser dado por convite.</p><div class="err" id="fi-err2" role="alert"></div><div class="tools" style="margin-top:10px"><button class="btn" type="button" id="fi-conv">Enviar convite</button></div></div>';
+      $('#fi-conv').addEventListener('click', async () => { const bc = $('#fi-conv'); bc.disabled = true; $('#fi-err2').textContent = ''; const q = await sb.rpc('convite_criar', { p_cpf: cpf, p_unidade: UN, p_cargo: $('#fi-cargo').value, p_perfil: Number($('#fi-perfil').value) }); bc.disabled = false; if (q.error) { $('#fi-err2').textContent = erroTxt(q.error); return; } fecharJanela(); toast('Convite enviado. A pessoa precisa aceitar.'); funCarregar(); });
+      return;
+    }
     if (!x.achou) { res.innerHTML = '<p class="sub">Nenhum funcionário com esse CPF na sua empresa. Se for uma pessoa nova, use <b>+ Novo funcionário</b>.</p>'; return; }
     if (x.bloqueado === 'diretor') { res.innerHTML = '<p class="sub"><b>' + esc(x.nome) + '</b> é Diretor e já tem acesso a todas as unidades. Não precisa importar.</p>'; return; }
     if (x.inativo) { res.innerHTML = '<p class="sub"><b>' + esc(x.nome) + '</b> está com o cadastro inativo. Reative primeiro, na unidade onde ele já trabalha.</p>'; return; }
@@ -1427,6 +1466,26 @@ function funImportar(){
     });
   });
 }
+/* convidado de outra empresa: aqui só o cargo, o perfil e as unidades desta empresa */
+function funFormExterno(f){
+  const xe = extDe(f.id) || {}, edita = pode('funcionarios.editar'), ro = edita ? '' : ' disabled';
+  const minhasUn = D.fu.filter(x => x.funcionario_id === f.id && D.unidades.some(u => u.id === x.unidade_id)).map(x => x.unidade_id);
+  const perfis = D.perfis.filter(p => (p.ativo && !p.acesso_total) || p.id === xe.perfil_id);
+  abrirJanela(f.nome, '<form id="fx-form" novalidate><div class="db"><p class="sub" style="margin:0 0 8px">Convidado(a) de outra empresa. O cadastro e o login pertencem à empresa de origem; aqui você ajusta só o que vale nesta empresa.</p>'
+    + '<div class="g2"><div><small class="sub">CPF</small><br><b>' + esc(mCPF(f.cpf)) + '</b></div><div><small class="sub">RG</small><br>' + esc(f.rg || '—') + '</div><div><small class="sub">Telefone</small><br>' + (f.telefone ? mTel(f.telefone) : '—') + '</div><div><small class="sub">E-mail</small><br>' + esc(f.email || '—') + '</div></div>'
+    + '<div class="sec">Nesta empresa</div><div class="g2"><label class="field" for="fx-cargo">Cargo<input id="fx-cargo" maxlength="60" value="' + esc(xe.cargo || f.cargo || '') + '"' + ro + '></label>'
+    + '<label class="field" for="fx-perfil">Perfil de acesso<select id="fx-perfil"' + ro + '>' + perfis.map(p => '<option value="' + p.id + '"' + (p.id === xe.perfil_id ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select></label></div>'
+    + '<div class="field"><span>Unidades onde atua</span><div class="chks" id="fx-uns">' + D.unidades.filter(u => u.ativa || minhasUn.includes(u.id)).map(u => '<label class="chk"><input type="checkbox" value="' + u.id + '"' + (minhasUn.includes(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') + '</div></div>'
+    + '<div class="err" id="fx-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="fx-x">Fechar</button>' + (edita ? '<button class="btn ghost" type="button" id="fx-rem">Remover desta empresa</button><button class="btn" type="submit" id="fx-ok">Salvar</button>' : '') + '</div></form>');
+  $('#fx-x').addEventListener('click', fecharJanela);
+  const rem = $('#fx-rem'); if (rem) rem.addEventListener('click', async () => { if (!confirm('Remover ' + f.nome + ' desta empresa? Ele(a) perde o acesso aqui, mas continua na empresa de origem.')) return; const q = await sb.rpc('acesso_externo_remover', { p_func: f.id }); if (q.error) { $('#fx-err').textContent = erroTxt(q.error); return; } fecharJanela(); toast('Acesso removido desta empresa.'); funCarregar(); });
+  $('#fx-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return; const er = $('#fx-err'); er.textContent = '';
+    const uns = $$('#fx-uns input:checked').map(i => Number(i.value)); if (!uns.length) { er.textContent = 'Marque ao menos uma unidade.'; return; }
+    const b = $('#fx-ok'); b.disabled = true; const q = await sb.rpc('acesso_externo_salvar', { p_func: f.id, p_perfil: Number($('#fx-perfil').value), p_cargo: $('#fx-cargo').value, p_unidades: uns }); b.disabled = false;
+    if (q.error) { er.textContent = erroTxt(q.error); return; } fecharJanela(); toast('Atualizado.'); funCarregar();
+  });
+}
 function funForm(f){
   const novo = !f, edita = novo ? pode('funcionarios.criar') : pode('funcionarios.editar'), ro = edita ? '' : ' disabled';
   const minhasUn = novo ? [UN] : D.fu.filter(x => x.funcionario_id === f.id).map(x => x.unidade_id);
@@ -1437,12 +1496,12 @@ function funForm(f){
     + fld('f-nome', 'Nome completo', f && f.nome, 'maxlength="120" autocomplete="off"' + ro)
     + '<div class="g3">' + fld('f-rg', 'RG', f && f.rg, 'maxlength="20"' + ro) + fld('f-cpf', 'CPF', mCPF(f && f.cpf), 'inputmode="numeric" maxlength="14" autocomplete="off"' + ro) + '<label class="field" for="f-nasc">Data de nascimento<input id="f-nasc" type="date" value="' + esc(f && f.data_nascimento) + '"' + ro + '></label></div>'
     + '<div class="g2">' + fld('f-tel', 'Telefone', mTel(f && f.telefone), 'inputmode="tel" maxlength="15"' + ro) + fld('f-email', 'E-mail', f && f.email, 'type="email" autocomplete="off"' + ro) + '</div>'
-    + '<div class="sec">Na empresa</div>'
+    + (novo ? '<div id="f-dup" class="sub" role="status" style="margin:-4px 0 8px"></div>' : '') + '<div class="sec">Na empresa</div>'
     + '<div class="g2"><label class="field" for="f-adm">Data de admissão<input id="f-adm" type="date" value="' + esc(f && f.data_admissao) + '"' + ro + '></label>'
     + '<label class="field" for="f-ina">Data de inativação <small>(deixe em branco enquanto estiver ativo)</small><input id="f-ina" type="date" value="' + esc(f && f.data_inativacao) + '"' + (edita && (novo || pode('funcionarios.inativar')) ? '' : ' disabled') + '></label></div>'
     + '<div class="g2">' + fld('f-cargo', 'Cargo na empresa', f && f.cargo, 'maxlength="60" list="f-cargos"' + ro) + '<datalist id="f-cargos">' + D.perfis.map(p => '<option value="' + esc(p.nome) + '">').join('') + '</datalist>'
     + '<label class="field" for="f-perfil">Perfil de acesso<select id="f-perfil"' + ro + '><option value="">Escolha...</option>' + perfisOk.map(p => '<option value="' + p.id + '"' + (f && f.perfil_id === p.id ? ' selected' : '') + '>' + esc(p.nome) + (p.ativo ? '' : ' (inativo)') + '</option>').join('') + '</select></label></div>'
-    + '<div class="field"><span>Unidades onde atua</span><div class="chks" id="f-uns">' + (D.unidades.filter(u => u.ativa || minhasUn.includes(u.id)).map(u => '<label class="chk"><input type="checkbox" value="' + u.id + '"' + (minhasUn.includes(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') || '<span class="sub">Cadastre uma unidade primeiro.</span>') + '</div></div>'
+    + (novo ? '<p class="sub" style="margin:4px 0 0">Será cadastrado(a) na unidade <b>' + esc((D.unidades.find(u => u.id === UN) || {}).sigla || '') + '</b>. Para atuar em outras unidades, cadastre ou importe o cadastro em cada uma delas.</p><div id="f-uns" hidden><input type="checkbox" value="' + UN + '" checked></div>' : '<div class="field"><span>Unidades onde atua</span><div class="chks" id="f-uns">') + (novo ? '' : (D.unidades.filter(u => u.ativa || minhasUn.includes(u.id)).map(u => '<label class="chk"><input type="checkbox" value="' + u.id + '"' + (minhasUn.includes(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') || '<span class="sub">Cadastre uma unidade primeiro.</span>') + '</div></div>')
     + '<div class="sec">Acesso ao sistema</div>'
     + '<div class="g2">' + '<label class="field" for="f-login">Login <small>(sugerido pelo sistema; 4 a 20 letras ou números)</small><input id="f-login" value="' + esc(f && f.login) + '" maxlength="20" autocapitalize="none" autocomplete="off" spellcheck="false"' + (novo && edita ? '' : ' readonly') + '></label>'
     + (novo ? '<label class="field" for="f-senha">Senha inicial <small>(sugerida; anote para entregar)</small><span class="pw"><input id="f-senha" value="' + esc(senha0) + '" autocomplete="new-password"><button type="button" id="f-nova">Outra</button></span></label>' : '') + '</div>'
@@ -1451,6 +1510,13 @@ function funForm(f){
     + '<div class="df"><button class="btn ghost" type="button" id="f-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="f-ok">' + (novo ? 'Cadastrar' : 'Salvar') + '</button>' : '') + '</div></form>');
   $('#f-cancel').addEventListener('click', fecharJanela);
   $('#f-cpf').addEventListener('input', e => e.target.value = mCPF(e.target.value));
+  if (novo && edita) $('#f-cpf').addEventListener('blur', async () => {
+    const c = dig($('#f-cpf').value), box = $('#f-dup'); if (!box) return; box.innerHTML = ''; if (!cpfOk(c)) return;
+    const r = await sb.rpc('funcionario_buscar_cpf', { p_cpf: c, p_unidade: UN }); if (r.error || !r.data || !r.data.achou || dig(($('#f-cpf') || {}).value) !== c) return; const x = r.data;
+    const quem = esc(x.nome || x.nome_parcial || 'alguém');
+    box.innerHTML = x.ja_na_unidade ? '<b>' + quem + '</b> já está cadastrado(a) nesta unidade.' : x.bloqueado === 'diretor' ? '<b>' + quem + '</b> é Diretor e já tem acesso a todas as unidades.' : 'Já existe um cadastro com este CPF' + (x.outra_empresa ? ' em outra empresa (' + quem + ')' : ' (' + quem + ')') + '. <button class="btn sm" type="button" id="f-dup-imp">Importar cadastro</button>';
+    const bi = $('#f-dup-imp'); if (bi) bi.addEventListener('click', () => { fecharJanela(); funImportar(c); });
+  });
   $('#f-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
   if (novo && edita) {
     const usados = new Set(D.func.map(x => x.login)); let manual = false;
