@@ -561,6 +561,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.24.1', '2026-11-02', 'Ficha do paciente: a aba Anamnese (ao lado de Financeiro) agora funciona e abre o envio, o link e a anamnese assinada.'],
   ['0.24.0', '2026-11-02', 'E-mail: nova tela de configuração do Diretor (servidor SMTP do Zoho, remetente, teste de envio e histórico) e envio automático da anamnese por e-mail, com botão "Enviar e-mail agora" na ficha do paciente.'],
   ['0.23.0', '2026-11-02', 'Anamnese: formulário de saúde para ortodontia, link por e-mail para o paciente confirmar o CPF, responder e assinar pelo celular, gravada no sistema com data, dispositivo e código de verificação; visualização e impressão na ficha. As autorizações marcadas entram nos consentimentos do paciente.'],
   ['0.22.1', '2026-11-02', 'Pacientes e prospects: filtro por período de cadastro (de/até) com contagem de resultados.'],
@@ -1088,13 +1089,15 @@ async function anamBoot(tk){
 }
 /* na ficha do paciente */
 const anamLink = tk => location.origin + location.pathname + '?anamnese=' + tk;
+let FI_TAB = null;
 async function pacAnamnese(p, recarrega){
-  const area = $('#area'); if (!area || p.anonimizado_em) return;
+  const area = $('#fi-an'); if (!area || p.anonimizado_em) return;
+  const rec0 = recarrega; recarrega = () => { FI_TAB = 'an'; rec0(); };
   const r = await sb.rpc('anamnese_lista', { p_paciente: p.id }); if (ROTA_ATIVA() !== 'paciente' || !$('#area .ficha')) return;
   const emOn = !!(await sb.rpc('email_ativo')).data; if (ROTA_ATIVA() !== 'paciente' || !$('#area .ficha')) return;
   const lista = r.error ? [] : (r.data || []), edita = pode('pacientes.editar'), pend = lista.find(x => x.status === 'pendente');
   const ST = { pendente: '<span class="pill wr">Aguardando o paciente</span>', respondida: '<span class="pill on">Assinada</span>', cancelada: '<span class="pill nu">Cancelada</span>', expirada: '<span class="pill off">Expirada</span>' };
-  const card = document.createElement('div'); card.className = 'card'; card.id = 'fi-anam'; card.style.marginTop = '16px';
+  const card = document.createElement('div'); card.id = 'fi-anam';
   card.innerHTML = '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:16px">Anamnese</h2>' + (edita ? '<button class="btn sm" type="button" id="an-nova">' + (pend ? 'Reenviar link' : lista.length ? 'Nova anamnese' : 'Enviar anamnese para o paciente') + '</button>' : '') + '</div>'
     + (r.error ? '<div class="err">' + esc(erroTxt(r.error)) + '</div>' : lista.length ? lista.map(x => '<div class="row f" data-an="' + x.id + '"><b>' + dBR(String(x.criada_em).slice(0, 10)) + '</b>' + (ST[x.status] || '') + '<span class="m x">' + (x.status === 'respondida' ? 'Assinada por ' + esc(x.assinante_nome) + (x.assinante_tipo === 'responsavel' ? ' (responsável)' : '') + ' em ' + dtHora(x.respondida_em) : 'Enviada por ' + esc(x.criada_por_nome || '') + (x.email_destino ? ' para ' + esc(x.email_destino) : '')) + '</span>'
         + '<span style="display:flex;gap:6px;flex-wrap:wrap">' + (x.status === 'respondida' ? '<button class="btn ghost sm" type="button" data-av="' + x.id + '">Ver / imprimir</button>' : '') + (x.status === 'pendente' && x.token ? '<button class="btn ghost sm" type="button" data-al="' + x.token + '" data-em="' + esc(x.email_destino || '') + '">Link</button>' + (edita ? '<button class="btn ghost sm" type="button" data-ac="' + x.id + '">Cancelar</button>' : '') : '') + '</span></div>').join('')
@@ -1763,8 +1766,9 @@ async function pacFicha(id){
     + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Código', String(p.codigo)) + kv('Situação', p.status || 'Prospecção') + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
     + kv('E-mail', p.email) + kv('Endereço', [p.logradouro && (p.logradouro + (p.numero ? ', ' + p.numero : '') + (p.complemento ? ' - ' + p.complemento : '')), p.bairro, p.cidade && (p.cidade + (p.uf ? '/' + p.uf : '')), p.cep && mCEP(p.cep)].filter(Boolean).join(' · ')) + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : '')) : '')
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
-    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '<span title="Em breve">Anamnese</span></div>'
+    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '' + (pode('pacientes.ver') && !p.anonimizado_em ? '<button type="button" data-tab="an" id="fi-tab-an">Anamnese</button>' : '') + '</div>'
     + '<div id="fi-oc"' + (aberta ? ' hidden' : '') + '></div>'
+    + '<div id="fi-an" hidden></div>'
     + '<div id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço, consulta de manutenção)">+ Nova cobrança</button></div>' : '') + '<div id="fi-fng"></div></div>'
     + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
@@ -1785,7 +1789,8 @@ async function pacFicha(id){
     { t: 'Pago', n: 1, k: x => Number(x.valor_pago || 0), soma: x => x.valor_pago || 0, v: x => reais(x.valor_pago || 0) }, { t: 'Saldo devedor', n: 1, k: x => x.status === 'aberta' ? Number(x.valor_hoje) : 0, soma: x => x.status === 'aberta' ? x.valor_hoje : 0, v: x => reais(x.status === 'aberta' ? x.valor_hoje : 0) },
     { t: 'Situação', v: sitTxt, h: fnSit }, { t: 'Pagamento', v: x => x.status === 'paga' ? dBR(x.pago_em) + ' · ' + (x.forma_pagamento || '') : x.status === 'isenta' ? 'Isento em ' + dBR(x.pago_em) : '' }],
     acao: x => x.status === 'aberta' && baixaF ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '', liga: bx => $$('[data-rec]', bx).forEach(b => b.addEventListener('click', () => caixaPaciente(p.id))) });
-  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; }));
+  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; const an = $('#fi-an'); if (an) an.hidden = b.dataset.tab !== 'an'; }));
+  if (FI_TAB) { const bt = $('#fi-tabs [data-tab="' + FI_TAB + '"]'); FI_TAB = null; if (bt) bt.click(); }
   const fnv = $('#fi-nova'); if (fnv) fnv.addEventListener('click', () => cobrancaDialogo(p.id, p.nome_social || p.nome, null));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
