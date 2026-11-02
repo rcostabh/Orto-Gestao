@@ -561,6 +561,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.25.0', '2026-11-02', 'Anamnese: nova ficha A4 profissional para visualizar, imprimir ou salvar em PDF, com a marca do sistema, destaque dos pontos de atenção, respostas em quadros e assinatura eletrônica com código de verificação.'],
   ['0.24.1', '2026-11-02', 'Ficha do paciente: a aba Anamnese (ao lado de Financeiro) agora funciona e abre o envio, o link e a anamnese assinada.'],
   ['0.24.0', '2026-11-02', 'E-mail: nova tela de configuração do Diretor (servidor SMTP do Zoho, remetente, teste de envio e histórico) e envio automático da anamnese por e-mail, com botão "Enviar e-mail agora" na ficha do paciente.'],
   ['0.23.0', '2026-11-02', 'Anamnese: formulário de saúde para ortodontia, link por e-mail para o paciente confirmar o CPF, responder e assinar pelo celular, gravada no sistema com data, dispositivo e código de verificação; visualização e impressão na ficha. As autorizações marcadas entram nos consentimentos do paciente.'],
@@ -1087,6 +1088,40 @@ async function anamBoot(tk){
   };
   if (d.exige_cpf) passoCpf(); else passoForm();
 }
+/* documento da anamnese: ficha A4 profissional para visualizar e imprimir */
+const ANAM_ALERTA = ['trat_medico', 'medicamentos', 'alergia', 'reacao_anestesia', 'gestante', 'cirurgia'];
+function anamDocHtml(a){
+  const R = a.respostas || {}, nomeDoenca = k => (ANAM_DOENCAS.find(d => d[0] === k) || [0, k])[1];
+  const qs = anamQs(), alertas = [];
+  qs.forEach(q => { const x = R[q.k]; if (!x) return; if (ANAM_ALERTA.includes(q.k) && x.v === 'sim') alertas.push([q.r.replace(/\?$/, ''), x.d || 'Sim']); });
+  const doencas = ((R.doencas || {}).v || []).map(nomeDoenca); if (doencas.length) alertas.push(['Doenças e condições', doencas.join(', ')]); if ((R.outras_doencas || {}).v) alertas.push(['Outra condição', R.outras_doencas.v]);
+  const linha = q => { const x = R[q.k]; let v;
+    if (!x) v = '<span class="vz">—</span>';
+    else if (q.tipo === 'simnao') v = x.v === 'sim' ? '<span class="chip sim">Sim</span>' + (x.d ? '<span class="det">' + esc(x.d) + '</span>' : '') : '<span class="chip nao">Não</span>';
+    else if (q.tipo === 'lista') v = (x.v || []).length ? (x.v || []).map(k => '<span class="chip sim">' + esc(nomeDoenca(k)) + '</span>').join(' ') : '<span class="chip nao">Nenhuma marcada</span>';
+    else v = x.v ? '<span class="txt">' + esc(x.v) + '</span>' : '<span class="vz">—</span>';
+    return '<div class="ln"><div class="pq">' + esc(q.r) + '</div><div class="rs">' + v + '</div></div>'; };
+  const secoes = ANAM_FORM.secoes.map((sec, i) => '<section><h3><b>' + (i + 1) + '</b>' + esc(sec.t) + '</h3>' + sec.q.map(linha).join('') + '</section>').join('');
+  const marca = '<svg viewBox="0 0 64 64" width="46" height="46"><rect width="64" height="64" rx="16" fill="#0b0b0b" stroke="#3a3a3a"/><path d="M32 12a20 20 0 1 0 20 20" fill="none" stroke="#ff6a00" stroke-width="8" stroke-linecap="round"/><path d="M45 11v14M38 18h14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>';
+  const reg = (a.hash || '').slice(0, 16).toUpperCase().replace(/(.{4})/g, '$1 ').trim(), quem = a.assinante_tipo === 'responsavel' ? 'Responsável legal' : 'Paciente';
+  const css = '@page{size:A4;margin:11mm 11mm 16mm}*{box-sizing:border-box}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#eef0f4;color:#14161c;font:13px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}.pg{max-width:794px;margin:18px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 8px 40px -12px rgba(0,0,0,.25)}'
+    + '.top{background:linear-gradient(120deg,#0b0b0b 0%,#1a1208 60%,#3b1d05 100%);color:#fff;padding:22px 28px;display:flex;align-items:center;gap:16px;position:relative}.top:after{content:"";position:absolute;right:-30px;top:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,106,0,.55),transparent 65%)}.top .wm{font-size:24px;font-weight:800;letter-spacing:-.02em}.top .wm i{font-style:normal;color:#ff6a00}.top .sb{font-size:11px;color:#b9bcc6;letter-spacing:.14em;text-transform:uppercase}.top .dt{margin-left:auto;text-align:right;position:relative;z-index:1}.top .dt b{display:block;font-size:19px;letter-spacing:-.01em}.top .dt span{font-size:11px;color:#c7c9d1}'
+    + '.bd{padding:22px 28px 10px}.pac{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:16px}.pac div{border:1px solid #e6e8ee;border-radius:10px;padding:9px 12px;background:#fafbfd}.pac small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#7a8091;font-weight:700}.pac b{font-size:14px}'
+    + '.alerta{border:1.5px solid #ffb27a;background:#fff6ee;border-radius:12px;padding:12px 14px;margin-bottom:16px;break-inside:avoid}.alerta h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#c2500a}.alerta p{margin:3px 0;font-size:12.5px}.alerta p b{color:#7a3205}.ok{border-color:#bfe6cf;background:#f1fbf5}.ok h4{color:#1d7a46}'
+    + 'section{margin-bottom:14px;break-inside:avoid}section h3{margin:0 0 6px;font-size:13px;display:flex;align-items:center;gap:9px;color:#0b0b0b}section h3 b{width:22px;height:22px;border-radius:7px;background:#0b0b0b;color:#ff9a4d;display:inline-grid;place-items:center;font-size:12px}.ln{display:flex;gap:14px;padding:6px 0;border-bottom:1px solid #eef0f4;break-inside:avoid}.ln:last-child{border-bottom:0}.pq{flex:1.6;color:#3b3f4d}.rs{flex:1.2;display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start}.txt{font-weight:600}.vz{color:#aab}.det{font-size:12px;color:#5a2d0a;background:#fff1e4;border-radius:6px;padding:1px 8px}'
+    + '.chip{display:inline-block;padding:1px 10px;border-radius:99px;font-size:11.5px;font-weight:700}.chip.sim{background:#ff6a00;color:#fff}.chip.nao{background:#eceef3;color:#5b6070}'
+    + '.ass{margin:6px 0 18px;border:1px solid #e6e8ee;border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1.1fr 1fr;gap:18px;break-inside:avoid;background:linear-gradient(180deg,#fff,#fafbfd)}.ass .decl{font-size:12px;color:#4a4f5e;line-height:1.55}.ass .decl b{color:#14161c}.sig{border-bottom:2px solid #14161c;height:92px;display:flex;align-items:flex-end;justify-content:center}.sig img{max-height:86px;max-width:100%;mix-blend-mode:multiply}.sg{text-align:center;font-size:12px;margin-top:5px}.sg b{display:block;font-size:13.5px}.sg span{color:#6b7081}'
+    + '.sel{display:inline-flex;gap:8px;align-items:center;margin-top:10px;border:1px solid #cfe9da;background:#f1fbf5;color:#1d7a46;border-radius:99px;padding:4px 12px;font-size:11.5px;font-weight:700}.rod{padding:12px 28px 16px;border-top:1px solid #e6e8ee;color:#7a8091;font-size:10.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}'
+    + '@media print{body{background:#fff}.pg{margin:0;max-width:none;border-radius:0;box-shadow:none}}@media(max-width:620px){.pac,.ass{grid-template-columns:1fr}.ln{flex-direction:column;gap:3px}}';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anamnese — ' + esc(a.paciente) + '</title><style>' + css + '</style></head><body><div class="pg">'
+    + '<header class="top">' + marca + '<div><div class="wm">Orto<i>+</i></div><div class="sb">Gestão para ortodontia</div></div><div class="dt"><b>Ficha de Anamnese</b><span>' + esc(a.unidade) + '</span></div></header>'
+    + '<div class="bd"><div class="pac"><div><small>Paciente</small><b>' + esc(a.paciente) + '</b></div><div><small>Código</small><b>' + esc(a.codigo) + '</b></div><div><small>Assinada em</small><b>' + esc(dtHora(a.respondida_em)) + '</b></div></div>'
+    + (alertas.length ? '<div class="alerta"><h4>Pontos de atenção para o atendimento</h4>' + alertas.map(x => '<p><b>' + esc(x[0]) + ':</b> ' + esc(x[1]) + '</p>').join('') + '</div>' : '<div class="alerta ok"><h4>Pontos de atenção</h4><p>Nenhum ponto de atenção informado pelo paciente.</p></div>')
+    + secoes
+    + '<div class="ass"><div class="decl"><b>Declaração.</b> Declaro que as informações acima são verdadeiras e completas, e que fui orientado(a) a avisar a equipe sempre que houver mudança no meu estado de saúde.<div class="sel">✔ Assinado eletronicamente</div></div>'
+    + '<div><div class="sig"><img alt="Assinatura" src="' + esc(a.assinatura) + '"></div><div class="sg"><b>' + esc(a.assinante_nome) + '</b><span>' + quem + ' · ' + esc(dtHora(a.respondida_em)) + '</span></div></div></div></div>'
+    + '<footer class="rod"><span>Registro de verificação: <b>' + esc(reg) + '</b>' + (a.ip ? ' · IP ' + esc(a.ip) : '') + '</span><span>Gerado pelo Orto+ · versão do formulário ' + esc(a.versao_form || 1) + '</span></footer></div></body></html>';
+}
 /* na ficha do paciente */
 const anamLink = tk => location.origin + location.pathname + '?anamnese=' + tk;
 let FI_TAB = null;
@@ -1119,11 +1154,10 @@ async function pacAnamnese(p, recarrega){
   $$('#fi-anam [data-ac]').forEach(b => b.addEventListener('click', async () => { const x = await sb.rpc('anamnese_cancelar', { p_id: Number(b.dataset.ac) }); if (x.error) { toast(erroTxt(x.error)); return; } toast('Link cancelado.'); recarrega(); }));
   $$('#fi-anam [data-av]').forEach(b => b.addEventListener('click', async () => {
     const x = await sb.rpc('anamnese_ver', { p_id: Number(b.dataset.av) }); if (x.error) { toast(erroTxt(x.error)); return; } const a = x.data;
-    const doc = '<h2 style="margin:0">Anamnese — ' + esc(a.paciente) + '</h2><p class="sub" style="margin:2px 0 8px">' + esc(a.unidade) + ' · código ' + a.codigo + ' · assinada em ' + dtHora(a.respondida_em) + '</p>' + anamResumoHtml(a.respostas)
-      + '<h3 style="margin:14px 0 4px">Assinatura</h3><img alt="Assinatura" src="' + esc(a.assinatura) + '" style="max-width:320px;border:1px solid #ccc;background:#fff"><p class="sub" style="margin:4px 0">' + esc(a.assinante_nome) + (a.assinante_tipo === 'responsavel' ? ' (responsável legal)' : ' (paciente)') + '<br>Registro: ' + esc((a.hash || '').slice(0, 16)) + (a.ip ? ' · IP ' + esc(a.ip) : '') + '</p>';
-    abrirJanela('Anamnese', '<div class="db" id="an-doc">' + doc + '</div><div class="df"><button class="btn ghost" type="button" id="an-x">Fechar</button><button class="btn" type="button" id="an-imp">Imprimir</button></div>');
+    abrirJanela('Anamnese de ' + a.paciente, '<div class="db" style="padding:0"><iframe id="an-doc" title="Ficha de anamnese" style="width:100%;height:68vh;min-height:420px;border:0;background:#eef0f4"></iframe></div><div class="df"><button class="btn ghost" type="button" id="an-x">Fechar</button><button class="btn" type="button" id="an-imp">Imprimir / salvar em PDF</button></div>');
+    $('#an-doc').srcdoc = anamDocHtml(a);
     $('#an-x').addEventListener('click', fecharJanela);
-    $('#an-imp').addEventListener('click', () => { const w = window.open('', '_blank'); if (!w) { toast('O navegador bloqueou a janela de impressão.'); return; } w.document.write('<html><head><meta charset="utf-8"><title>Anamnese</title></head><body style="font:14px/1.5 system-ui;margin:28px">' + $('#an-doc').innerHTML.replace(/class="sub"/g, 'style="color:#555"') + '</body></html>'); w.document.close(); w.focus(); w.print(); });
+    $('#an-imp').addEventListener('click', () => { const f = $('#an-doc'); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('Não foi possível abrir a impressão.'); } });
   }));
 }
 
