@@ -264,7 +264,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   .df .esq{width:100%;margin-right:0}
   .df .btn{flex:1}
 }
-#in-cx .card{margin-bottom:14px}.rl tr.clk{cursor:pointer}.rl tr.clk:hover td,.rl tr.clk:focus td{background:rgba(127,127,127,.12)}.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
+#in-cx .card{margin-bottom:14px}.eu select{width:100%;margin:2px 0 6px;font-size:12px;padding:5px 6px;border-radius:8px}.eu select.sim{border-color:var(--brand,#ff6a00);outline:1px solid var(--brand,#ff6a00)}.rl tr.clk{cursor:pointer}.rl tr.clk:hover td,.rl tr.clk:focus td{background:rgba(127,127,127,.12)}.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
 .rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
 .cbk{display:grid;gap:4px;margin-top:14px}.cbk span{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.cbk1 b{font-size:34px;line-height:1.1;display:block}.cbk2 b{font-size:22px;color:var(--muted);display:block}.cbk3{margin-top:8px}.cbk3 b{font-size:22px;display:block}.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px;max-width:520px}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}.cbc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}.cbc1{display:grid;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}.cbc1 .pill{justify-self:start}.cbc1 b{font-size:13px;font-weight:600;color:var(--muted)}.cbc1 strong{font-size:20px}.cbc1 small{color:var(--muted);font-size:12px}.cbc1.on,.cbc1:hover{border-color:var(--accent)}
@@ -297,7 +297,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
     <button class="ver" id="ver" type="button" title="Registro de versões"></button>
     <div class="und" id="und"></div>
     <nav id="menu"></nav>
-    <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
+    <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><select id="eu-ver" hidden aria-label="Ver o sistema como outro perfil" title="Ver o sistema como outro perfil"></select><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
   </aside>
   <div class="col">
     <div class="bar"><button type="button" id="abre" aria-label="Abrir menu">☰</button><b id="bar-t"></b></div>
@@ -391,12 +391,31 @@ async function iniciar(){
   if (data && data.session) { if (!(await entrarNoApp())) { await sb.auth.signOut(); $('#v-login').hidden = false; $('#l-err').textContent = 'Seu acesso está inativo ou ainda não foi liberado.'; } }
   else $('#v-login').hidden = false;
 }
+/* ---------- ver como: Diretor (qualquer perfil) e Gerente (perfis sem Configurações) veem as telas como outro perfil ---------- */
+const VC = { l: [], real: null };
+function verComoDesenha(){
+  const sel = $('#eu-ver'), pf = $('#eu-perfil'); if (!sel) return;
+  if (!EU || VC.l.length < 2) { sel.hidden = true; pf.hidden = false; return; }
+  const atual = VC.l.find(x => x.nome === EU.perfil) || VC.l.find(x => x.meu);
+  sel.innerHTML = VC.l.map(x => '<option value="' + x.id + '"' + (atual && atual.id === x.id ? ' selected' : '') + '>' + esc(x.nome) + (x.meu ? ' (meu perfil)' : '') + '</option>').join('');
+  sel.hidden = false; pf.hidden = true; sel.classList.toggle('sim', !!(atual && !atual.meu));
+}
+function verComoAplica(id){
+  const x = VC.l.find(y => y.id === Number(id)); if (!x || !EU) return;
+  if (x.meu) { EU.perfil = VC.real.perfil; EU.acesso_total = VC.real.acesso_total; EU.permissoes = VC.real.permissoes; }
+  else { EU.perfil = x.nome; EU.acesso_total = false; EU.permissoes = x.permissoes || []; }
+  FILA = FILA.then(async () => { await guardar(); ABAS.length = 0; ABA = null; $('#area').replaceChildren(); montarMenu(); verComoDesenha(); }).catch(() => {});
+  irPara('inicio');
+  toast(x.meu ? 'Voltou ao seu perfil.' : 'Vendo o sistema como ' + x.nome + '. As permissões reais da sua conta continuam valendo ao gravar.');
+}
+document.addEventListener('change', e => { if (e.target && e.target.id === 'eu-ver') verComoAplica(e.target.value); });
+
 async function entrarNoApp(troca){
   const { data, error } = await sb.rpc('meu_acesso');
   if (error || !data) return false;
   if (troca) await guardar();
   const manter = troca ? ABAS.filter(a => a.rota.startsWith('p-')) : [];
-  EU = data;
+  EU = data; VC.l = []; VC.real = { perfil: data.perfil, acesso_total: data.acesso_total, permissoes: data.permissoes };
   $('#v-login').hidden = true; $('#v-app').hidden = false;
   $('#eu-nome').textContent = EU.nome; $('#eu-perfil').textContent = EU.perfil || EU.cargo || '';
   ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); ABAS.push(...manter);
@@ -404,7 +423,8 @@ async function entrarNoApp(troca){
   const md = $('#modo');
   if (EU.plataforma && EU.grupo) { md.hidden = false; md.innerHTML = '<span>Modo suporte · você está dentro de <b>' + esc(EU.grupo) + '</b>. O que você fizer aqui é registrado.</span><button class="btn ghost" type="button" id="modo-sai">Voltar ao painel da plataforma</button>'; $('#modo-sai').addEventListener('click', async () => { const r = await sb.rpc('sair_grupo'); if (r.error) { toast(erroTxt(r.error)); return; } await entrarNoApp(true); }); }
   else { md.hidden = true; md.innerHTML = ''; }
-  montarMenu(); irPara(EU.fora ? 'p-grupos' : 'inicio'); avIniciar();
+  montarMenu(); irPara(EU.fora ? 'p-grupos' : 'inicio'); avIniciar(); verComoDesenha();
+  if (!EU.fora && !EU.plataforma) sb.rpc('perfis_ver_como').then(r => { if (!r.error && EU) { VC.l = r.data || []; verComoDesenha(); } });
   if (!EU.fora) sb.rpc('sou_dentista').then(r => { if (!r.error && EU) { EU.dentista = !!r.data; avDesenhar(); } });
   return true;
 }
@@ -501,6 +521,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.18.1', '2026-11-01', 'Ver como: o Diretor (qualquer perfil) e o Gerente (perfis sem acesso total nem Configurações) escolhem no nome do perfil, no menu lateral, como ver o sistema; menu e telas passam a mostrar só o que aquele perfil enxerga. Os demais perfis ficam só com o próprio.'],
   ['0.18.0', '2026-11-01', 'Início da recepção: faltas de hoje, de ontem e dos últimos 7 dias (com código, status, procedimento, telefone e próximo horário livre do dentista responsável), rotina do caixa (fechar o de ontem, pedir a abertura do de hoje ao gerente) e botão para a agenda do dia. Pacientes e prospects em grid com filtros e Situação como coluna. Financeiro abre em Todos.'],
   ['0.17.0', '2026-11-01', 'Paciente com código único de 8 dígitos e situação Contenção (manutenção periódica: fora da previsão e da régua, mas o que ele paga entra no recebido). Busca única por nome, CPF, código ou telefone. Ocorrências e financeiro do paciente em grid com filtros e totalizador.'],
   ['0.16.0', '2026-11-01', 'Cobrança: régua (preventiva, cob 0, 30, 60, 90 e +90), painel por régua, faturado x previsão de faturamento com aproveitamento da cobrança e filtro de datas. O paciente só começa a ter parcelas a pagar depois da 1ª mensalidade paga (Início pago = Pré-Ativo; 1ª mensalidade paga = Ativo); aí as mensalidades passam a ser geradas todo mês, pagas ou não. Com 4 meses de atraso (sem contar Início e 1ª mensalidade) o paciente vira Inativo e deixa de gerar parcelas. A lista de parcelas do Financeiro passa a ser um grid com filtros por coluna (estilo planilha), Receber e totalizador no rodapé.'],
