@@ -574,6 +574,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.27.5', '2026-11-02', 'Dashboard do Diretor e do Gerente: o faturamento em destaque agora é o do mês atual; o mês anterior aparece menor, como comparativo.'],
   ['0.27.4', '2026-11-02', 'Dobráveis: o menu lateral fica fixo sempre que a tela é larga e alta o bastante (a partir de 600 px de largura e 560 px de altura), independente do modelo ou do zoom do aparelho.'],
   ['0.27.3', '2026-11-02', 'Mapa de Minas: ao arrastar, aparece o retângulo tracejado mostrando a área selecionada.'],
   ['0.27.2', '2026-11-02', 'Telas dobráveis e pequenas: corrigida a barra do topo (menu) que ficava espremida; na tela aberta do dobrável o menu lateral fica fixo e o conteúdo se ajusta à largura.'],
@@ -878,7 +879,7 @@ function dmKpis(d){
   return '<div class="dgrid">'
     + '<section class="dk hero"><svg width="104" height="104" viewBox="0 0 170 170" aria-hidden="true" style="flex:none"><defs><linearGradient id="dg1" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="85" cy="85" r="70" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/><circle cx="85" cy="85" r="70" fill="none" stroke="url(#dg1)" stroke-width="12" stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="' + off + '" transform="rotate(-90 85 85)" style="filter:drop-shadow(0 0 8px #22d3ee)"/><text x="85" y="94" text-anchor="middle" fill="#fff" font-size="34" font-weight="700">' + pct + '%</text></svg>'
     + '<div><div class="lb">Pacientes ativos</div><div class="big">' + n(d.ativos) + '</div><div class="chips"><span class="dl eq">' + n(d.inativos) + ' inativos</span><span class="dl eq">' + n(d.preativos) + ' pré-ativos</span><span class="dl eq">' + n(d.contencao) + ' contenção</span></div></div></section>'
-    + '<section class="dk fat"><div><div class="lb">Faturamento · ' + a + '</div><div class="big or"><small>R$</small> ' + reais(d.fat_ant).replace('R$', '').trim() + '</div>' + chip(d.fat_ant, d.fat_atual, b + ': ' + reais(d.fat_atual)) + bar(a, d.fat_ant, b, d.fat_atual, 'linear-gradient(90deg,#ff7a1a,#ffb347)') + '</div>'
+    + '<section class="dk fat"><div><div class="lb">Faturamento · ' + b + '</div><div class="big or"><small>R$</small> ' + reais(d.fat_atual).replace('R$', '').trim() + '</div>' + chip(d.fat_ant, d.fat_atual, a + ': ' + reais(d.fat_ant)) + bar(a, d.fat_ant, b, d.fat_atual, 'linear-gradient(90deg,#ff7a1a,#ffb347)') + '</div>'
     + '<div><div class="lb">1ª mensalidade</div><div class="cols"><div><i style="height:' + (Number(d.fat1_ant) / m1 * 100) + '%"></i><span>1/' + a + '</span><b>' + reais(d.fat1_ant) + '</b></div><div><i class="b2" style="height:' + (Number(d.fat1_atual) / m1 * 100) + '%"></i><span>1/' + b + '</span><b>' + reais(d.fat1_atual) + '</b></div></div></div></section>'
     + kpi('Visitas', d.visitas_ant, d.visitas_atual, 'em ' + a, a, b, '#22d3ee') + kpi('Av. atendidas', d.av_ant, d.av_atual, 'em ' + a, a, b, '#8b5cf6')
     + kpi('Vendas · dia', d.vd_dia_ant, d.vd_dia_atual, 'hoje', 'Mesmo dia de ' + a, 'Hoje', '#34d399', d.vd_dia_atual) + kpi('Vendas · mês', d.vd_mes_ant, d.vd_mes_atual, 'em ' + a, a, b, '#ff7a1a') + '</div>';
