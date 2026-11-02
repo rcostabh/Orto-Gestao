@@ -288,6 +288,24 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .dchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.dchips button{border:1px solid var(--line);background:rgba(255,255,255,.05);color:#cfd8ee;border-radius:99px;padding:5px 12px;cursor:pointer;font:600 12px inherit}.dchips button.on{background:linear-gradient(135deg,#ff7a1a,#ffb347);color:#190b00;border-color:transparent}
 .dkp.stk .dk{grid-column:span 6}.dkp.stk .dk.hero,.dkp.stk .dk.fat{grid-column:span 12}
 @media(max-width:1000px){.com-mapa .dwrap{grid-template-columns:1fr}.dmapa{position:static}}
+@media(min-width:1201px) and (min-height:600px),(min-width:1001px) and (max-width:1200px) and (min-height:860px){
+  .com-mapa .dwrap{height:calc(100vh - 262px);min-height:430px;max-height:860px;align-items:stretch}
+  .com-mapa .dmapa{position:static;display:flex;flex-direction:column;min-height:0;padding:12px}
+  .com-mapa #dm-svg{flex:1;min-height:0;height:auto}
+  .com-mapa .dkp{display:flex;flex-direction:column;min-height:0;min-width:0}
+  .com-mapa .dkp.stk{display:flex}
+  .com-mapa .dkp .dgrid{flex:1;min-height:0;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:minmax(0,1.25fr) minmax(0,1fr)}
+  .com-mapa .dkp.stk .dk{grid-column:span 3;padding:11px;min-height:0;overflow:hidden}
+  .com-mapa .dkp.stk .dk.hero{grid-column:span 5;min-height:0;gap:10px}
+  .com-mapa .dkp.stk .dk.fat{grid-column:span 7;min-height:0;gap:10px}
+  .com-mapa .dkp .big{font-size:28px;margin:6px 0}.com-mapa .dkp .big.or{font-size:24px}.com-mapa .dkp .dk .v{margin:6px 0 4px}.com-mapa .dkp .dk .v b{font-size:20px}
+  .com-mapa .dkp .cols{height:auto;flex:1;min-height:40px;margin-top:6px}
+  .com-mapa .dkh{margin-bottom:6px}.com-mapa .dkh h3{font-size:17px}.com-mapa .dchips{margin-bottom:8px}
+  .com-mapa .dsem:empty{display:none}
+}
+@media(min-width:1001px) and (min-height:600px){.com-mapa .dkp .dk .v{flex-wrap:wrap;gap:2px 8px}.com-mapa .dkp .dk.hero svg{width:clamp(64px,9vh,104px);height:auto}.com-mapa .dkp .lb{font-size:10.5px;letter-spacing:.1em}}
+@media(min-width:1001px) and (min-height:600px) and (max-height:820px){.dsx{padding:12px;border-radius:20px}.com-mapa .dkp .dk .cmp div{margin-top:3px;font-size:11px;white-space:nowrap}.com-mapa .dkp .dk .v b{font-size:18px}.com-mapa .dkp .big{font-size:24px;margin:3px 0}.com-mapa .dkp .big.or{font-size:21px}.com-mapa .dkp .dk .dl{font-size:11px;padding:2px 7px}.com-mapa .dkp .dk.hero{flex-wrap:nowrap}.dnota{margin:6px 4px 0;font-size:10.5px}.com-mapa .dkp .dk .v span{font-size:11px}}
+@media(min-width:1001px) and (max-width:1200px) and (min-height:860px){.com-mapa .dkp.stk .dk{grid-column:span 6}.com-mapa .dkp.stk .dk.hero,.com-mapa .dkp.stk .dk.fat{grid-column:span 12}.com-mapa .dkp .dgrid{grid-template-rows:none;grid-auto-rows:minmax(0,1fr);overflow:auto}}
 .dtf{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.dtf input{min-height:40px}.anam{max-width:760px;margin:0 auto;padding:20px 16px 60px}.anam h1{font-size:24px;margin:0 0 4px}.anam .sec{background:var(--card,#fff);border:1px solid var(--line,#e5e5e5);border-radius:16px;padding:16px;margin:14px 0}.anam .sec h2{margin:0 0 10px;font-size:17px}
 .anam .q{padding:10px 0;border-top:1px solid var(--line,#eee)}.anam .q:first-of-type{border-top:0}.anam .q label.t{display:block;font-weight:600;margin-bottom:6px}.anam .opt{display:inline-flex;gap:8px;margin-right:8px}.anam .opt label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line,#ccc);border-radius:99px;padding:8px 16px;cursor:pointer;min-height:40px}.anam .opt input:checked+span{font-weight:700}
 .anam textarea,.anam input[type=text],.anam input:not([type]){width:100%;padding:11px;border:1px solid var(--line,#ccc);border-radius:10px;font:inherit}.anam .det{margin-top:8px}.anam .chk{display:flex;gap:8px;align-items:center;padding:6px 0}.anam .chk input{width:20px;height:20px}
@@ -583,6 +601,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.29.1', '2026-11-02', 'Início do Diretor e do Gerente: os quadros de indicadores agora têm a mesma altura do mapa e tudo cabe na tela, sem rolagem (em telas pequenas continua em coluna).'],
   ['0.29.0', '2026-11-02', 'Cobrança: novas abas Sem agendamento (lista diária de pacientes em tratamento sem próxima consulta), Faltas (controle por dia e por mês, com a lista de quem faltou e se já remarcou) e Campanhas (regra de quem entra, por faixa de cobrança, procedimento atrasado, sem consulta, sem atendimento ou faltas, mais a mensagem). Envio por WhatsApp em fila de 1 toque, com registro do contato e do resultado, e chave para exigir autorização de WhatsApp (LGPD). Quem recusou nunca recebe.'],
   ['0.28.0', '2026-11-02', 'Documentação do paciente: fotos extraorais e intraorais, raio-X e outros arquivos (importar, visualizar, excluir) no menu Pacientes e na ficha, guardados em armazenamento privado. Novo app de celular para fotografar o paciente.'],
   ['0.27.5', '2026-11-02', 'Dashboard do Diretor e do Gerente: o faturamento em destaque agora é o do mês atual; o mês anterior aparece menor, como comparativo.'],
