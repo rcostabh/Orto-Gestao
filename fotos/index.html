@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orto+ Fotos</title>
+<meta name="theme-color" content="#0b0b0b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Orto+ Fotos">
+<style>
+:root{--bg:#0b0b0b;--s1:#161616;--s2:#222;--line:#2e2e2e;--ink:#f4f4f4;--mu:#a3a3a3;--ac:#ff6a00;--ok:#2fbf71;--er:#ff6b6b;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 var(--font)}
+body{min-height:100vh;min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.top svg{width:32px;height:32px;flex:none}.top b{font-size:17px}.top .eu{margin-left:auto;color:var(--mu);font-size:13px;text-align:right}
+.lk{background:none;border:0;color:var(--ac);font-weight:600;padding:8px 4px;cursor:pointer}
+main{padding:16px;max-width:640px;margin:0 auto}
+h1{font-size:22px;margin:4px 0 14px}h2{font-size:15px;margin:22px 0 10px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.fld{display:grid;gap:6px;margin-bottom:14px}.fld span{color:var(--mu);font-size:14px}
+input[type=text],input[type=password],input[type=search]{width:100%;min-height:52px;padding:0 14px;border-radius:14px;border:1px solid var(--line);background:var(--s1)}
+input:focus{outline:2px solid var(--ac);outline-offset:1px}
+.btn{min-height:52px;padding:0 20px;border:0;border-radius:14px;background:var(--ac);color:#111;font-weight:700;cursor:pointer;width:100%}
+.btn.g{background:var(--s2);color:var(--ink);width:auto;min-height:44px}.btn:disabled{opacity:.5}
+.err{color:var(--er);min-height:20px;margin:6px 0}
+.row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer}
+.row b{display:block}.row small{color:var(--mu)}.row .n{margin-left:auto;background:var(--s2);border-radius:99px;padding:2px 10px;font-size:13px;white-space:nowrap}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:4px;margin:10px 0}
+.seg button{min-height:44px;border:0;border-radius:10px;background:none;color:var(--mu);font-weight:600;cursor:pointer}.seg button[aria-pressed=true]{background:var(--ac);color:#111}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 4px}
+.tabs button{min-height:46px;border:0;border-bottom:3px solid var(--line);background:none;color:var(--mu);font-weight:700;cursor:pointer}.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{position:relative;aspect-ratio:1/1;border-radius:16px;border:2px dashed var(--line);background:var(--s1);overflow:hidden;display:flex;align-items:flex-end;padding:0;cursor:pointer;text-align:left}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile .lb{position:relative;width:100%;padding:28px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-weight:600;font-size:14px}
+.tile .cam{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mu)}.tile .cam svg{width:40px;height:40px}
+.tile.ok{border-style:solid;border-color:var(--ok)}.tile .ck{position:absolute;top:8px;right:8px;background:var(--ok);color:#06210f;border-radius:99px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:800}
+.tile.up{border-color:var(--ac)}.tile.up::after{content:"Enviando…";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);font-weight:700}
+.tile.bad{border-color:var(--er)}
+.thumb{aspect-ratio:1/1;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--s1);padding:0;position:relative;cursor:pointer}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.thumb span{position:absolute;left:0;right:0;bottom:0;padding:16px 8px 6px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:12px}
+.vz{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:20;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.vz img{flex:1;min-height:0;object-fit:contain;width:100%}.vz .bar{display:flex;gap:10px;align-items:center;padding:12px 16px}.vz .bar span{flex:1;color:var(--mu);font-size:14px}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:14px;z-index:30;text-align:center}
+.sub{color:var(--mu)}.sel{width:100%;min-height:48px;border-radius:14px;border:1px solid var(--line);background:var(--s1);padding:0 12px}
+</style>
+</head>
+<body>
+<div id="v-login" hidden>
+  <main>
+    <div style="text-align:center;margin:30px 0 24px"><svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#111" stroke="#2b2b2b"/><path d="M32 12a20 20 0 1 0 20 20" fill="none" stroke="#ff6a00" stroke-width="8" stroke-linecap="round"/><path d="M45 11v14M38 18h14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg><h1 style="margin:10px 0 0">Orto+ Fotos</h1><p class="sub" style="margin:4px 0 0">Entre com o mesmo usuário e senha do sistema.</p></div>
+    <form id="f-login" novalidate>
+      <label class="fld"><span>Usuário</span><input id="l-login" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      <label class="fld"><span>Senha</span><input id="l-senha" type="password" autocomplete="current-password"></label>
+      <div class="err" id="l-err" role="alert"></div>
+      <button class="btn" type="submit" id="l-btn">Entrar</button>
+    </form>
+  </main>
+</div>
+
+<div id="v-app" hidden>
+  <header class="top"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#111" stroke="#2b2b2b"/><path d="M32 12a20 20 0 1 0 20 20" fill="none" stroke="#ff6a00" stroke-width="8" stroke-linecap="round"/><path d="M45 11v14M38 18h14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg><b>Fotos</b><div class="eu"><div id="eu-nome"></div><button class="lk" type="button" id="sair">Sair</button></div></header>
+
+  <main id="v-busca">
+    <h1>Buscar paciente</h1>
+    <label class="fld"><span>Nome ou código</span><input id="q" type="search" autocomplete="off" placeholder="Digite ao menos 2 letras"></label>
+    <div id="res"><p class="sub">Digite o nome ou o código do paciente.</p></div>
+  </main>
+
+  <main id="v-pac" hidden>
+    <button class="lk" type="button" id="volta">← Outro paciente</button>
+    <h1 id="p-nome" style="margin-bottom:2px"></h1><div class="sub" id="p-sub"></div>
+    <div class="seg" id="mom" role="group" aria-label="Momento do tratamento"></div>
+    <div class="tabs" role="tablist"><button type="button" role="tab" id="t-foto" aria-selected="true">Fotografar</button><button type="button" role="tab" id="t-gal" aria-selected="false">Fotos do paciente</button></div>
+    <div id="pn-foto"></div>
+    <div id="pn-gal" hidden></div>
+  </main>
+</div>
+
+<div id="msg" hidden><main><h1 id="msg-t"></h1><p class="sub" id="msg-p"></p><button class="btn g" type="button" id="msg-sair">Sair</button></main></div>
+<input type="file" id="cam" accept="image/*" capture="environment" hidden>
+<input type="file" id="gal" accept="image/*" multiple hidden>
+<div class="vz" id="vz" hidden><img id="vz-img" alt=""><div class="bar"><span id="vz-t"></span><button class="btn g" type="button" id="vz-del" hidden>Excluir</button><button class="btn g" type="button" id="vz-x">Fechar</button></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const C = window.CONFIG || {}, DOM = C.LOGIN_DOMAIN || 'acesso.orto.app', BUCKET = 'documentos-pacientes';
+const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+const EXTRA = [['extra_frontal_repouso', 'Frontal em repouso'], ['extra_frontal_sorrindo', 'Frontal sorrindo'], ['extra_perfil_direito', 'Perfil direito'], ['extra_perfil_esquerdo', 'Perfil esquerdo'], ['extra_45_direito', '45° direito'], ['extra_45_esquerdo', '45° esquerdo']];
+const INTRA = [['intra_frontal', 'Frontal (oclusão)'], ['intra_lateral_direita', 'Lateral direita'], ['intra_lateral_esquerda', 'Lateral esquerda'], ['intra_oclusal_superior', 'Oclusal superior'], ['intra_oclusal_inferior', 'Oclusal inferior']];
+const MOM = { inicial: 'Inicial', acompanhamento: 'Acompanhamento', final: 'Final' };
+const CAT = { extra: 'Extraoral', intra: 'Intraoral', raiox: 'Raio-X', outro: 'Outro' };
+const ROT = {}; EXTRA.concat(INTRA).forEach(x => ROT[x[0]] = x[1]); ROT.livre = 'Foto avulsa'; ROT.rx_outro = 'Raio-X';
+let EU = null, PAC = null, DOCS = [], URLS = {}, MO = 'inicial', pend = null, subindo = 0;
+const pode = p => !!EU && (EU.acesso_total || (EU.permissoes || []).includes(p));
+function erroTxt(e){ const m = String((e && (e.message || e.error_description)) || e || ''); if (/Invalid login|invalid_credentials/i.test(m)) return 'Usuário ou senha incorretos.'; if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'Sem conexão com a internet. Tente de novo.'; return m || 'Algo deu errado.'; }
+function toast(t){ const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 3200); }
+function tela(n){ ['v-login', 'v-app', 'msg'].forEach(i => { $('#' + i).hidden = i !== n; }); }
+const dBR = s => { const m = String(s || '').slice(0, 10).split('-'); return m.length === 3 ? m[2] + '/' + m[1] + '/' + m[0] : ''; };
+
+/* ---------- entrar ---------- */
+$('#f-login').addEventListener('submit', async e => {
+  e.preventDefault(); const er = $('#l-err'); er.textContent = ''; const login = $('#l-login').value.trim().toLowerCase(), senha = $('#l-senha').value;
+  if (!login || !senha) { er.textContent = 'Informe usuário e senha.'; return; }
+  const b = $('#l-btn'); b.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email: login + '@' + DOM, password: senha }); b.disabled = false;
+  if (error) { er.textContent = erroTxt(error); return; }
+  $('#l-senha').value = ''; abrir();
+});
+async function sair(){ try { await sb.auth.signOut(); } catch (x) {} EU = null; PAC = null; tela('v-login'); }
+$('#sair').addEventListener('click', sair); $('#msg-sair').addEventListener('click', sair);
+async function abrir(){
+  const r = await sb.rpc('meu_acesso');
+  if (r.error || !r.data) { tela('v-login'); if (r.error) $('#l-err').textContent = erroTxt(r.error); return; }
+  EU = r.data;
+  if (!pode('documentacao.enviar') && !pode('documentacao.ver')) { $('#msg-t').textContent = 'Sem acesso'; $('#msg-p').textContent = 'Seu perfil não tem permissão para a documentação do paciente. Peça ao gerente ou ao diretor.'; tela('msg'); return; }
+  $('#eu-nome').textContent = EU.nome || ''; tela('v-app'); busca();
+}
+
+/* ---------- busca ---------- */
+let tq = null;
+function busca(){ PAC = null; $('#v-busca').hidden = false; $('#v-pac').hidden = true; $('#q').focus(); }
+$('#q').addEventListener('input', e => { clearTimeout(tq); const v = e.target.value.trim(); tq = setTimeout(async () => {
+  const res = $('#res'); if (v.length < 2) { res.innerHTML = '<p class="sub">Digite o nome ou o código do paciente.</p>'; return; }
+  const r = await sb.rpc('documentos_buscar_paciente', { p_busca: v });
+  if (r.error) { res.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+  const l = r.data || [];
+  res.innerHTML = l.length ? l.map(x => '<button class="row" type="button" data-id="' + x.id + '"><div><b>' + esc(x.nome) + '</b><small>Cód. ' + x.codigo + ' · ' + esc(x.unidade) + '</small></div><span class="n">' + x.fotos + ' foto(s)</span></button>').join('') : '<p class="sub">Nenhum paciente encontrado.</p>';
+  $$('#res [data-id]').forEach(b => b.addEventListener('click', () => paciente(l.find(x => String(x.id) === b.dataset.id))));
+}, 250); });
+
+/* ---------- paciente ---------- */
+function paciente(x){
+  PAC = x; MO = 'inicial'; $('#v-busca').hidden = true; $('#v-pac').hidden = false;
+  $('#p-nome').textContent = x.nome; $('#p-sub').textContent = 'Cód. ' + x.codigo + ' · ' + x.unidade;
+  $('#mom').innerHTML = Object.keys(MOM).map(k => '<button type="button" data-m="' + k + '" aria-pressed="' + (k === MO) + '">' + MOM[k] + '</button>').join('');
+  $$('#mom [data-m]').forEach(b => b.addEventListener('click', () => { MO = b.dataset.m; $$('#mom [data-m]').forEach(y => y.setAttribute('aria-pressed', y === b)); telaFoto(); galeria(); }));
+  aba('foto'); carregar();
+}
+$('#volta').addEventListener('click', busca);
+function aba(n){ $('#t-foto').setAttribute('aria-selected', n === 'foto'); $('#t-gal').setAttribute('aria-selected', n === 'gal'); $('#pn-foto').hidden = n !== 'foto'; $('#pn-gal').hidden = n !== 'gal'; }
+$('#t-foto').addEventListener('click', () => aba('foto')); $('#t-gal').addEventListener('click', () => aba('gal'));
+async function carregar(){
+  DOCS = []; URLS = {};
+  if (pode('documentacao.ver')) {
+    const r = await sb.rpc('documentos_lista', { p_paciente: PAC.id });
+    if (!r.error) { DOCS = r.data || []; if (DOCS.length) { const s = await sb.storage.from(BUCKET).createSignedUrls(DOCS.map(d => d.caminho), 3600); (s.data || []).forEach(u => { if (u.signedUrl) URLS[u.path] = u.signedUrl; }); } }
+  }
+  telaFoto(); galeria();
+}
+const ultima = (tipo) => DOCS.find(d => d.tipo === tipo && d.momento === MO && /^image\//.test(d.mime));
+const CAM_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.6"/></svg>';
+function tile(cat, t){ const u = ultima(t[0]), url = u && URLS[u.caminho]; return '<button type="button" class="tile' + (u ? ' ok' : '') + '" data-cat="' + cat + '" data-tipo="' + t[0] + '">' + (url ? '<img src="' + esc(url) + '" alt="">' : '<span class="cam">' + CAM_ICO + '</span>') + (u ? '<span class="ck">✓</span>' : '') + '<span class="lb">' + esc(t[1]) + '</span></button>'; }
+function telaFoto(){
+  const envia = pode('documentacao.enviar');
+  $('#pn-foto').innerHTML = envia ? '<h2>Extraorais</h2><div class="grid">' + EXTRA.map(t => tile('extra', t)).join('') + '</div><h2>Intraorais</h2><div class="grid">' + INTRA.map(t => tile('intra', t)).join('') + '</div>'
+    + '<h2>Outras</h2><div class="grid">' + tile('extra', ['livre', 'Outra extraoral']) + tile('intra', ['livre', 'Outra intraoral']) + '</div>'
+    + '<h2>Da galeria</h2><label class="fld"><span>Tipo</span><select class="sel" id="g-cat"><option value="extra">Extraoral</option><option value="intra">Intraoral</option><option value="raiox">Raio-X</option><option value="outro">Outro</option></select></label><button class="btn g" type="button" id="g-btn" style="width:100%">Escolher fotos da galeria</button><p class="sub" style="margin-top:6px">Toque numa posição para abrir a câmera. A foto vai direto para a ficha do paciente.</p>'
+    : '<p class="sub">Seu perfil não pode enviar fotos.</p>';
+  $$('#pn-foto .tile').forEach(b => b.addEventListener('click', () => { pend = { cat: b.dataset.cat, tipo: b.dataset.tipo, el: b }; $('#cam').value = ''; $('#cam').click(); }));
+  const g = $('#g-btn'); if (g) g.addEventListener('click', () => { $('#gal').value = ''; $('#gal').click(); });
+}
+function galeria(){
+  const l = DOCS.filter(d => d.momento === MO);
+  $('#pn-gal').innerHTML = !pode('documentacao.ver') ? '<p class="sub">Seu perfil não pode ver as fotos.</p>' : l.length ? ['extra', 'intra', 'raiox', 'outro'].map(c => { const it = l.filter(d => d.categoria === c); return it.length ? '<h2>' + CAT[c] + ' (' + it.length + ')</h2><div class="grid">' + it.map(d => '<button type="button" class="thumb" data-d="' + d.id + '">' + (URLS[d.caminho] && /^image\//.test(d.mime) ? '<img src="' + esc(URLS[d.caminho]) + '" alt="" loading="lazy">' : '') + '<span>' + esc(ROT[d.tipo] || 'Arquivo') + ' · ' + dBR(d.tirada_em) + '</span></button>').join('') + '</div>' : ''; }).join('') : '<p class="sub" style="margin-top:14px">Nenhuma foto neste momento do tratamento.</p>';
+  $$('#pn-gal [data-d]').forEach(b => b.addEventListener('click', () => ver(DOCS.find(d => String(d.id) === b.dataset.d))));
+}
+function ver(d){
+  $('#vz-img').src = URLS[d.caminho] || ''; $('#vz-t').textContent = (ROT[d.tipo] || 'Arquivo') + ' · ' + dBR(d.tirada_em) + ' · ' + (d.criado_por_nome || ''); $('#vz').hidden = false;
+  const del = $('#vz-del'); del.hidden = !pode('documentacao.excluir');
+  del.onclick = async () => { if (!confirm('Excluir esta foto? Não dá para desfazer.')) return; const q = await sb.rpc('documento_excluir', { p_id: d.id }); if (q.error) { toast(erroTxt(q.error)); return; } if (q.data) { try { await sb.storage.from(BUCKET).remove([q.data]); } catch (x) {} } $('#vz').hidden = true; toast('Foto excluída.'); carregar(); };
+}
+$('#vz-x').addEventListener('click', () => { $('#vz').hidden = true; });
+
+/* ---------- enviar ---------- */
+function reduz(f){
+  return new Promise(res => {
+    if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return res(f);
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => { URL.revokeObjectURL(url); const k = Math.min(1, 2400 / Math.max(img.width, img.height)); if (k === 1 && f.size <= 2.5 * 1024 * 1024) return res(f);
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => res(b && b.size < f.size ? b : f), 'image/jpeg', .86); };
+    img.onerror = () => { URL.revokeObjectURL(url); res(f); }; img.src = url;
+  });
+}
+const uuid = () => String(window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(16).slice(2)).replace(/[^A-Za-z0-9-]/g, '');
+async function enviar(f, cat, tipo, el){
+  const pac = PAC; subindo++; if (el) { el.classList.remove('bad'); el.classList.add('up'); }
+  try {
+    const b = await reduz(f), mime = /^image\/(jpeg|png|webp|heic|heif)$/.test(b.type) ? b.type : 'image/jpeg', ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/heif': 'heif' })[mime];
+    if (b.size > 15 * 1024 * 1024) throw new Error('A foto passa de 15 MB.');
+    const caminho = pac.grupo_id + '/' + pac.id + '/' + uuid() + '.' + ext;
+    const up = await sb.storage.from(BUCKET).upload(caminho, b, { contentType: mime, upsert: false }); if (up.error) throw up.error;
+    const rg = await sb.rpc('documento_registrar', { p_paciente: pac.id, p_categoria: cat, p_tipo: tipo, p_momento: MO, p_caminho: caminho, p_nome: f.name || 'foto.jpg', p_mime: mime, p_tamanho: b.size, p_origem: 'celular', p_obs: null });
+    if (rg.error) { try { await sb.storage.from(BUCKET).remove([caminho]); } catch (x) {} throw rg.error; }
+    toast('Foto enviada para a ficha.'); return true;
+  } catch (e) { if (el) el.classList.add('bad'); toast(erroTxt(e)); return false; }
+  finally { subindo--; if (el) el.classList.remove('up'); }
+}
+$('#cam').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if (!f || !pend) return; const p = pend; pend = null; if (await enviar(f, p.cat, p.tipo, p.el) && PAC) carregar(); });
+$('#gal').addEventListener('change', async e => { const fs = Array.from(e.target.files || []); if (!fs.length) return; const cat = $('#g-cat').value, tipo = cat === 'raiox' ? 'rx_outro' : 'livre'; let ok = 0; for (const f of fs) { if (await enviar(f, cat, tipo, null)) ok++; } if (ok && PAC) carregar(); });
+window.addEventListener('beforeunload', e => { if (subindo) { e.preventDefault(); e.returnValue = ''; } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+(async function ini(){
+  if (!C.SUPABASE_URL) { $('#msg-t').textContent = 'Configuração ausente'; $('#msg-p').textContent = 'Não foi possível carregar a configuração do sistema.'; tela('msg'); return; }
+  const s = await sb.auth.getSession(); if (s.data && s.data.session) abrir(); else tela('v-login');
+})();
+})();
+</script>
+</body>
+</html>
