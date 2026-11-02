@@ -571,6 +571,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.27.1', '2026-11-02', 'Procedimentos: nova opção "Todas as cadeiras" (principal e auxiliares). Funcionários: as unidades não são mais escolhidas no formulário.'],
   ['0.27.0', '2026-11-02', 'Uma pessoa, um login, várias empresas: consultores e gerentes podem atuar em outra empresa por convite aceito pela própria pessoa (ou pelo Diretor da empresa dela), com perfil e unidades próprios em cada empresa e troca de empresa no menu. Ao digitar um CPF já cadastrado, o sistema sugere importar o cadastro.'],
   ['0.26.0', '2026-11-02', 'Gerente: Início com o mesmo dashboard do Diretor, com o mapa de Minas das unidades em que ele atua. Funcionários: botão Importar cadastro, que inclui na unidade quem já está cadastrado em outra unidade da empresa (pelo CPF, nunca como Diretor). Quem não é Diretor não apaga mais os vínculos de uma pessoa com unidades que ele não enxerga.'],
   ['0.25.0', '2026-11-02', 'Anamnese: nova ficha A4 profissional para visualizar, imprimir ou salvar em PDF, com a marca do sistema, destaque dos pontos de atenção, respostas em quadros e assinatura eletrônica com código de verificação.'],
@@ -2969,7 +2970,7 @@ function prdForm(x){
 }
 
 /* ---------- PROCEDIMENTOS (tempo e tipo de cadeira) ---------- */
-const LOCAL_PROC = { geral: 'Agenda Geral', principal: 'Cadeira principal (C1)', auxiliar: 'Cadeiras auxiliares' };
+const LOCAL_PROC = { geral: 'Agenda Geral', principal: 'Cadeira principal (C1)', auxiliar: 'Cadeiras auxiliares', todas: 'Todas as cadeiras (principal e auxiliares)' };
 const ST_AG = { agendado: 'Agendado', compareceu: 'Compareceu', em_atendimento: 'Em atendimento', faltou: 'Faltou', concluido: 'Concluído' };
 const minTxt = m => m % 60 === 0 ? (m / 60) + ' h' : m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
 async function prcCarregar(){
@@ -2996,7 +2997,7 @@ function prcForm(p){
     + '<div class="g2"><label class="field" for="pr-dur">Tempo *<select id="pr-dur"' + ro + '>' + durs.map(m => '<option value="' + m + '"' + ((p ? p.duracao_min : 15) === m ? ' selected' : '') + '>' + minTxt(m) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pr-loc">Tipo de cadeira *<select id="pr-loc"' + ro + '>' + Object.keys(LOCAL_PROC).map(k => '<option value="' + k + '"' + ((p ? p.local : 'auxiliar') === k ? ' selected' : '') + '>' + LOCAL_PROC[k] + '</option>').join('') + '</select></label></div>'
     + '<label class="chk" id="pr-avl"><input type="checkbox" id="pr-av"' + (p && p.avaliacao ? ' checked' : '') + ro + '> É uma avaliação <small style="color:var(--muted)">(único procedimento que um prospect pode agendar; vai para o aviso do dentista do dia)</small></label>'
-    + '<p class="sub" style="margin:0">Avaliações ficam na agenda Geral, atendimentos de manutenção nas cadeiras auxiliares e a instalação sempre na cadeira principal (C1).</p>'
+    + '<p class="sub" style="margin:0">Avaliações ficam na agenda Geral, atendimentos de manutenção nas cadeiras auxiliares e a instalação sempre na cadeira principal (C1). "Todas as cadeiras" vale para a principal e as auxiliares, mas não para a agenda Geral.</p>'
     + '<div class="err" id="pr-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('procedimentos.inativar') ? '<button class="btn ' + (p.ativo ? 'danger' : 'ghost') + '" type="button" id="pr-ina">' + (p.ativo ? 'Inativar' : 'Reativar') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="pr-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="pr-ok">Salvar</button>' : '') + '</div></form>');
@@ -3032,7 +3033,7 @@ const somaDias = (s, n) => { const d = dataLocal(s); d.setDate(d.getDate() + n);
 const minDe = h => { const [a, b] = h.split(':').map(Number); return a * 60 + b; };
 const hmDe = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
 // o procedimento cabe nesta agenda? (avaliação na Geral · instalação na principal · atendimentos nas auxiliares)
-const agCabe = (p, c) => p.local === 'geral' ? c.tipo === 'geral' : p.local === 'principal' ? (c.tipo === 'cadeira' && !!c.principal) : (c.tipo === 'cadeira' && !c.principal);
+const agCabe = (p, c) => p.local === 'geral' ? c.tipo === 'geral' : p.local === 'todas' ? c.tipo === 'cadeira' : p.local === 'principal' ? (c.tipo === 'cadeira' && !!c.principal) : (c.tipo === 'cadeira' && !c.principal);
 async function agdCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const r = await sb.from('unidades').select('*').order('sigla');
