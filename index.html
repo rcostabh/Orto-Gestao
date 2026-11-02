@@ -59,6 +59,12 @@ button{font-family:inherit}
 .brand .mark{width:36px;height:36px}.brand .wm{font-size:19px;color:#fff}
 .grp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--side-muted);padding:16px 10px 6px;font-weight:600}
 .item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--side-ink);font:500 14.5px var(--font);padding:0 12px;min-height:42px;border-radius:10px;cursor:pointer;text-align:left}
+.grp.tg{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--side-ink);font:500 14.5px var(--font);letter-spacing:0;text-transform:none;padding:0 12px;min-height:42px;border-radius:10px;cursor:pointer;text-align:left;margin-top:2px}
+.grp.tg:hover{background:rgba(255,255,255,.07)}
+.grp.tg svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.grp.tg .chv{margin-left:auto;width:16px;height:16px;opacity:.7;transition:transform .2s}.grp.tg[aria-expanded="true"] .chv{transform:rotate(180deg)}
+.msub{margin:2px 0 4px 14px;padding-left:8px;border-left:1px solid rgba(255,255,255,.12)}.msub[hidden]{display:none}
+.msub .item{min-height:38px;font-size:14px}
 .item:hover{background:rgba(255,255,255,.07)} .item[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
 .item svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .item.soon{opacity:.5;cursor:default}.item.soon:hover{background:transparent}
@@ -451,14 +457,15 @@ const MENU = [
   { r: 'inicio', t: 'Início', p: null },
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
-  { g: 'Pacientes', itens: [
-    { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' } ] },
-  { r: 'vendas', t: 'Vendas', p: 'vendas.ver' },
-  { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
-  { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver'] },
-  { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] },
-  { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] },
-  { g: 'Configurações', itens: [
+  { g: 'Pacientes', ic: 'prospects', itens: [
+    { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
+    { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] },
+  { g: 'Financeiro', ic: 'financeiro', itens: [
+    { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
+    { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver'] },
+    { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] },
+    { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] } ] },
+  { g: 'Configurações', ic: 'unidades', itens: [
     { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
     { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
@@ -472,19 +479,29 @@ const TITULOS = { cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades'
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
-  if (EU.fora) { $('#menu').innerHTML = h; $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r))); return; }
+  if (EU.fora) { $('#menu').innerHTML = h; $$('#menu button[data-r]').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r))); return; }
   for (const m of MENU) {
     if (m.r) { if (!m.p || [].concat(m.p).some(x => pode(x))) h += btnMenu(m); }
-    else if (m.itens) { const v = m.itens.filter(i => i.p === 'diretor' ? !!EU.acesso_total : [].concat(i.p).some(x => pode(x))); if (v.length) h += '<div class="grp">' + m.g + '</div>' + v.map(btnMenu).join(''); }
+    else if (m.itens) { const v = m.itens.filter(i => i.p === 'diretor' ? !!EU.acesso_total : [].concat(i.p).some(x => pode(x))); if (v.length) h += '<div class="mgrp"><button class="grp tg" type="button" aria-expanded="false" data-g="' + esc(m.g) + '">' + ico(m.ic) + m.g + '<svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="msub" hidden>' + v.map(btnMenu).join('') + '</div></div>'; }
     else h += '<div class="grp">' + m.g + '</div>' + m.soon.map(s => '<div class="item soon" aria-disabled="true">' + ico(s[0]) + s[1] + '<span class="tag">em breve</span></div>').join('');
   }
   $('#menu').innerHTML = h;
-  $$('#menu button').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r)));
+  $$('#menu button[data-r]').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r)));
+  $$('#menu .grp.tg').forEach(b => b.addEventListener('click', () => menuGrupo(b)));
+  if (ABA) menuAbre(ABA.rota);
 }
+/* menu compacto: cada grupo abre e fecha o seu submenu; abrir um fecha os outros; o grupo da tela atual abre sozinho */
+function menuGrupo(b, abrir){
+  const aberto = abrir == null ? b.getAttribute('aria-expanded') !== 'true' : abrir;
+  if (aberto) $$('#menu .grp.tg').forEach(o => { if (o !== b) { o.setAttribute('aria-expanded', 'false'); o.nextElementSibling.hidden = true; } });
+  b.setAttribute('aria-expanded', String(aberto)); b.nextElementSibling.hidden = !aberto;
+}
+function menuAbre(rota){ const it = document.querySelector('#menu .msub .item[data-r="' + rota + '"]'); if (it) menuGrupo(it.closest('.mgrp').querySelector('.grp.tg'), true); }
 const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' + ico(i.r) + i.t + '</button>';
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.17.0', '2026-11-01', 'Paciente com código único de 8 dígitos e situação Contenção (manutenção periódica: fora da previsão e da régua, mas o que ele paga entra no recebido). Busca única por nome, CPF, código ou telefone. Ocorrências e financeiro do paciente em grid com filtros e totalizador.'],
   ['0.16.0', '2026-11-01', 'Cobrança: régua (preventiva, cob 0, 30, 60, 90 e +90), painel por régua, faturado x previsão de faturamento com aproveitamento da cobrança e filtro de datas. O paciente só começa a ter parcelas a pagar depois da 1ª mensalidade paga (Início pago = Pré-Ativo; 1ª mensalidade paga = Ativo); aí as mensalidades passam a ser geradas todo mês, pagas ou não. Com 4 meses de atraso (sem contar Início e 1ª mensalidade) o paciente vira Inativo e deixa de gerar parcelas. A lista de parcelas do Financeiro passa a ser um grid com filtros por coluna (estilo planilha), Receber e totalizador no rodapé.'],
   ['0.15.1', '2026-11-01', 'Pesquisa financeira: colunas de valor por forma de pagamento (PIX, débito, crédito, dinheiro, boleto, transferência) com total no rodapé e filtros estilo planilha (funil no título de cada coluna, com busca e seleção de valores).'],
   ['0.15.0', '2026-11-01', 'Cobranças avulsas: botão + Nova cobrança na ficha financeira do paciente (produto ou serviço, valor, vencimento). Cadastro de produtos e serviços só para o Diretor. A cobrança avulsa é recebida, estornada e isentada como as parcelas, sem mexer no contrato do tratamento.'],
@@ -595,6 +612,7 @@ function mostrar(a){
   ENTRA_T = Date.now();
   ABA = a; $('#area').replaceChildren(a.frag); window.scrollTo(0, a.y || 0);
   $$('#menu .item').forEach(b => b.dataset.r === a.rota ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  menuAbre(a.rota);
   $('#bar-t').textContent = a.titulo; renderAbas();
 }
 function irPara(r, o){
@@ -1037,18 +1055,28 @@ async function pacCarregar(){
   if (!UN) { $('#area').innerHTML = semUn('Prospects'); return; }
   D.pac = rs[0].data.filter(p => p.unidade_id === UN); D.avAb = rs[1].data.filter(a => a.unidade_id === UN);
   $('#area').innerHTML = '<div class="head"><div><h1>Pacientes e prospects</h1><p class="sub">Prospects são quem ainda não iniciou o tratamento. Cadastre, inicie a avaliação com o dentista do dia ou agende na Agenda.</p></div>' + (pode('pacientes.criar') ? '<button class="btn" type="button" id="pc-novo">+ Novo prospect</button>' : '') + '</div>'
-    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF ou código" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Inativo', 'Concluído', 'Desistente'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div><div class="lista" id="pc-lista"></div></div>';
+    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF, código ou telefone" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Inativo', 'Contenção', 'Concluído', 'Desistente'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div><small id="pc-dica" style="display:block;color:var(--muted);margin:2px 2px 8px;min-height:16px"></small><div class="lista" id="pc-lista"></div></div>';
   pacLista();
   $('#pc-q').addEventListener('input', e => { PAC.q = e.target.value; pacLista(); });
   $('#pc-canal').addEventListener('change', e => { PAC.canal = e.target.value; pacLista(); });
   $('#pc-st').addEventListener('change', e => { PAC.st = e.target.value; pacLista(); });
   const n = $('#pc-novo'); if (n) n.addEventListener('click', () => pacForm(null));
 }
+/* busca única: entende sozinha se foi digitado nome, CPF, código (8 dígitos), telefone ou só o começo de um número */
+function pacBusca(txt){
+  const t = (txt || '').trim(); if (!t) return null;
+  const d = dig(t), nome = x => relNorm((x.nome || '') + ' ' + (x.nome_social || '')), tel = x => dig(x.telefone || '');
+  if (/[a-zA-ZÀ-ÿ]/.test(t) || !d) { const n = relNorm(t); return { rot: 'Nome', teste: x => nome(x).includes(n) }; }
+  if (/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(t) || (d.length === 11 && cpfOk(d))) return { rot: 'CPF ' + mCPF(d), teste: x => (x.cpf || '') === d };
+  if (/^[(+]/.test(t) || d.length === 10 || d.length === 11 || d.length === 9) { const q = d.replace(/^55(?=\d{10,11}$)/, ''); return { rot: 'telefone ' + mTel(q.length > 11 ? q.slice(0, 11) : q), teste: x => tel(x).includes(q) }; }
+  if (d.length === 8) return { rot: 'código ' + d, teste: x => String(x.codigo) === d };
+  return { rot: 'código, CPF ou telefone que começam com ' + d, teste: x => String(x.codigo).startsWith(d) || (x.cpf || '').startsWith(d) || tel(x).includes(d) };
+}
 function pacLista(){
-  const q = PAC.q.trim().toLowerCase(), qd = dig(PAC.q);
-  const l = D.pac.filter(p => (!PAC.canal || p.canal_venda === PAC.canal) && (!PAC.st || p.status === PAC.st) && (!q || (p.nome + ' ' + (p.nome_social || '')).toLowerCase().includes(q) || (qd && (p.cpf || '').includes(qd)) || String(p.id) === q));
+  const bq = pacBusca(PAC.q), dica = $('#pc-dica'); if (dica) dica.textContent = bq ? 'Buscando por ' + (bq.rot === 'Nome' ? 'nome' : bq.rot) : '';
+  const l = D.pac.filter(p => (!PAC.canal || p.canal_venda === PAC.canal) && (!PAC.st || p.status === PAC.st) && (!bq || bq.teste(p)));
   $('#pc-lista').innerHTML = l.length ? l.map(p => { const av = D.avAb.find(a => a.paciente_id === p.id);
-    return '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') + '</b><span class="m x">' + (p.cpf ? mCPF(p.cpf) : 'sem CPF') + '</span><span class="m x">' + esc(p.canal_venda) + '</span><span class="m x">Cadastro ' + dBR(p.data_cadastro) + '</span>'
+    return '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') + '</b><span class="m x">Cód ' + p.codigo + '</span><span class="m x">' + (p.cpf ? mCPF(p.cpf) : 'sem CPF') + '</span><span class="m x">' + esc(p.canal_venda) + '</span><span class="m x">Cadastro ' + dBR(p.data_cadastro) + '</span>'
       + '<span class="pill ' + (av ? 'wr' : 'nu') + '">' + (av ? (av.status === 'aguardando' ? 'Aguardando avaliação' : 'Em avaliação') : esc(p.status || 'Prospecção')) + '</span></button>'; }).join('')
     : '<div class="vazio">' + (D.pac.length ? 'Nenhum cadastro encontrado.' : 'Nenhum prospect cadastrado ainda.') + '</div>';
   $$('#pc-lista .row').forEach(b => b.addEventListener('click', () => abrirPaciente(D.pac.find(p => p.id === Number(b.dataset.id)))));
@@ -1093,6 +1121,8 @@ function pacForm(p, aoSalvar){
     + '<div class="g3"><label class="field" for="pc-canalv">Canal de vendas *<select id="pc-canalv"' + ro + '><option value="">Escolha...</option>' + CANAIS.map(c => '<option' + (p && p.canal_venda === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pc-un">Unidade *<select id="pc-un"' + ro + '>' + unid.map(u => '<option value="' + u.id + '"' + (u.id === un0 ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pc-data">Data do cadastro<input id="pc-data" value="' + dBR(p ? p.data_cadastro : hoje()) + '" readonly></label></div>'
+    + '<div class="g2"><label class="field" for="pc-cod">Código<input id="pc-cod" value="' + (p ? p.codigo : 'gerado ao salvar (8 dígitos)') + '" readonly></label>'
+    + (novo ? '<label class="field" for="pc-sit">Situação atual<select id="pc-sit"' + ro + '><option value="Prospecção">Prospecção (ainda não iniciou o tratamento)</option><option value="Contenção">Contenção (terminou o tratamento e volta para manutenção)</option></select></label>' : '<label class="field" for="pc-sit">Situação atual<input id="pc-sit" value="' + esc(p.status || 'Prospecção') + '" readonly></label>') + '</div>'
     + (novo ? '' : cadEndHtml('pc', p, ro))
     + '<label class="field" for="pc-obs">Observação<textarea id="pc-obs" rows="3" maxlength="500"' + ro + '>' + esc(p && p.observacao) + '</textarea></label>'
     + '<div class="err" id="pc-err" role="alert"></div></div>'
@@ -1114,12 +1144,13 @@ function pacForm(p, aoSalvar){
     if (tel && tel.length < 10) { er.textContent = 'Telefone incompleto.'; return; }
     if (!canal) { er.textContent = 'Escolha o canal de vendas.'; return; }
     const reg = { nome, nome_social: $('#pc-social').value.trim() || null, cpf: cpf || null, rg: $('#pc-rg').value.trim() || null, data_nascimento: nasc || null, telefone: tel || null, canal_venda: canal, unidade_id: Number($('#pc-un').value), observacao: $('#pc-obs').value.trim() || null };
+    if (novo && $('#pc-sit').value === 'Contenção') reg.status = 'Contenção';
     if (!novo) { const ce = cadEndLer('pc'), me = cadEndErro(ce); if (me) { er.textContent = me; return; } Object.assign(reg, ce); }
     $$('#pc-form button[type=submit]').forEach(b => b.disabled = true);
     const r = novo ? await sb.from('pacientes').insert(reg).select('*').single() : await sb.from('pacientes').update(reg).eq('id', p.id);
     $$('#pc-form button[type=submit]').forEach(b => b.disabled = false);
     if (r.error) { er.textContent = erroTxt(r.error); return; }
-    fecharJanela(); toast(novo ? 'Prospect cadastrado.' : 'Cadastro atualizado.');
+    fecharJanela(); toast(novo ? (reg.status === 'Contenção' ? 'Paciente cadastrado em contenção.' : 'Prospect cadastrado.') : 'Cadastro atualizado.');
     if (aoSalvar) aoSalvar();
     if (ROTA_ATIVA() === 'prospects') pacCarregar();
     if (novo && quer) avIniciarDialogo(r.data);
@@ -1128,8 +1159,8 @@ function pacForm(p, aoSalvar){
 const ROTA_ATIVA = () => ABA ? ABA.rota : '';
 
 /* ---------- ficha do paciente (uma aba por paciente) ---------- */
-const PROX_ST = { 'Ativo': [['Concluído', 'Concluir tratamento']], 'Inativo': [['Concluído', 'Concluir tratamento']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
-const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Desistente': 'off' };
+const PROX_ST = { 'Ativo': [['Contenção', 'Passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Inativo': [['Contenção', 'Passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Concluído': [['Contenção', 'Passar para contenção']], 'Contenção': [['Concluído', 'Concluir (alta definitiva)']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
+const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Contenção': 'nu', 'Desistente': 'off' };
 async function pacFicha(id){
   await sb.rpc('financeiro_atualizar');
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
@@ -1143,27 +1174,38 @@ async function pacFicha(id){
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
   const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
   const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
-  $('#area').innerHTML = '<div class="card tit"><h1>' + p.id + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
+  $('#area').innerHTML = '<div class="card tit"><h1>' + p.codigo + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
     + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' + (PROX_ST[p.status] || []).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
     + (['Pré-Ativo', 'Ativo', 'Inativo'].includes(p.status) && (ehGer() || pode('contratos.solicitar')) ? '<span class="mais"><button class="btn ghost sm" type="button" id="fi-mais" aria-haspopup="true" aria-expanded="false">Mais ações ▾</button><span class="mais-m" id="fi-mais-m" hidden><button type="button" id="fi-cc">' + (ehGer() ? 'Cancelar contrato' : 'Solicitar cancelamento de contrato') + '</button></span></span>' : '')
     + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '')
       : p.status === 'Prospecção' ? (concl && pode('avaliacoes.atender') && souDent() && !jaAvaliei ? '<button class="btn sm" type="button" id="fi-rea" title="Outro dentista avalia e registra o seu parecer">Reavaliar (meu parecer)</button>' : '')
         + (pode('avaliacoes.iniciar') ? '<button class="btn ' + (concl ? 'ghost ' : '') + 'sm" type="button" id="fi-ini">' + (concl ? 'Solicitar reavaliação' : 'Iniciar avaliação') + '</button>' : '') : '') + '</div></div>'
-    + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
+    + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Código', String(p.codigo)) + kv('Situação', p.status || 'Prospecção') + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
     + kv('E-mail', p.email) + kv('Endereço', [p.logradouro && (p.logradouro + (p.numero ? ', ' + p.numero : '') + (p.complemento ? ' - ' + p.complemento : '')), p.bairro, p.cidade && (p.cidade + (p.uf ? '/' + p.uf : '')), p.cep && mCEP(p.cep)].filter(Boolean).join(' · ')) + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : '')) : '')
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
     + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '<span title="Em breve">Anamnese</span></div>'
-    + '<div class="tw" id="fi-oc"' + (aberta ? ' hidden' : '') + '>' + (ocs.length ? '<table class="tb"><thead><tr><th>#</th><th>Data</th><th>Ocorrência</th><th>Responsável</th><th>Resultado</th><th>Detalhes</th></tr></thead><tbody>' + ocs.map((o, i) => '<tr><td>' + (i + 1) + '</td><td class="oc-t">' + dtHora(o.quando) + '</td><td><b>' + esc(o.titulo) + '</b></td><td>' + esc(o.responsavel) + '</td><td>' + (o.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : o.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(o.resultado)) + '</td><td>' + esc(o.detalhe) + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma ocorrência ainda.</div>') + '</div>'
-    + '<div class="tw" id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço)">+ Nova cobrança</button></div>' : '') + fnTabela(rs[7].error ? [] : (rs[7].data || []), pode('financeiro.baixar')) + '</div>'
+    + '<div id="fi-oc"' + (aberta ? ' hidden' : '') + '></div>'
+    + '<div id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço, consulta de manutenção)">+ Nova cobrança</button></div>' : '') + '<div id="fi-fng"></div></div>'
     + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
     + (marc.length ? '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Agendamentos</h2><div class="tw"><table class="tb"><thead><tr><th>Data</th><th>Hora</th><th>Agenda</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>'
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
+  gradeF($('#fi-oc'), { vazio: 'Nenhuma ocorrência ainda.', dados: ocs.map((o, n) => Object.assign({ _n: n + 1 }, o)), cols: [
+    { t: '#', k: x => x._n, v: x => String(x._n) }, { t: 'Data', k: x => x.quando || '', v: x => dtHora(x.quando) }, { t: 'Ocorrência', v: x => x.titulo || '', h: x => '<b>' + esc(x.titulo) + '</b>' }, { t: 'Responsável', v: x => x.responsavel || '' },
+    { t: 'Resultado', v: x => x.resultado || '', h: x => x.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : x.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(x.resultado || '') },
+    { t: 'Detalhes', v: x => x.detalhe || '', h: x => '<span style="white-space:normal;display:inline-block;min-width:220px">' + esc(x.detalhe || '') + '</span>' }] });
+  const baixaF = pode('financeiro.baixar'), parcs = rs[7].error ? [] : (rs[7].data || []);
+  const sitTxt = x => x.status === 'paga' ? 'Paga' : x.status === 'isenta' ? 'Isenta' : x.parcial ? (x.dias_atraso > 0 ? 'Saldo vencido' : 'Pago em parte') : x.dias_atraso > 0 ? 'Vencida' : 'A vencer';
+  if ($('#fi-fng')) gradeF($('#fi-fng'), { vazio: p.status === 'Contenção' ? 'Nenhuma cobrança ainda. Use + Nova cobrança para lançar a consulta de manutenção.' : 'Nenhuma parcela ainda. Ela nasce quando o tratamento é iniciado.', dados: parcs, cols: [
+    { t: 'Parcela', k: x => x.numero == null ? 9999 : x.numero, v: x => lblp(x, 'numero'), h: x => '<b>' + esc(lblp(x, 'numero')) + '</b>' }, { t: 'Vencimento', k: x => x.vencimento, v: x => dBR(x.vencimento) },
+    { t: 'Valor cheio', n: 1, k: x => Number(x.valor_cheio), soma: x => x.valor_cheio, v: x => reais(x.valor_cheio) }, { t: 'Desconto', n: 1, k: x => Number(x.desconto), soma: x => x.desconto, v: x => reais(x.desconto) },
+    { t: 'Pago', n: 1, k: x => Number(x.valor_pago || 0), soma: x => x.valor_pago || 0, v: x => reais(x.valor_pago || 0) }, { t: 'Saldo devedor', n: 1, k: x => x.status === 'aberta' ? Number(x.valor_hoje) : 0, soma: x => x.status === 'aberta' ? x.valor_hoje : 0, v: x => reais(x.status === 'aberta' ? x.valor_hoje : 0) },
+    { t: 'Situação', v: sitTxt, h: fnSit }, { t: 'Pagamento', v: x => x.status === 'paga' ? dBR(x.pago_em) + ' · ' + (x.forma_pagamento || '') : x.status === 'isenta' ? 'Isento em ' + dBR(x.pago_em) : '' }],
+    acao: x => x.status === 'aberta' && baixaF ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '', liga: bx => $$('[data-rec]', bx).forEach(b => b.addEventListener('click', () => caixaPaciente(p.id))) });
   $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; }));
   const fnv = $('#fi-nova'); if (fnv) fnv.addEventListener('click', () => cobrancaDialogo(p.id, p.nome_social || p.nome, null));
-  $$('#fi-fn [data-rec]').forEach(b => b.addEventListener('click', () => caixaPaciente(p.id)));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
     if (b.dataset.avs === 'aguardando') {
@@ -1812,8 +1854,9 @@ function relFiltrados(R){
 function relPopFecha(){ const o = $('#rl-pop'); if (o) o.remove(); document.removeEventListener('mousedown', relPopFora, true); document.removeEventListener('keydown', relPopTecla, true); }
 function relPopFora(e){ const o = $('#rl-pop'); if (o && !o.contains(e.target) && !e.target.closest('[data-fx]')) relPopFecha(); }
 function relPopTecla(e){ if (e.key === 'Escape') relPopFecha(); }
-function relPop(i, btn){
-  const R = RG(), c = relCols()[i], jaAberto = $('#rl-pop') && $('#rl-pop').dataset.i === String(i); relPopFecha(); if (jaAberto) return;
+function relPop(i, btn, R, cols, corpo){
+  R = R || RG(); cols = cols || relCols(); corpo = corpo || relCorpo;
+  const c = cols[i], jaAberto = $('#rl-pop') && $('#rl-pop').dataset.i === String(i); relPopFecha(); if (jaAberto) return;
   const vistos = new Map(); relBase(R).forEach(x => { const v = c.v(x); if (!vistos.has(v)) vistos.set(v, c.k ? c.k(x) : v); });
   const valores = [...vistos.keys()].sort((a, b) => { const ka = vistos.get(a), kb = vistos.get(b); return typeof ka === 'number' && typeof kb === 'number' ? ka - kb : String(ka).localeCompare(String(kb), 'pt', { numeric: true }); });
   const sel = new Set(R.f[i] || []), MAX = 800;
@@ -1829,8 +1872,8 @@ function relPop(i, btn){
   const cont = () => { const l = visiveis(); $('#rp-n').textContent = sel.size + (sel.size === 1 ? ' item selecionado' : ' itens selecionados'); $('#rp-all').checked = l.length > 0 && l.every(v => sel.has(v)); };
   $('#rp-q').addEventListener('input', pinta);
   $('#rp-all').addEventListener('change', e => { visiveis().forEach(v => e.target.checked ? sel.add(v) : sel.delete(v)); pinta(); });
-  $('#rp-ok').addEventListener('click', () => { R.f[i] = sel.size ? new Set(sel) : null; relPopFecha(); relCorpo(); });
-  $('#rp-limpa').addEventListener('click', () => { R.f[i] = null; relPopFecha(); relCorpo(); });
+  $('#rp-ok').addEventListener('click', () => { R.f[i] = sel.size ? new Set(sel) : null; relPopFecha(); corpo(); });
+  $('#rp-limpa').addEventListener('click', () => { R.f[i] = null; relPopFecha(); corpo(); });
   document.addEventListener('mousedown', relPopFora, true); document.addEventListener('keydown', relPopTecla, true);
   pinta(); $('#rp-q').focus();
 }
@@ -1874,6 +1917,28 @@ function relGridMonta(box){
   relCorpo(); relAjusta();
 }
 window.addEventListener('resize', () => { try { relAjusta(); } catch (e) {} });
+
+/* grid genérico com funil de filtro por coluna e totalizador (usado na ficha do paciente) */
+function gradeF(box, cfg){
+  relPopFecha(); cfg.f = cfg.f || [];
+  if (!cfg.dados.length) { box.innerHTML = '<div class="vazio">' + (cfg.vazio || 'Nada por aqui.') + '</div>'; return; }
+  const funil = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
+  box.innerHTML = '<div class="rlg" style="max-height:' + (cfg.maxH || 440) + 'px"><table class="tb rl"><thead><tr>' + cfg.cols.map((c, i) => '<th' + (c.n ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + (cfg.acao ? '<th></th>' : '') + '</tr></thead><tbody></tbody><tfoot><tr></tr></tfoot></table></div>';
+  const corpo = () => gradeCorpo(box, cfg, corpo);
+  $$('[data-fx]', box).forEach(b => b.addEventListener('click', () => relPop(Number(b.dataset.fx), b, cfg, cfg.cols, corpo)));
+  ['wheel', 'touchmove'].forEach(ev => box.querySelector('.rlg').addEventListener(ev, relPopFecha, { passive: true }));
+  corpo();
+}
+function gradeCorpo(box, cfg, corpo){
+  const cols = cfg.cols, d = cfg.dados.filter(x => cols.every((c, i) => !cfg.f[i] || cfg.f[i].has(c.v(x)))), nc = cols.length + (cfg.acao ? 1 : 0);
+  box.querySelector('tbody').innerHTML = d.length ? d.map(x => '<tr>' + cols.map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.h ? c.h(x) : esc(c.v(x))) + '</td>').join('') + (cfg.acao ? '<td>' + cfg.acao(x) + '</td>' : '') + '</tr>').join('')
+    : '<tr><td colspan="' + nc + '" class="vazio">Nenhum registro com esses filtros.</td></tr>';
+  $$('[data-fx]', box).forEach(b => b.classList.toggle('on', !!cfg.f[Number(b.dataset.fx)]));
+  const fi = cols.findIndex(c => c.n), filtrando = cfg.f.some(Boolean), txt = 'Totais · ' + d.length + (d.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + cfg.dados.length : '');
+  box.querySelector('tfoot tr').innerHTML = fi < 0 ? '<td colspan="' + nc + '">' + txt + '</td>'
+    : '<td colspan="' + fi + '">' + txt + '</td>' + cols.slice(fi).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(Math.round(d.reduce((t, x) => t + Number(c.soma(x)), 0) * 100) / 100) : '') + '</td>').join('') + (cfg.acao ? '<td></td>' : '');
+  if (cfg.liga) cfg.liga(box);
+}
 
 /* ---------- CAIXA: abertura diária por responsável, painel do paciente, fechamento e conciliação ---------- */
 const CX = { f: 'hoje' };
