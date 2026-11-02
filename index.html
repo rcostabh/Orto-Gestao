@@ -248,6 +248,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .toast{position:fixed;left:50%;bottom:24px;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:14px;z-index:99;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
 
 @media (min-width:600px) and (max-width:1000px) and (min-height:560px){#v-app{grid-template-columns:216px minmax(0,1fr)}.main{padding:20px 18px 60px}}
+.dch{margin:18px 0 8px;font-size:15px}.dcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.dci{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column}.dci:hover{border-color:var(--accent)}.dci img,.dci .dcp{width:100%;aspect-ratio:4/3;object-fit:cover;display:flex;align-items:center;justify-content:center;background:var(--surface-2);font-weight:700;color:var(--muted)}.dcl{padding:8px 10px;display:grid;gap:2px}.dcl small{color:var(--muted)}.dcv img{max-width:100%;max-height:60vh;display:block;margin:0 auto;border-radius:12px}
 @media (max-width:599px), (max-width:1000px) and (max-height:559px){
   #v-app{grid-template-columns:minmax(0,1fr)}
   .side{position:fixed;inset:0 auto 0 0;width:280px;z-index:40;transform:translateX(-102%);transition:transform .22s}
@@ -530,6 +531,7 @@ const MENU = [
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
   { g: 'Pacientes', ic: 'prospects', itens: [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
+    { r: 'documentacao', t: 'Documentação', p: 'documentacao.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] },
   { g: 'Financeiro', ic: 'financeiro', itens: [
     { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
@@ -548,7 +550,7 @@ const MENU = [
     { r: 'email', t: 'E-mail', p: 'diretor' },
     { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
 ];
-const TITULOS = { email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -574,6 +576,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.28.0', '2026-11-02', 'Documentação do paciente: fotos extraorais e intraorais, raio-X e outros arquivos (importar, visualizar, excluir) no menu Pacientes e na ficha, guardados em armazenamento privado. Novo app de celular para fotografar o paciente.'],
   ['0.27.5', '2026-11-02', 'Dashboard do Diretor e do Gerente: o faturamento em destaque agora é o do mês atual; o mês anterior aparece menor, como comparativo.'],
   ['0.27.4', '2026-11-02', 'Dobráveis: o menu lateral fica fixo sempre que a tela é larga e alta o bastante (a partir de 600 px de largura e 560 px de altura), independente do modelo ou do zoom do aparelho.'],
   ['0.27.3', '2026-11-02', 'Mapa de Minas: ao arrastar, aparece o retângulo tracejado mostrando a área selecionada.'],
@@ -671,6 +674,7 @@ function renderAbas(){
 function abrirRota(r, o){
   if (r === 'unidades') return uniCarregar();
   if (r === 'funcionarios') return funCarregar();
+  if (r === 'documentacao') return docCarregar();
   if (r === 'dentistas') return denCarregar();
   if (r === 'agendas') return agsCarregar();
   if (r === 'procedimentos') return prcCarregar();
@@ -1908,9 +1912,10 @@ async function pacFicha(id){
     + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Código', String(p.codigo)) + kv('Situação', p.status || 'Prospecção') + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + kv('Telefone', p.telefone ? mTel(p.telefone) : '')
     + kv('E-mail', p.email) + kv('Endereço', [p.logradouro && (p.logradouro + (p.numero ? ', ' + p.numero : '') + (p.complemento ? ' - ' + p.complemento : '')), p.bairro, p.cidade && (p.cidade + (p.uf ? '/' + p.uf : '')), p.cep && mCEP(p.cep)].filter(Boolean).join(' · ')) + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : '')) : '')
     + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
-    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '' + (pode('pacientes.ver') && !p.anonimizado_em ? '<button type="button" data-tab="an" id="fi-tab-an">Anamnese</button>' : '') + '</div>'
+    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '' + (pode('pacientes.ver') && !p.anonimizado_em ? '<button type="button" data-tab="an" id="fi-tab-an">Anamnese</button>' : '') + (pode('documentacao.ver') && !p.anonimizado_em ? '<button type="button" data-tab="dc" id="fi-tab-dc">Documentação</button>' : '') + '</div>'
     + '<div id="fi-oc"' + (aberta ? ' hidden' : '') + '></div>'
     + '<div id="fi-an" hidden></div>'
+    + '<div id="fi-dc" hidden></div>'
     + '<div id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço, consulta de manutenção)">+ Nova cobrança</button></div>' : '') + '<div id="fi-fng"></div></div>'
     + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
@@ -1931,7 +1936,7 @@ async function pacFicha(id){
     { t: 'Pago', n: 1, k: x => Number(x.valor_pago || 0), soma: x => x.valor_pago || 0, v: x => reais(x.valor_pago || 0) }, { t: 'Saldo devedor', n: 1, k: x => x.status === 'aberta' ? Number(x.valor_hoje) : 0, soma: x => x.status === 'aberta' ? x.valor_hoje : 0, v: x => reais(x.status === 'aberta' ? x.valor_hoje : 0) },
     { t: 'Situação', v: sitTxt, h: fnSit }, { t: 'Pagamento', v: x => x.status === 'paga' ? dBR(x.pago_em) + ' · ' + (x.forma_pagamento || '') : x.status === 'isenta' ? 'Isento em ' + dBR(x.pago_em) : '' }],
     acao: x => x.status === 'aberta' && baixaF ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '', liga: bx => $$('[data-rec]', bx).forEach(b => b.addEventListener('click', () => caixaPaciente(p.id))) });
-  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; const an = $('#fi-an'); if (an) an.hidden = b.dataset.tab !== 'an'; }));
+  $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; const an = $('#fi-an'); if (an) an.hidden = b.dataset.tab !== 'an'; const dc = $('#fi-dc'); if (dc) { dc.hidden = b.dataset.tab !== 'dc'; if (b.dataset.tab === 'dc' && !dc.dataset.ok) { dc.dataset.ok = '1'; docPaciente(dc, p); } } }));
   if (FI_TAB) { const bt = $('#fi-tabs [data-tab="' + FI_TAB + '"]'); FI_TAB = null; if (bt) bt.click(); }
   const fnv = $('#fi-nova'); if (fnv) fnv.addEventListener('click', () => cobrancaDialogo(p.id, p.nome_social || p.nome, null));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
@@ -2178,6 +2183,129 @@ async function plogCarregar(){
   const l = r.data || [];
   $('#area').innerHTML = '<div class="head"><div><h1>Registro de acessos</h1><p class="sub">Quem entrou em qual grupo e o que foi feito na plataforma (últimos 300).</p></div></div><div class="card"><div class="tw">'
     + (l.length ? '<table class="tb"><thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Grupo</th><th>Unidade</th><th>Detalhe</th></tr></thead><tbody>' + l.map(x => '<tr><td>' + dtHora(x.quando) + '</td><td>' + esc(x.usuario || '') + '</td><td>' + esc(x.acao) + '</td><td>' + esc(x.grupo_nome || '') + '</td><td>' + esc(x.unidade_sigla || '') + '</td><td>' + esc(x.detalhe || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nada registrado ainda.</div>') + '</div></div>';
+}
+
+/* ---------- DOCUMENTAÇÃO DO PACIENTE (fotos, raio-X) ---------- */
+const DOC_BUCKET = 'documentos-pacientes';
+const DOC_CAT = { extra: 'Fotos extraorais', intra: 'Fotos intraorais', raiox: 'Raio-X', outro: 'Outros arquivos' };
+const DOC_TIPOS = {
+  extra: [['extra_frontal_repouso', 'Frontal em repouso'], ['extra_frontal_sorrindo', 'Frontal sorrindo'], ['extra_perfil_direito', 'Perfil direito'], ['extra_perfil_esquerdo', 'Perfil esquerdo'], ['extra_45_direito', '45° direito'], ['extra_45_esquerdo', '45° esquerdo'], ['livre', 'Outra foto extraoral']],
+  intra: [['intra_frontal', 'Frontal (oclusão)'], ['intra_lateral_direita', 'Lateral direita'], ['intra_lateral_esquerda', 'Lateral esquerda'], ['intra_oclusal_superior', 'Oclusal superior'], ['intra_oclusal_inferior', 'Oclusal inferior'], ['livre', 'Outra foto intraoral']],
+  raiox: [['rx_panoramica', 'Panorâmica'], ['rx_telerradiografia', 'Telerradiografia (perfil)'], ['rx_periapical', 'Periapical'], ['rx_outro', 'Outro raio-X']],
+  outro: [['livre', 'Outro arquivo']]
+};
+const DOC_MOM = { inicial: 'Inicial', acompanhamento: 'Acompanhamento', final: 'Final' };
+const docRotulo = (cat, tipo) => ((DOC_TIPOS[cat] || []).find(x => x[0] === tipo) || [])[1] || 'Arquivo';
+const docExt = (mime, nome) => ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/heif': 'heif', 'application/pdf': 'pdf' })[mime] || ((String(nome || '').split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin');
+const docUuid = () => String(window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(16).slice(2)).replace(/[^A-Za-z0-9-]/g, '');
+/* reduz foto grande (celular) antes de enviar: lado maior 2400 px, JPEG */
+function docReduz(f){
+  return new Promise(res => {
+    if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return res(f);
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => { URL.revokeObjectURL(url); const m = Math.max(img.width, img.height), k = Math.min(1, 2400 / m);
+      if (k === 1 && f.size <= 2.5 * 1024 * 1024) return res(f);
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => res(b && b.size < f.size ? b : f), 'image/jpeg', .86); };
+    img.onerror = () => { URL.revokeObjectURL(url); res(f); }; img.src = url;
+  });
+}
+/* envia os arquivos para o armazenamento privado e registra na ficha */
+async function docEnviar(p, arquivos, o, prog){
+  let ok = 0; const erros = [];
+  for (let i = 0; i < arquivos.length; i++) {
+    const f = arquivos[i]; if (prog) prog(i + 1, arquivos.length);
+    try {
+      const b = await docReduz(f), mime = b.type === 'image/jpeg' || /^image\/(png|webp|heic|heif)$/.test(b.type) || b.type === 'application/pdf' ? b.type : (f.type || 'image/jpeg');
+      if (b.size > 15 * 1024 * 1024) throw new Error('O arquivo "' + f.name + '" passa de 15 MB.');
+      const caminho = p.grupo_id + '/' + p.id + '/' + docUuid() + '.' + docExt(mime, f.name);
+      const up = await sb.storage.from(DOC_BUCKET).upload(caminho, b, { contentType: mime, upsert: false }); if (up.error) throw up.error;
+      const rg = await sb.rpc('documento_registrar', { p_paciente: p.id, p_categoria: o.categoria, p_tipo: o.tipo, p_momento: o.momento, p_caminho: caminho, p_nome: f.name || 'foto.jpg', p_mime: mime, p_tamanho: b.size, p_origem: o.origem || 'sistema', p_obs: o.obs || null });
+      if (rg.error) { try { await sb.storage.from(DOC_BUCKET).remove([caminho]); } catch (x) {} throw rg.error; }
+      ok++;
+    } catch (e) { erros.push(erroTxt(e)); }
+  }
+  return { ok, erros };
+}
+async function docPaciente(box, p){
+  if (!box) return; box.innerHTML = '<p class="sub">Carregando a documentação…</p>';
+  const r = await sb.rpc('documentos_lista', { p_paciente: p.id }); if (!box.isConnected) return;
+  if (r.error) { box.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+  const lista = r.data || [], envia = pode('documentacao.enviar') && !p.anonimizado_em, exclui = pode('documentacao.excluir');
+  const urls = {};
+  if (lista.length) { const s = await sb.storage.from(DOC_BUCKET).createSignedUrls(lista.map(d => d.caminho), 3600); (s.data || []).forEach(x => { if (x.signedUrl) urls[x.path] = x.signedUrl; }); }
+  if (!box.isConnected) return;
+  let fil = 'todos';
+  const grade = () => {
+    const vis = lista.filter(d => fil === 'todos' || d.momento === fil);
+    box.querySelector('#dc-corpo').innerHTML = vis.length ? Object.keys(DOC_CAT).map(c => { const it = vis.filter(d => d.categoria === c); if (!it.length) return '';
+      return '<h3 class="dch">' + DOC_CAT[c] + ' <span class="sub">(' + it.length + ')</span></h3><div class="dcg">' + it.map(d => '<button type="button" class="dci" data-doc="' + d.id + '">'
+        + (/^image\//.test(d.mime) && urls[d.caminho] && !/heic|heif/.test(d.mime) ? '<img src="' + esc(urls[d.caminho]) + '" alt="' + esc(docRotulo(d.categoria, d.tipo)) + '" loading="lazy">' : '<span class="dcp">' + (d.mime === 'application/pdf' ? 'PDF' : 'FOTO') + '</span>')
+        + '<span class="dcl"><b>' + esc(docRotulo(d.categoria, d.tipo)) + '</b><small>' + dBR(String(d.tirada_em).slice(0, 10)) + ' · ' + esc(DOC_MOM[d.momento] || '') + '</small></span></button>').join('') + '</div>'; }).join('')
+      : '<div class="vazio">' + (lista.length ? 'Nenhum arquivo neste momento do tratamento.' : 'Ainda não há fotos nem raio-X na documentação deste paciente.') + '</div>';
+    $$('#dc-corpo [data-doc]').forEach(b => b.addEventListener('click', () => ver(vis, vis.findIndex(x => String(x.id) === b.dataset.doc))));
+  };
+  const ver = (vis, i) => {
+    const d = vis[i], u = urls[d.caminho] || '', img = /^image\//.test(d.mime) && !/heic|heif/.test(d.mime);
+    abrirJanela(docRotulo(d.categoria, d.tipo), '<div class="db dcv">' + (img && u ? '<img src="' + esc(u) + '" alt="' + esc(docRotulo(d.categoria, d.tipo)) + '">' : '<p class="sub">Este arquivo não tem pré-visualização. Use "Abrir" para ver.</p>')
+      + '<p class="sub" style="margin:10px 0 0">' + esc(DOC_CAT[d.categoria]) + ' · ' + esc(DOC_MOM[d.momento] || '') + ' · ' + dBR(String(d.tirada_em).slice(0, 10)) + '<br>Enviado por ' + esc(d.criado_por_nome || '—') + (d.origem === 'celular' ? ' pelo app do celular' : '') + (d.observacao ? '<br>' + esc(d.observacao) : '') + '</p></div>'
+      + '<div class="df"><button class="btn ghost" type="button" id="dv-ant"' + (i > 0 ? '' : ' disabled') + ' aria-label="Anterior">◀</button><button class="btn ghost" type="button" id="dv-prox"' + (i < vis.length - 1 ? '' : ' disabled') + ' aria-label="Próxima">▶</button>'
+      + (u ? '<a class="btn ghost" href="' + esc(u) + '" target="_blank" rel="noopener" id="dv-abrir">Abrir</a>' : '') + (exclui ? '<button class="btn ghost" type="button" id="dv-del">Excluir</button>' : '') + '</div>');
+    $('#dv-ant').addEventListener('click', () => ver(vis, i - 1)); $('#dv-prox').addEventListener('click', () => ver(vis, i + 1));
+    const del = $('#dv-del'); if (del) del.addEventListener('click', async () => {
+      if (!confirm('Excluir este arquivo da documentação? Não dá para desfazer.')) return;
+      const q = await sb.rpc('documento_excluir', { p_id: d.id }); if (q.error) { toast(erroTxt(q.error)); return; }
+      if (q.data) { try { await sb.storage.from(DOC_BUCKET).remove([q.data]); } catch (x) {} }
+      fecharJanela(); toast('Arquivo excluído.'); docPaciente(box, p); });
+  };
+  box.innerHTML = '<div class="tools">' + (envia ? '<button class="btn sm" type="button" id="dc-imp">+ Importar arquivos</button>' : '')
+    + '<select id="dc-fil" aria-label="Momento do tratamento"><option value="todos">Todos os momentos</option>' + Object.keys(DOC_MOM).map(k => '<option value="' + k + '">' + DOC_MOM[k] + '</option>').join('') + '</select>'
+    + '<span class="sub">' + lista.length + ' arquivo(s)</span></div><div id="dc-corpo"></div>';
+  grade();
+  $('#dc-fil').addEventListener('change', e => { fil = e.target.value; grade(); });
+  const imp = $('#dc-imp'); if (imp) imp.addEventListener('click', () => {
+    const tiposHtml = c => DOC_TIPOS[c].map(t => '<option value="' + t[0] + '">' + t[1] + '</option>').join('');
+    abrirJanela('Importar arquivos', '<form id="di-form" novalidate><div class="db"><div class="g2"><label class="field" for="di-cat">Tipo de documento<select id="di-cat">' + Object.keys(DOC_CAT).map(c => '<option value="' + c + '">' + DOC_CAT[c] + '</option>').join('') + '</select></label>'
+      + '<label class="field" for="di-tipo">Posição<select id="di-tipo">' + tiposHtml('extra') + '</select></label></div>'
+      + '<div class="g2"><label class="field" for="di-mom">Momento do tratamento<select id="di-mom">' + Object.keys(DOC_MOM).map(k => '<option value="' + k + '">' + DOC_MOM[k] + '</option>').join('') + '</select></label>'
+      + '<label class="field" for="di-arq">Arquivos<input id="di-arq" type="file" multiple accept="image/*,application/pdf"></label></div>'
+      + '<p class="sub" style="margin:0">Fotos grandes são reduzidas automaticamente. Até 15 MB por arquivo (JPG, PNG, WEBP ou PDF). Para fotografar com o celular, use o app de fotos.</p><div class="err" id="di-err" role="alert"></div><p class="sub" id="di-prog" role="status"></p></div>'
+      + '<div class="df"><button class="btn ghost" type="button" id="di-x">Cancelar</button><button class="btn" type="submit" id="di-ok">Enviar</button></div></form>');
+    $('#di-x').addEventListener('click', fecharJanela);
+    $('#di-cat').addEventListener('change', e => { $('#di-tipo').innerHTML = tiposHtml(e.target.value); });
+    $('#di-form').addEventListener('submit', async e => {
+      e.preventDefault(); const er = $('#di-err'); er.textContent = ''; const fs = Array.from($('#di-arq').files || []);
+      if (!fs.length) { er.textContent = 'Escolha ao menos um arquivo.'; return; }
+      const b = $('#di-ok'); b.disabled = true;
+      const x = await docEnviar(p, fs, { categoria: $('#di-cat').value, tipo: $('#di-tipo').value, momento: $('#di-mom').value }, (n, t) => { $('#di-prog').textContent = 'Enviando ' + n + ' de ' + t + '…'; });
+      b.disabled = false; if (x.erros.length) { er.textContent = x.erros[0] + (x.ok ? ' (' + x.ok + ' enviado(s) com sucesso)' : ''); if (x.ok) docPaciente(box, p); return; }
+      fecharJanela(); toast(x.ok + ' arquivo(s) enviado(s).'); docPaciente(box, p);
+    });
+  });
+}
+const DOCS = { sel: null };
+async function docCarregar(){
+  const a = $('#area'); if (!a) return;
+  a.innerHTML = '<div class="head"><div><h1>Documentação</h1><p class="sub">Fotos extraorais e intraorais e raio-X do paciente. Busque o paciente para abrir ou importar arquivos.</p></div></div>'
+    + '<div class="card" id="dc-card"></div>';
+  const card = $('#dc-card');
+  if (DOCS.sel) { docAbre(card, DOCS.sel); return; }
+  card.innerHTML = '<div class="tools"><input id="dc-q" type="search" placeholder="Nome ou código do paciente" aria-label="Buscar paciente" autocomplete="off"></div><div class="lista" id="dc-res"><p class="sub">Digite ao menos 2 letras do nome ou o código.</p></div>';
+  let t = null;
+  $('#dc-q').addEventListener('input', e => { clearTimeout(t); const v = e.target.value.trim(); t = setTimeout(async () => {
+    const res = $('#dc-res'); if (!res) return; if (v.length < 2) { res.innerHTML = '<p class="sub">Digite ao menos 2 letras do nome ou o código.</p>'; return; }
+    const r = await sb.rpc('documentos_buscar_paciente', { p_busca: v }); if (!$('#dc-res')) return;
+    if (r.error) { res.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+    const l = r.data || []; res.innerHTML = l.length ? l.map(x => '<button class="row f" type="button" data-pac="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">Cód. ' + x.codigo + '</span><span class="m x">' + esc(x.unidade) + ' · ' + esc(x.status || '') + '</span><span class="pill">' + x.fotos + ' arquivo(s)</span></button>').join('') : '<p class="sub">Nenhum paciente encontrado.</p>';
+    $$('#dc-res [data-pac]').forEach(b => b.addEventListener('click', () => { DOCS.sel = l.find(x => String(x.id) === b.dataset.pac); docAbre(card, DOCS.sel); }));
+  }, 250); });
+  $('#dc-q').focus();
+}
+function docAbre(card, x){
+  card.innerHTML = '<div class="tools"><button class="btn ghost sm" type="button" id="dc-volta">← Outro paciente</button><b>' + esc(x.nome) + '</b><span class="sub">Cód. ' + x.codigo + ' · ' + esc(x.unidade) + '</span></div><div id="dc-pac"></div>';
+  $('#dc-volta').addEventListener('click', () => { DOCS.sel = null; docCarregar(); });
+  docPaciente($('#dc-pac'), { id: x.id, grupo_id: x.grupo_id, nome: x.nome });
 }
 
 /* ---------- AGENDAS (cadastro das cadeiras) ---------- */
