@@ -615,6 +615,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.33.0', '2026-11-03', 'Carta de alta encerra o contrato: ao passar o paciente para Contenção (alta do dentista), o contrato é marcado como encerrado, as mensalidades futuras são canceladas e nenhuma nova é gerada, sem multa. O contrato impresso ganhou a cláusula de término do tratamento, e a aba Contrato da ficha mostra “Encerrado por alta”.'],
   ['0.32.3', '2026-11-03', 'Contrato refeito com base no modelo da clínica: objeto, tratamento, contenção, preço com reajuste anual, atraso, aviso prévio de 90 dias, multa de 3 mensalidades, restrições técnicas, LGPD, foro de Belo Horizonte e anexo com as declarações de ciência do paciente. O dentista deixou de aparecer no contrato.'],
   ['0.32.2', '2026-11-03', 'Ficha do paciente: nova aba Contrato, ao lado de Anamnese e Documentação, com o contrato de prestação de serviços do paciente pronto para abrir, imprimir ou salvar em PDF.'],
   ['0.32.1', '2026-11-03', 'Painel de Cobrança: os totais do topo (faturado, previsão e aproveitamento) ficam lado a lado e os cartões da régua ficam menores, ocupando bem menos espaço.'],
@@ -1939,7 +1940,7 @@ function pacForm(p, aoSalvar){
 const ROTA_ATIVA = () => ABA ? ABA.rota : '';
 
 /* ---------- ficha do paciente (uma aba por paciente) ---------- */
-const PROX_ST = { 'Ativo': [['Contenção', 'Passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Inativo': [['Contenção', 'Passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Concluído': [['Contenção', 'Passar para contenção']], 'Contenção': [['Concluído', 'Concluir (alta definitiva)']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
+const PROX_ST = { 'Ativo': [['Contenção', 'Carta de alta: passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Inativo': [['Contenção', 'Carta de alta: passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Concluído': [['Contenção', 'Passar para contenção']], 'Contenção': [['Concluído', 'Concluir (alta definitiva)']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
 const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Contenção': 'nu', 'Desistente': 'off' };
 async function pacFicha(id){
   sb.rpc('lgpd_registrar_acesso', { p_paciente: id }).then(() => {}, () => {});
@@ -2009,7 +2010,7 @@ async function pacFicha(id){
   $$('[data-st]').forEach(b => b.addEventListener('click', async () => {
     if (b.dataset.c !== '1') { b.dataset.c = '1'; b.textContent = 'Confirmar: ' + b.textContent; return; }
     b.disabled = true; const r = await sb.rpc('mudar_status_paciente', { p_id: id, p_status: b.dataset.st });
-    if (r.error) { toast(erroTxt(r.error)); b.disabled = false; return; } toast('Situação atualizada.'); recarrega();
+    if (r.error) { toast(erroTxt(r.error)); b.disabled = false; return; } toast(b.dataset.st === 'Contenção' ? 'Alta registrada: contrato encerrado, mensalidades futuras canceladas e paciente em Contenção.' : 'Situação atualizada.'); recarrega();
   }));
   const ed = $('#fi-edit'); if (ed) ed.addEventListener('click', () => pacForm(p, recarrega));
   const mais = $('#fi-mais'); if (mais) {
@@ -2563,16 +2564,21 @@ function contratoHtml(d){
     'O CONTRATANTE declara ter sido informado dos riscos do tratamento, ainda que não esperados, como manchas brancas definitivas no esmalte, reabsorção radicular, arredondamento de ápice e outros efeitos metabólicos, cuja ocorrência não pode ser prevista, e os aceita.']]);
   cl.push(['Do prazo e da renovação', [
     'O contrato vigora por <b>' + n + ' (' + ({ 30: 'trinta' }[n] || n) + ') meses</b>, contados da data de sua assinatura.',
-    'Com o <b>pagamento da ' + n + 'ª mensalidade</b>, o contrato é <b>renovado automaticamente</b>, por igual período e nas mesmas condições, salvo se o CONTRATANTE tiver formalizado, antes disso, o aviso prévio da cláusula 7.']]);
+    'Com o <b>pagamento da ' + n + 'ª mensalidade</b>, o contrato é <b>renovado automaticamente</b>, por igual período e nas mesmas condições, salvo se o CONTRATANTE tiver formalizado, antes disso, o aviso prévio da cláusula 8, ou se o tratamento tiver terminado com a carta de alta da cláusula 4.']]);
+  cl.push(['Do término do tratamento e da carta de alta', [
+    'O tratamento termina com a emissão, pelo dentista responsável, da <b>carta de alta</b> ao paciente, a qualquer tempo, <b>independentemente do prazo</b> de ' + n + ' meses contratado e de suas renovações.',
+    'A carta de alta <b>rescinde o contrato automaticamente</b>, na data de sua emissão, sem multa e sem necessidade de aviso prévio. Se o tratamento terminar antes do prazo, as mensalidades que venceriam depois da data da alta <b>deixam de existir</b>: não serão cobradas e a CONTRATADA cancela as parcelas futuras.',
+    'Permanecem devidas apenas as parcelas vencidas até a data da alta e os serviços fora do contrato, como a contenção e as consultas de retorno, cobrados conforme a tabela vigente.',
+    'Com a alta, o paciente passa à fase de <b>contenção</b>, sem mensalidades. Emitida a carta de alta, o contrato não é renovado.']]);
   cl.push(['Do preço e da forma de pagamento', [
     (ini != null ? 'No ato da assinatura, o CONTRATANTE paga à CONTRATADA a <b>entrada de ' + reais(ini) + '</b>, integralmente, referente à consulta inicial e ao planejamento do tratamento ortodôntico. ' : '') + 'Em seguida paga <b>' + n + ' (' + ({ 30: 'trinta' }[n] || n) + ') mensalidades</b>, todo dia <b>' + d.dia_vencimento + '</b> de cada mês, cada uma no <b>valor integral de ' + reais(m) + '</b>, devidas independentemente do comparecimento às consultas.',
-    'O valor total do contrato, somando a entrada e ' + n + ' mensalidades integrais, é de <b>' + reais(total) + '</b>, sendo ' + reais(parteTrat) + ' (70%) referentes ao plano de tratamento e ' + reais(parteMens) + ' (30%) referentes às mensalidades.',
+    'O valor total do contrato, somando a entrada e ' + n + ' mensalidades integrais, é, no prazo completo, de <b>' + reais(total) + '</b> (valor que se reduz se o tratamento terminar antes, pela carta de alta da cláusula 4), sendo ' + reais(parteTrat) + ' (70%) referentes ao plano de tratamento e ' + reais(parteMens) + ' (30%) referentes às mensalidades.',
     desc > 0 ? 'A CONTRATADA concede <b>desconto de ' + reais(desc) + '</b> sobre cada mensalidade, <b>exclusivamente</b> quando o pagamento é feito <b>até a data do vencimento</b>, resultando em ' + reais(liq) + '. O desconto é um benefício de pontualidade: o pagamento após o vencimento é devido pelo valor integral, e o desconto não se incorpora ao valor do contrato.' : 'O pagamento das mensalidades após o vencimento é devido pelo valor integral.',
     'Se o CONTRATANTE desistir ou rescindir o contrato antes do início efetivo do uso do aparelho, a entrada não será ressarcida, em razão da natureza dos serviços prestados e dos custos operacionais e profissionais envolvidos.',
     'Os valores deste contrato serão reajustados anualmente, no aniversário do contrato, pela variação acumulada do IGPM-FGV (Índice Geral de Preços da Fundação Getulio Vargas) no período, ou por outro índice que venha a substituí-lo.',
     'Em caso de atraso, o CONTRATANTE fica sujeito à suspensão dos serviços, à inclusão de seu nome nos cadastros de proteção ao crédito, a multa de <b>2% (dois por cento)</b> sobre o valor devido e a juros moratórios de <b>1% (um por cento) ao mês</b> até o pagamento, sem prejuízo de perdas e danos. As despesas de cobrança judicial ou extrajudicial correm por conta do CONTRATANTE, nos limites da lei.',
     'Enquanto houver parcela vencida e não paga, ou o CONTRATANTE não cumprir o cronograma do tratamento, os atendimentos ficam suspensos, só sendo retomados após a regularização com a quitação dos débitos. A suspensão não libera o CONTRATANTE da dívida assumida.',
-    'A suspensão por mais de 90 (noventa) dias nessas hipóteses implica rescisão por culpa do CONTRATANTE, aplicando-se a multa da cláusula 7.2, sem prejuízo das parcelas já vencidas.',
+    'A suspensão por mais de 90 (noventa) dias nessas hipóteses implica rescisão por culpa do CONTRATANTE, aplicando-se a multa da cláusula 8.2, sem prejuízo das parcelas já vencidas.',
     'O CONTRATANTE reconhece que os valores deste contrato constituem dívida líquida, certa e exigível, podendo o contrato servir de título executivo extrajudicial.']]);
   cl.push(['Das obrigações da contratada', [
     'Prestar os serviços contratados de acordo com a legislação vigente e cumprir rigorosamente o objeto do contrato; manter, durante toda a vigência, as condições de qualificação exigidas para a execução dos serviços; e resguardar o sigilo do CONTRATANTE e de suas informações, salvo autorização dele ou determinação judicial.']]);
@@ -2581,7 +2587,7 @@ function contratoHtml(d){
     'Comparecer pontualmente às consultas ou justificar a falta com 24 horas (vinte e quatro horas) de antecedência; comunicar imediatamente à CONTRATADA qualquer fato que possa influenciar o tratamento; e responder por qualquer serviço ou produto adicional ao previsto neste contrato, como nova documentação ou substituição de aparelho.',
     'Se o CONTRATANTE não seguir o cronograma do tratamento e, por isso, for necessário refazê-lo, a CONTRATADA poderá reajustar o prazo e os valores aplicados.']]);
   cl.push(['Da desistência, do aviso prévio e da multa', [
-    'Se o CONTRATANTE manifestar o interesse de encerrar o contrato, ele passa a cumprir ' + aviso + ', contados da data em que comunicar a CONTRATADA, por escrito ou pelos canais de atendimento. Durante o aviso prévio o tratamento continua e as mensalidades que vencerem no período continuam devidas. Encerrado o aviso, o contrato é extinto sem outros encargos.',
+    'Se o CONTRATANTE manifestar o interesse de encerrar o contrato, ele passa a cumprir ' + aviso + ', contados da data em que comunicar a CONTRATADA, por escrito ou pelos canais de atendimento. Durante o aviso prévio o tratamento continua e as mensalidades que vencerem no período continuam devidas. Encerrado o aviso, o contrato é extinto sem outros encargos, o paciente passa à situação de inativo e as parcelas futuras deixam de ser cobradas.',
     'Se o CONTRATANTE decidir encerrar o contrato <b>sem cumprir o aviso prévio</b>, pagará à CONTRATADA multa equivalente a <b>3 (três) mensalidades integrais, no valor total de ' + reais(3 * m) + '</b>, em substituição ao período de aviso que não cumprir. A multa não é devida quando o contrato é encerrado por culpa da CONTRATADA ou nos demais casos previstos em lei.',
     'A rescisão antecipada, por qualquer motivo, não desobriga o CONTRATANTE do pagamento das parcelas vencidas e de outros débitos existentes até a data da rescisão. O CONTRATANTE deverá comparecer à sede para a inativação ou remoção do aparelho e arcar com a consulta e as despesas, conforme a tabela vigente.',
     'Havendo desistência depois de iniciado o tratamento, o CONTRATANTE assinará termo de desistência do tratamento ortodôntico em andamento, isentando a CONTRATADA de responsabilidade por complicações decorrentes da interrupção, inclusive recidivas.']]);
@@ -2595,7 +2601,7 @@ function contratoHtml(d){
     'Nos termos da Lei nº 13.709/2018 (LGPD), o CONTRATANTE consente que a CONTRATADA trate seus dados pessoais e de saúde, coletados em formulários e demais documentos, em meio físico ou digital, exclusivamente para a prestação do serviço, a cobrança e o cumprimento de obrigações legais e do Conselho de Odontologia, observados a necessidade, a adequação e a finalidade. Os direitos do titular podem ser exercidos pelos canais de atendimento da unidade.']]);
   cl.push(['Do foro', [
     'As partes elegem o <b>foro da Comarca de Belo Horizonte, Estado de Minas Gerais</b>, para dirimir quaisquer questões oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.']]);
-  const ORD = ['Primeira', 'Segunda', 'Terceira', 'Quarta', 'Quinta', 'Sexta', 'Sétima', 'Oitava', 'Nona', 'Décima'];
+  const ORD = ['Primeira', 'Segunda', 'Terceira', 'Quarta', 'Quinta', 'Sexta', 'Sétima', 'Oitava', 'Nona', 'Décima', 'Décima Primeira'];
   const ciencia = ['Estou ciente de que, para iniciar o tratamento, são necessários exames radiológicos e que o dentista poderá solicitar radiografias ao longo do tratamento, sendo o custo desses exames de minha responsabilidade.',
     'Estou ciente de que o tratamento só terá início com a apresentação dos documentos de identificação exigidos (RG, CPF, comprovante de residência) e dos exames, e do tratamento clínico, caso seja identificada a necessidade.',
     'Estou ciente de que a avaliação bucal considera apenas a especialidade de ortodontia e de que os custos de procedimentos de outras especialidades são de minha responsabilidade.',
@@ -2605,7 +2611,8 @@ function contratoHtml(d){
     'Estou ciente de que as mensalidades serão cobradas mesmo que eu não compareça às consultas.',
     'Estou ciente de que o atendimento somente será realizado com as mensalidades em dia.',
     'Estou ciente de que a clínica tem um serviço de atendimento ao cliente (SAC) para esclarecer qualquer dúvida.',
-    'Sobre o rompimento do contrato antes do término: (a) estou ciente de que serão cobrados os valores em aberto (vencidos) até o momento; (b) estou ciente de que é necessário solicitar o cancelamento com aviso prévio de 90 dias, e de que, se eu não o cumprir, será aplicada multa de 3 mensalidades, conforme a cláusula 7.',
+    'Sobre o rompimento do contrato antes do término: (a) estou ciente de que serão cobrados os valores em aberto (vencidos) até o momento; (b) estou ciente de que é necessário solicitar o cancelamento com aviso prévio de 90 dias, e de que, se eu não o cumprir, será aplicada multa de 3 mensalidades, conforme a cláusula 8.',
+    'Estou ciente de que, com a carta de alta do dentista, o contrato é encerrado automaticamente, ainda que antes do prazo, e as mensalidades futuras deixam de ser cobradas.',
     'Estou ciente de que os valores das mensalidades são reajustados anualmente pelo IGPM-FGV, no aniversário do contrato.',
     'Estou ciente de que as mensalidades vencem todo dia ' + d.dia_vencimento + ', até o encerramento do contrato financeiro acordado.'];
   const corpo = cl.map((c, i) => '<h3>Cláusula ' + ORD[i] + ' — ' + c[0] + '</h3>' + c[1].map((t, j) => '<p><span class="nm">' + (i + 1) + '.' + (j + 1) + '</span> ' + t + '</p>').join('')).join('');
@@ -2634,10 +2641,10 @@ async function contratoAbrir(vendaId){
 }
 async function pacContrato(el, p){
   el.innerHTML = '<p class="sub" style="margin:12px 0">Carregando...</p>';
-  const r = await sb.from('vendas').select('id,status,data_venda,valor,prazo_meses').eq('paciente_id', p.id).order('id', { ascending: false });
+  const r = await sb.from('vendas').select('id,status,data_venda,valor,prazo_meses,encerrada_em').eq('paciente_id', p.id).order('id', { ascending: false });
   if (r.error) { el.innerHTML = '<div class="vazio">' + esc(erroTxt(r.error)) + '</div>'; return; }
   const l = r.data || [];
-  el.innerHTML = l.length ? '<div class="tw"><table class="tb"><thead><tr><th>Contrato</th><th>Data</th><th>Prazo</th><th>Mensalidade</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(v => '<tr><td>Nº ' + v.id + '</td><td>' + dBR(v.data_venda) + '</td><td>' + (v.prazo_meses || 30) + ' meses</td><td>' + reais(v.valor) + '</td><td><span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativo' : 'Cancelado') + '</span></td><td><button class="btn sm" type="button" data-ctr="' + v.id + '">Abrir contrato</button></td></tr>').join('') + '</tbody></table></div>'
+  el.innerHTML = l.length ? '<div class="tw"><table class="tb"><thead><tr><th>Contrato</th><th>Data</th><th>Prazo</th><th>Mensalidade</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(v => '<tr><td>Nº ' + v.id + '</td><td>' + dBR(v.data_venda) + '</td><td>' + (v.prazo_meses || 30) + ' meses</td><td>' + reais(v.valor) + '</td><td><span class="pill ' + (v.status === 'ativa' && !v.encerrada_em ? 'on' : 'off') + '">' + (v.status !== 'ativa' ? 'Cancelado' : v.encerrada_em ? 'Encerrado por alta' : 'Ativo') + '</span></td><td><button class="btn sm" type="button" data-ctr="' + v.id + '">Abrir contrato</button></td></tr>').join('') + '</tbody></table></div>'
     : '<div class="vazio">Este paciente ainda não tem contrato. Ele nasce quando o tratamento é iniciado em Vendas.</div>';
   $$('[data-ctr]', el).forEach(b => b.addEventListener('click', () => contratoAbrir(Number(b.dataset.ctr))));
 }
