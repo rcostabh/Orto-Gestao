@@ -286,6 +286,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 #dm-svg .selr{fill:rgba(255,122,26,.15);stroke:#ffb347;stroke-width:1.5;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;pointer-events:none}.dsem{color:var(--mu);font-size:12px;margin-top:8px}.dsem:empty{display:none}
 .dkp{position:relative}.dkh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}.dkh h3{margin:3px 0 0;font-size:20px;letter-spacing:-.02em}.dbtn{border:1px solid var(--line);background:rgba(255,255,255,.06);color:#eaf0ff;border-radius:99px;padding:7px 14px;cursor:pointer;font:600 12.5px inherit}
 .dchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.dchips button{border:1px solid var(--line);background:rgba(255,255,255,.05);color:#cfd8ee;border-radius:99px;padding:5px 12px;cursor:pointer;font:600 12px inherit}.dchips button.on{background:linear-gradient(135deg,#ff7a1a,#ffb347);color:#190b00;border-color:transparent}
+#fe-lista .row{display:grid;grid-template-columns:minmax(0,1.6fr) 120px 100px 150px 110px;gap:4px 10px;align-items:center}#fe-lista .row>span:last-child{text-align:right}@media(max-width:760px){#fe-lista .row{grid-template-columns:1fr 1fr}#fe-lista .row>b{grid-column:1/-1}#fe-lista .row>span:last-child{text-align:left}}
 .dkp.stk .dk{grid-column:span 6}.dkp.stk .dk.hero,.dkp.stk .dk.fat{grid-column:span 12}
 @media(max-width:1000px){.com-mapa .dwrap{grid-template-columns:1fr}.dmapa{position:static}}
 @media(min-width:1201px) and (min-height:600px),(min-width:1001px) and (max-width:1200px) and (min-height:860px){
@@ -538,6 +539,7 @@ const IC = {
   prospects: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M18 8v6M15 11h6"/>',
   avaliacoes: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 14l2 2 4-4"/>',
   agendas: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 4v16"/>',
+  feriados: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13.500l1 2h2.200l-1.800 1.400.7 2.100-2.100-1.300-2.100 1.300.7-2.100L8.800 15.500H11z"/>',
   procedimentos: '<path d="M9 3h6v5l4 9a3 3 0 0 1-2.7 4H7.700A3 3 0 0 1 5 17l4-9z"/><path d="M8 14h8"/>',
   vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
   agenda: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
@@ -568,6 +570,7 @@ const MENU = [
     { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
     { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
+    { r: 'feriados', t: 'Feriados', p: 'feriados.ver' },
     { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
     { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
     { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
@@ -575,7 +578,7 @@ const MENU = [
     { r: 'email', t: 'E-mail', p: 'diretor' },
     { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
 ];
-const TITULOS = { email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -601,6 +604,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.30.0', '2026-11-02', 'Feriados: novo cadastro em Configurações › Feriados, com feriados nacionais (valem para todas as unidades, com botão para adicionar os do ano) e municipais (só nas unidades escolhidas). No dia do feriado a agenda fecha e não aceita novos agendamentos; os que já existiam continuam e a tela avisa quantos são para remarcar.'],
   ['0.29.1', '2026-11-02', 'Início do Diretor e do Gerente: os quadros de indicadores agora têm a mesma altura do mapa e tudo cabe na tela, sem rolagem (em telas pequenas continua em coluna).'],
   ['0.29.0', '2026-11-02', 'Cobrança: novas abas Sem agendamento (lista diária de pacientes em tratamento sem próxima consulta), Faltas (controle por dia e por mês, com a lista de quem faltou e se já remarcou) e Campanhas (regra de quem entra, por faixa de cobrança, procedimento atrasado, sem consulta, sem atendimento ou faltas, mais a mensagem). Envio por WhatsApp em fila de 1 toque, com registro do contato e do resultado, e chave para exigir autorização de WhatsApp (LGPD). Quem recusou nunca recebe.'],
   ['0.28.0', '2026-11-02', 'Documentação do paciente: fotos extraorais e intraorais, raio-X e outros arquivos (importar, visualizar, excluir) no menu Pacientes e na ficha, guardados em armazenamento privado. Novo app de celular para fotografar o paciente.'],
@@ -689,7 +693,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -704,6 +708,7 @@ function abrirRota(r, o){
   if (r === 'documentacao') return docCarregar();
   if (r === 'dentistas') return denCarregar();
   if (r === 'agendas') return agsCarregar();
+  if (r === 'feriados') return ferCarregar();
   if (r === 'procedimentos') return prcCarregar();
   if (r === 'vendas') return vdCarregar();
   if (r === 'financeiro') return finCarregar();
@@ -3456,8 +3461,101 @@ function prcForm(p){
   });
 }
 
+/* ---------- FERIADOS (nacionais e municipais): no dia, a agenda fecha ---------- */
+const FER = { ano: null, lista: [] };
+function ferPascoa(a){ // Páscoa (algoritmo de Meeus/Jones/Butcher)
+  const x = a % 19, b = Math.floor(a / 100), c = a % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+    h = (19 * x + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((x + 11 * h + 22 * l) / 451),
+    mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(a, mes - 1, dia);
+}
+function ferNacionais(a){
+  const p = ferPascoa(a), mv = n => { const d = new Date(p); d.setDate(d.getDate() + n); return iso(d); }, f = (m, d) => a + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  return [
+    { data: f(1, 1), nome: 'Confraternização Universal', pad: true }, { data: mv(-2), nome: 'Sexta-feira Santa', pad: true }, { data: f(4, 21), nome: 'Tiradentes', pad: true },
+    { data: f(5, 1), nome: 'Dia do Trabalho', pad: true }, { data: f(9, 7), nome: 'Independência do Brasil', pad: true }, { data: f(10, 12), nome: 'Nossa Senhora Aparecida', pad: true },
+    { data: f(11, 2), nome: 'Finados', pad: true }, { data: f(11, 15), nome: 'Proclamação da República', pad: true }, { data: f(11, 20), nome: 'Dia da Consciência Negra', pad: true },
+    { data: f(12, 25), nome: 'Natal', pad: true },
+    { data: mv(-48), nome: 'Carnaval (segunda-feira)', pad: false }, { data: mv(-47), nome: 'Carnaval (terça-feira)', pad: false }, { data: mv(60), nome: 'Corpus Christi', pad: false }
+  ].sort((x, y) => x.data < y.data ? -1 : 1);
+}
+const ferDia = s => { const d = dataLocal(s); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + NOMES_DIA[d.getDay()].replace('-feira', ''); };
+async function ferCarregar(){
+  if (!FER.ano) FER.ano = Number(hoje().slice(0, 4));
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const r = await sb.rpc('feriados_listar', { p_ano: FER.ano });
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  FER.lista = r.data || []; ferLista();
+}
+function ferLista(){
+  const gere = pode('feriados.gerir');
+  $('#area').innerHTML = '<div class="head"><div><h1>Feriados</h1><p class="sub">No dia de um feriado a agenda fecha e não há atendimento. Feriado nacional vale para todas as unidades; o municipal, só para as unidades escolhidas.</p></div>'
+    + (gere ? '<div class="tools"><button class="btn ghost" type="button" id="fe-imp">Adicionar feriados nacionais</button><button class="btn" type="button" id="fe-novo">+ Novo feriado</button></div>' : '') + '</div>'
+    + '<div class="card"><div class="tools" style="margin-bottom:6px"><button class="btn ghost sm" type="button" id="fe-ant" aria-label="Ano anterior">◀</button><b id="fe-ano" style="min-width:56px;text-align:center">' + FER.ano + '</b><button class="btn ghost sm" type="button" id="fe-prox" aria-label="Próximo ano">▶</button></div>'
+    + '<div class="lista" id="fe-lista"></div></div>';
+  const h = hoje();
+  $('#fe-lista').innerHTML = FER.lista.length ? FER.lista.map(f => '<button class="row f" type="button" data-id="' + f.id + '"><b>' + esc(f.nome) + '</b><span class="m x">' + ferDia(f.data) + '</span>'
+    + '<span class="m x"><span class="pill ' + (f.tipo === 'nacional' ? 'on' : 'nu') + '">' + (f.tipo === 'nacional' ? 'Nacional' : 'Municipal') + '</span></span><span class="m x">' + esc(f.unidades_txt) + '</span>'
+    + '<span class="m x">' + (f.data < h ? '<small style="color:var(--muted)">passou</small>' : Number(f.afetados) > 0 ? '<span class="pill wr" title="Agendamentos já marcados neste dia. Remarque.">' + f.afetados + ' agendado(s)</span>' : '') + '</span></button>').join('')
+    : '<div class="vazio">Nenhum feriado cadastrado em ' + FER.ano + '.' + (gere ? ' Use <b>Adicionar feriados nacionais</b> para começar.' : '') + '</div>';
+  $$('#fe-lista .row').forEach(b => b.addEventListener('click', () => ferForm(FER.lista.find(f => f.id === Number(b.dataset.id)))));
+  $('#fe-ant').addEventListener('click', () => { FER.ano--; ferCarregar(); }); $('#fe-prox').addEventListener('click', () => { FER.ano++; ferCarregar(); });
+  const n = $('#fe-novo'); if (n) n.addEventListener('click', () => ferForm(null));
+  const im = $('#fe-imp'); if (im) im.addEventListener('click', ferImportar);
+}
+const ferAviso = n => Number(n) > 0 ? ' Atenção: ' + n + ' agendamento(s) já marcado(s) nesse dia. Remarque os pacientes.' : '';
+function ferForm(f){
+  const novo = !f, edita = pode('feriados.gerir'), ro = edita ? '' : ' disabled', uns = MINHAS.filter(u => u.ativa !== false), sel = new Set(f ? f.unidades : [UN]);
+  abrirJanela(novo ? 'Novo feriado' : 'Feriado',
+    '<form id="fe-form" novalidate><div class="db">'
+    + fld('fe-nome', 'Nome *', f && f.nome, 'maxlength="80" autocomplete="off"' + ro)
+    + '<div class="g2">' + fld('fe-data', 'Data *', f ? f.data : '', 'type="date"' + ro)
+    + '<label class="field" for="fe-tipo">Tipo *<select id="fe-tipo"' + ro + '><option value="nacional"' + (!f || f.tipo === 'nacional' ? ' selected' : '') + '>Nacional (todas as unidades)</option><option value="municipal"' + (f && f.tipo === 'municipal' ? ' selected' : '') + '>Municipal (unidades escolhidas)</option></select></label></div>'
+    + '<div id="fe-uns"><p class="sub" style="margin:0 0 6px">Unidades fechadas neste feriado:</p><div class="tools" style="flex-wrap:wrap">' + uns.map(u => '<label class="chk"><input type="checkbox" data-u="' + u.id + '"' + (sel.has(u.id) ? ' checked' : '') + ro + '> ' + esc(u.sigla) + '</label>').join('') + '</div></div>'
+    + '<p class="sub" style="margin:0">Novos agendamentos nesse dia ficam bloqueados. Agendamentos que já existem não são cancelados: a tela avisa quantos são para você remarcar.</p>'
+    + '<div class="err" id="fe-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq">' + (!novo && edita ? '<button class="btn danger" type="button" id="fe-exc">Excluir</button>' : '') + '</div>'
+    + '<button class="btn ghost" type="button" id="fe-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="fe-ok">Salvar</button>' : '') + '</div></form>');
+  const tp = () => { $('#fe-uns').hidden = $('#fe-tipo').value !== 'municipal'; }; tp(); $('#fe-tipo').addEventListener('change', tp);
+  $('#fe-cancel').addEventListener('click', fecharJanela);
+  const ex = $('#fe-exc'); if (ex) ex.addEventListener('click', async () => {
+    if (ex.dataset.c !== '1') { ex.dataset.c = '1'; ex.textContent = 'Confirmar exclusão'; return; }
+    const r = await sb.rpc('feriado_excluir', { p_id: f.id });
+    if (r.error) { $('#fe-err').textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast('Feriado excluído. A agenda volta a abrir nesse dia.'); ferCarregar();
+  });
+  $('#fe-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edita) return; const er = $('#fe-err'); er.textContent = '';
+    const nome = $('#fe-nome').value.trim().replace(/\s+/g, ' '), data = $('#fe-data').value, tipo = $('#fe-tipo').value, us = $$('#fe-uns [data-u]').filter(c => c.checked).map(c => Number(c.dataset.u));
+    if (nome.length < 3) { er.textContent = 'Dê um nome ao feriado (mínimo 3 letras).'; return; }
+    if (!data) { er.textContent = 'Informe a data do feriado.'; return; }
+    if (tipo === 'municipal' && !us.length) { er.textContent = 'Escolha pelo menos uma unidade para o feriado municipal.'; return; }
+    const b = $('#fe-ok'); b.disabled = true;
+    const r = await sb.rpc('feriado_salvar', { p_id: f ? f.id : null, p_data: data, p_nome: nome, p_tipo: tipo, p_unidades: tipo === 'municipal' ? us : null });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    if (Number(data.slice(0, 4)) !== FER.ano) FER.ano = Number(data.slice(0, 4));
+    fecharJanela(); toast((novo ? 'Feriado cadastrado.' : 'Feriado atualizado.') + ferAviso(r.data && r.data.afetados)); ferCarregar();
+  });
+}
+function ferImportar(){
+  const ls = ferNacionais(FER.ano), ja = new Set(FER.lista.filter(f => f.tipo === 'nacional').map(f => f.data + '|' + f.nome.toLowerCase()));
+  abrirJanela('Feriados nacionais de ' + FER.ano,
+    '<form id="fi-form" novalidate><div class="db"><p class="sub" style="margin:0">Marque os que a clínica fecha. Os feriados oficiais já vêm marcados; Carnaval e Corpus Christi são pontos facultativos, então ficam por sua escolha. Os que já estão cadastrados são ignorados.</p>'
+    + ls.map((x, i) => { const ex = ja.has(x.data + '|' + x.nome.toLowerCase()); return '<label class="chk"><input type="checkbox" data-i="' + i + '"' + (x.pad && !ex ? ' checked' : '') + (ex ? ' disabled' : '') + '> ' + esc(x.nome) + ' <small style="color:var(--muted)">' + ferDia(x.data) + (ex ? ' · já cadastrado' : '') + '</small></label>'; }).join('')
+    + '<div class="err" id="fi-err" role="alert"></div></div><div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="fi-cancel">Cancelar</button><button class="btn" type="submit" id="fi-ok">Adicionar</button></div></form>');
+  $('#fi-cancel').addEventListener('click', fecharJanela);
+  $('#fi-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#fi-err'); er.textContent = '';
+    const it = $$('#fi-form [data-i]').filter(c => c.checked && !c.disabled).map(c => ls[Number(c.dataset.i)]).map(x => ({ data: x.data, nome: x.nome }));
+    if (!it.length) { er.textContent = 'Marque pelo menos um feriado.'; return; }
+    const b = $('#fi-ok'); b.disabled = true; const r = await sb.rpc('feriados_nacionais_importar', { p_itens: it }); b.disabled = false;
+    if (r.error) { er.textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast(r.data.criados + ' feriado(s) adicionado(s).' + ferAviso(r.data.afetados)); ferCarregar();
+  });
+}
+
 /* ---------- AGENDA DO DIA (grade de 15 em 15 minutos) ---------- */
-const AG = { un: null, data: null, tk: 0, timer: null, cols: null, ags: [], procs: [] };
+const AG = { un: null, data: null, fer: null, tk: 0, timer: null, cols: null, ags: [], procs: [] };
 const NOMES_DIA = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const dataLocal = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -3503,15 +3601,19 @@ async function agdCorpo(){
   if (!h) { AG.cols = null; corpo.innerHTML = '<div class="card"><div class="vazio">A unidade ' + esc(un.sigla) + ' não funciona em ' + NOMES_DIA[dt.getDay()] + '.</div></div>'; return; }
   const tk = ++AG.tk;
   const rs = await Promise.all([sb.rpc('agenda_do_dia', { p_unidade: un.id, p_data: AG.data }), sb.rpc('agendamentos_do_dia', { p_unidade: un.id, p_data: AG.data }),
-    sb.from('agendas').select('id,principal').eq('unidade_id', un.id), sb.from('procedimentos').select('*').eq('ativo', true).order('nome')]);
+    sb.from('agendas').select('id,principal').eq('unidade_id', un.id), sb.from('procedimentos').select('*').eq('ativo', true).order('nome'), sb.rpc('feriado_do_dia', { p_unidade: un.id, p_data: AG.data })]);
   if (tk !== AG.tk || !$('#g-corpo')) return;
+  AG.fer = rs[4].error ? null : (rs[4].data || null);
   if (rs[0].error) { corpo.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(rs[0].error)) + '</div></div>'; return; }
   const prin = new Set((rs[2].data || []).filter(a => a.principal).map(a => a.id));
   const cols = (rs[0].data || []).map(c => ({ ...c, principal: prin.has(c.agenda_id) }));
   AG.cols = cols; AG.ags = rs[1].error ? [] : (rs[1].data || []); AG.procs = rs[3].data || [];
+  const marc = AG.ags.filter(x => x.status !== 'cancelado').length;
+  if (AG.fer && !marc) { AG.cols = null; corpo.innerHTML = '<div class="card"><div class="vazio"><b>Feriado: ' + esc(AG.fer) + '.</b><br>A clínica está fechada neste dia e não há atendimento.</div></div>'; return; }
+  const bfer = AG.fer ? '<div class="err" style="margin-bottom:10px"><b>Feriado: ' + esc(AG.fer) + '.</b> A clínica está fechada e a agenda não aceita novos agendamentos. Há ' + marc + ' agendamento(s) neste dia: remarque os pacientes para outra data.</div>' : '';
   if (!cols.length) { corpo.innerHTML = '<div class="card"><div class="vazio">Nenhuma agenda neste dia. As agendas das cadeiras aparecem nos dias em que o ortodontista responsável atende nesta unidade.</div></div>'; return; }
   const w = $('.agw'), sy = w ? w.scrollTop : 0, sx = w ? w.scrollLeft : 0;
-  corpo.innerHTML = (rs[1].error ? '<div class="err" style="margin-bottom:10px">Os agendamentos não puderam ser carregados: ' + esc(erroTxt(rs[1].error)) + '</div>' : '')
+  corpo.innerHTML = bfer + (rs[1].error ? '<div class="err" style="margin-bottom:10px">Os agendamentos não puderam ser carregados: ' + esc(erroTxt(rs[1].error)) + '</div>' : '')
     + '<div class="agw"><div class="ag" id="g-grade" style="grid-template-columns:64px repeat(' + cols.length + ',minmax(190px,1fr))">' + agdGrade(cols, h, dt, AG.ags) + '</div></div>';
   const hc = $('.ag .hc:not(.hd)'); if (hc) $('#g-grade').style.setProperty('--hh', hc.offsetHeight + 'px'); // a faixa da data gruda logo abaixo do cabeçalho
   const w2 = $('.agw'); if (w2 && (sy || sx)) { w2.scrollTop = sy; w2.scrollLeft = sx; }
@@ -3525,7 +3627,7 @@ async function agdCorpo(){
 }
 function agdGrade(cols, h, dt, ags){
   const dd = String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'), rot = DIA_CURTO[dt.getDay()].toLowerCase() + ' ' + dd;
-  const podeSub = pode('agenda.substituir'), podeAg = pode('agendamentos.criar') && AG.data >= hoje();
+  const podeSub = pode('agenda.substituir'), podeAg = pode('agendamentos.criar') && AG.data >= hoje() && !AG.fer;
   let g = '<div class="hc hd" style="border:0;padding:0;grid-row:1;grid-column:1"></div>';
   cols.forEach((c, i) => {
     g += '<div class="hc" style="grid-row:1;grid-column:' + (i + 2) + '"><div class="nm">' + esc(c.nome) + '</div><div class="rs">' + (c.sem_atendimento ? '<span class="pill off">Sem atendimento</span>' : esc(c.dentista_nome || '') + (c.substituicao ? ' <span class="pill wr">Substituição</span>' : '')) + '</div>'
