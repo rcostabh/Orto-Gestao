@@ -615,6 +615,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.34.0', '2026-11-03', 'Venda avulsa: para quem compra um produto ou serviço sem fazer o tratamento (clareamento, limpeza profunda...). Em Vendas, o botão Venda avulsa escolhe o paciente (até prospect), o produto, o valor e a forma de pagamento e já registra o recebimento no caixa, sem contrato e sem mensalidades. Nova aba Avulsas lista essas vendas, e a ficha do paciente também tem o botão.'],
   ['0.33.0', '2026-11-03', 'Carta de alta encerra o contrato: ao passar o paciente para Contenção (alta do dentista), o contrato é marcado como encerrado, as mensalidades futuras são canceladas e nenhuma nova é gerada, sem multa. O contrato impresso ganhou a cláusula de término do tratamento, e a aba Contrato da ficha mostra “Encerrado por alta”.'],
   ['0.32.3', '2026-11-03', 'Contrato refeito com base no modelo da clínica: objeto, tratamento, contenção, preço com reajuste anual, atraso, aviso prévio de 90 dias, multa de 3 mensalidades, restrições técnicas, LGPD, foro de Belo Horizonte e anexo com as declarações de ciência do paciente. O dentista deixou de aparecer no contrato.'],
   ['0.32.2', '2026-11-03', 'Ficha do paciente: nova aba Contrato, ao lado de Anamnese e Documentação, com o contrato de prestação de serviços do paciente pronto para abrir, imprimir ou salvar em PDF.'],
@@ -1970,7 +1971,7 @@ async function pacFicha(id){
     + '<div id="fi-an" hidden></div>'
     + '<div id="fi-dc" hidden></div>'
     + '<div id="fi-ct" hidden></div>'
-    + '<div id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço, consulta de manutenção)">+ Nova cobrança</button></div>' : '') + '<div id="fi-fng"></div></div>'
+    + '<div id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço, consulta de manutenção)">+ Nova cobrança</button>' + (pode('financeiro.baixar') ? ' <button class="btn sm ghost" type="button" id="fi-vavulsa" title="Produto ou serviço pago na hora, sem contrato">Venda avulsa</button>' : '') + '</div>' : '') + '<div id="fi-fng"></div></div>'
     + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
@@ -1993,6 +1994,7 @@ async function pacFicha(id){
   $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; const an = $('#fi-an'); if (an) an.hidden = b.dataset.tab !== 'an'; const ct = $('#fi-ct'); if (ct) { ct.hidden = b.dataset.tab !== 'ct'; if (b.dataset.tab === 'ct') pacContrato(ct, p); } const dc = $('#fi-dc'); if (dc) { dc.hidden = b.dataset.tab !== 'dc'; if (b.dataset.tab === 'dc' && !dc.dataset.ok) { dc.dataset.ok = '1'; docPaciente(dc, p); } } }));
   if (FI_TAB) { const bt = $('#fi-tabs [data-tab="' + FI_TAB + '"]'); FI_TAB = null; if (bt) bt.click(); }
   const fnv = $('#fi-nova'); if (fnv) fnv.addEventListener('click', () => cobrancaDialogo(p.id, p.nome_social || p.nome, null));
+  const fva = $('#fi-vavulsa'); if (fva) fva.addEventListener('click', () => vendaAvulsaDialogo(p.id, p.nome_social || p.nome, null));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
     if (b.dataset.avs === 'aguardando') {
@@ -2449,16 +2451,16 @@ async function vdCarregar(){
   defUn(ru.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Vendas'); return; }
   await sb.rpc('financeiro_atualizar');
-  const rs = await Promise.all([sb.rpc('fila_venda', { p_unidade: UN }), sb.rpc('vendas_da_unidade', { p_unidade: UN }), sb.from('planos_tratamento').select('*').eq('ativo', true).order('id'), sb.from('dias_vencimento').select('dia').order('dia')]);
-  const er = rs.map(r => r.error).find(Boolean);
+  const rs = await Promise.all([sb.rpc('fila_venda', { p_unidade: UN }), sb.rpc('vendas_da_unidade', { p_unidade: UN }), sb.from('planos_tratamento').select('*').eq('ativo', true).order('id'), sb.from('dias_vencimento').select('dia').order('dia'), sb.rpc('vendas_avulsas_lista', { p_unidade: UN })]);
+  const er = rs.slice(0, 4).map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.fila = rs[0].data || []; D.vendas = rs[1].data || []; D.planos = rs[2].data || []; D.dv = (rs[3].data || []).map(x => x.dia);
+  D.fila = rs[0].data || []; D.vendas = rs[1].data || []; D.planos = rs[2].data || []; D.dv = (rs[3].data || []).map(x => x.dia); D.avulsas = rs[4] && !rs[4].error ? (rs[4].data || []) : [];
   vdLista();
 }
 function vdLista(){
   const lib = D.fila.filter(f => f.apto), nao = D.fila.filter(f => !f.apto), ativas = D.vendas.filter(v => v.status === 'ativa');
-  const abas = [['lib', 'Liberados para venda', lib.length], ['nao', 'Não aptos', nao.length], ['vend', 'Vendas realizadas', D.vendas.length]];
-  $('#area').innerHTML = '<div class="head"><div><h1>Vendas</h1><p class="sub">Pacientes que o dentista avaliou. Os aptos estão liberados: o vendedor apresenta, negocia e inicia o tratamento.</p></div></div>'
+  const abas = [['lib', 'Liberados para venda', lib.length], ['nao', 'Não aptos', nao.length], ['vend', 'Vendas realizadas', D.vendas.length]].concat(pode('financeiro.ver') ? [['avul', 'Avulsas', (D.avulsas || []).length]] : []);
+  $('#area').innerHTML = '<div class="head"><div><h1>Vendas</h1><p class="sub">Pacientes que o dentista avaliou. Os aptos estão liberados: o vendedor apresenta, negocia e inicia o tratamento.</p></div>' + (pode('financeiro.lancar') && pode('financeiro.baixar') ? '<button class="btn" type="button" id="vd-avulsa" title="Produto ou serviço pago na hora, sem contrato">Venda avulsa</button>' : '') + '</div>'
     + '<div class="card"><div class="tools" id="vd-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (VD.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (VD.aba === a[0]) + '" data-aba="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join('') + '</div><div class="lista" id="vd-lista"></div></div>';
   const nome = f => esc(f.nome_social || f.nome) + (f.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(f.nome) + ')</small>' : '');
   const av = f => '<span class="m x">Avaliado por ' + esc(f.dentista_nome || '—') + ' · ' + dtHora(f.concluida_em) + '</span><span class="m x">Clínico concomitante: ' + (f.tratamento_clinico ? 'sim' : 'não') + ' · Limpeza profunda: ' + (f.limpeza_profunda ? 'sim' : 'não') + '</span>';
@@ -2466,9 +2468,11 @@ function vdLista(){
   if (VD.aba === 'lib') h = lib.length ? lib.map(f => '<div class="row f" data-pid="' + f.paciente_id + '"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.canal_venda) + '</span>'
       + (pode('vendas.registrar') ? '<button class="btn sm" type="button" data-vender="' + f.paciente_id + '">Iniciar tratamento</button>' : '<span></span>') + '</div>').join('') : '<div class="vazio">Ninguém liberado para venda agora. Quando o dentista concluir uma avaliação como apto, o paciente aparece aqui.</div>';
   else if (VD.aba === 'nao') h = nao.length ? nao.map(f => '<div class="row f"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.observacao || '') + '</span><button class="btn ghost sm" type="button" data-ficha="' + f.paciente_id + '">Abrir ficha</button></div>').join('') : '<div class="vazio">Nenhum paciente não apto em acompanhamento.</div>';
+  else if (VD.aba === 'avul') h = (D.avulsas || []).length ? (D.avulsas || []).map(x => '<div class="row f"><b>' + esc(x.paciente_nome) + '</b><span class="m x">' + esc(x.descricao) + (x.observacao ? ' · ' + esc(x.observacao) : '') + '</span><span class="m x">' + reais(x.valor_cheio) + '</span><span class="m x">' + (x.status === 'paga' ? dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento || '') : dtHora(x.criado_em)) + '</span><span class="pill ' + (x.status === 'paga' ? 'on' : 'off') + '">' + ({ paga: 'Recebida', aberta: 'A receber', cancelada: 'Cancelada', isenta: 'Isenta' }[x.status] || esc(x.status)) + '</span></div>').join('') : '<div class="vazio">Nenhuma venda avulsa ainda. Use o botão Venda avulsa para vender um produto ou serviço sem contrato.</div>';
   else h = D.vendas.length ? D.vendas.map(v => '<button class="row f" type="button" data-venda="' + v.id + '"><b>' + esc(v.paciente_nome) + '</b><span class="m x">' + esc(v.plano_nome) + '</span><span class="m x">' + reais(v.valor) + '/mês' + (v.prazo_meses ? ' · ' + v.prazo_meses + ' meses' : '') + '</span><span class="m x">' + esc(v.vendedor_nome || '') + ' · ' + dtHora(v.criado_em) + '</span><span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></button>').join('') : '<div class="vazio">Nenhuma venda registrada ainda.</div>';
   $('#vd-lista').innerHTML = h;
   $$('#vd-abas [data-aba]').forEach(b => b.addEventListener('click', () => { VD.aba = b.dataset.aba; vdLista(); }));
+  const va = $('#vd-avulsa'); if (va) va.addEventListener('click', () => vendaAvulsaDialogo(null, null, () => { fecharJanela(); VD.aba = 'avul'; vdCarregar(); }));
   $$('[data-vender]').forEach(b => b.addEventListener('click', () => vdVender(D.fila.find(f => f.paciente_id === Number(b.dataset.vender)))));
   $$('[data-ficha]').forEach(b => b.addEventListener('click', () => { const f = D.fila.find(x => x.paciente_id === Number(b.dataset.ficha)); abrirPaciente({ id: f.paciente_id, nome: f.nome, nome_social: f.nome_social }); }));
   $$('[data-venda]').forEach(b => b.addEventListener('click', () => vdDetalhe(D.vendas.find(v => v.id === Number(b.dataset.venda)))));
@@ -3508,6 +3512,50 @@ async function cobrancaDialogo(pid, nome, aoFim){
     const r2 = await sb.rpc('lancar_cobranca', { p_paciente: pid, p_item: item, p_valor: valor, p_venc: venc, p_obs: $('#cb-obs').value.trim() || null });
     b.disabled = false; if (r2.error) { er.textContent = erroTxt(r2.error); return; }
     toast('Cobrança lançada.'); volta(); refrescaTela();
+  });
+}
+
+/* ---------- Venda avulsa: produto/serviço pago na hora, sem contrato ---------- */
+async function vendaAvulsaDialogo(pid, nome, aoFim){
+  const r = await sb.from('produtos_servicos').select('id,nome,valor_padrao').eq('ativo', true).order('nome');
+  if (r.error) { toast(erroTxt(r.error)); return; }
+  const it = r.data, volta = () => { if (aoFim) aoFim(); else fecharJanela(); };
+  let esc_ = pid ? { id: pid, nome } : null, tm = null;
+  abrirJanela('Venda avulsa', '<form id="va-form" novalidate><div class="db"><p class="sub" style="margin:0">Para quem compra um produto ou serviço sem fazer o tratamento (clareamento, limpeza profunda...). Não gera contrato nem mensalidades: o valor entra no seu caixa de hoje.</p>'
+    + '<div id="va-pac"></div>'
+    + (it.length ? '<label class="field" for="va-item">Produto/Serviço *<select id="va-item"><option value="">Selecione</option>' + it.map(x => '<option value="' + x.id + '">' + esc(x.nome) + '</option>').join('') + '</select></label>'
+      : '<div class="vazio">Nenhum produto ou serviço cadastrado. O Diretor cadastra em Produtos e serviços (por exemplo, Clareamento e Limpeza profunda).</div>')
+    + '<div class="g2"><label class="field" for="va-valor">Valor *<span class="pw"><input id="va-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off" value=""><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
+    + '<label class="field" for="va-forma">Forma de pagamento *<select id="va-forma"><option value="">Selecione</option>' + FORMAS_PGTO.map(f => '<option>' + f + '</option>').join('') + '</select></label></div>'
+    + fld('va-obs', 'Observação (opcional)', '', 'maxlength="200" autocomplete="off"')
+    + '<div class="err" id="va-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="va-x">Voltar</button><button class="btn" type="submit" id="va-ok"' + (it.length ? '' : ' disabled') + '>Registrar venda e recebimento</button></div></form>');
+  const pintaPac = () => {
+    $('#va-pac').innerHTML = esc_ ? '<p style="margin:0;font-size:16px"><b>' + esc(esc_.nome) + '</b>' + (pid ? '' : ' <button class="link" type="button" id="va-troca">trocar</button>') + '</p>'
+      : '<label class="field" for="va-q">Paciente *<input id="va-q" type="search" placeholder="Digite nome, CPF, código ou telefone (3 letras ou mais)" autocomplete="off"></label><div class="lista" id="va-res"></div>';
+    const tr = $('#va-troca'); if (tr) tr.addEventListener('click', () => { esc_ = null; pintaPac(); });
+    const q = $('#va-q'); if (q) { q.focus(); q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(async () => {
+      const v = q.value.trim(); if (v.length < 3) { $('#va-res').innerHTML = ''; return; }
+      const b = await sb.rpc('pacientes_busca_venda', { p_unidade: UN, p_q: v }); const l = b.error ? [] : (b.data || []);
+      $('#va-res').innerHTML = l.length ? l.map(x => '<button class="row f" type="button" data-vp="' + x.id + '"><b>' + esc(x.nome_social || x.nome) + '</b><span class="m x">' + esc(x.status) + (x.telefone ? ' · ' + mTel(x.telefone) : '') + '</span></button>').join('') : '<div class="vazio">Ninguém encontrado. Cadastre a pessoa em Pacientes e volte aqui.</div>';
+      $$('[data-vp]', $('#va-res')).forEach(bt => bt.addEventListener('click', () => { const x = l.find(y => y.id === Number(bt.dataset.vp)); esc_ = { id: x.id, nome: x.nome_social || x.nome }; pintaPac(); }));
+    }, 250); }); }
+  };
+  pintaPac();
+  $('#va-valor').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
+  const sel = $('#va-item'); if (sel) sel.addEventListener('change', () => { const x = it.find(y => y.id === Number(sel.value)); if (x && x.valor_padrao && !$('#va-valor').value) $('#va-valor').value = moedaTxt(x.valor_padrao); });
+  $('#va-x').addEventListener('click', fecharJanela);
+  $('#va-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#va-err'); er.textContent = '';
+    const item = Number($('#va-item').value), valor = moedaNum($('#va-valor').value) || 0, forma = $('#va-forma').value;
+    if (!esc_) { er.textContent = 'Escolha o paciente.'; return; }
+    if (!item) { er.textContent = 'Escolha o produto ou serviço.'; return; }
+    if (valor <= 0) { er.textContent = 'Informe o valor.'; return; }
+    if (!forma) { er.textContent = 'Escolha a forma de pagamento.'; return; }
+    const b = $('#va-ok'); b.disabled = true;
+    const r2 = await sb.rpc('venda_avulsa', { p_paciente: esc_.id, p_item: item, p_valor: valor, p_forma: forma, p_obs: $('#va-obs').value.trim() || null });
+    b.disabled = false; if (r2.error) { er.textContent = erroTxt(r2.error); return; }
+    toast('Venda registrada e recebida no seu caixa.'); volta(); refrescaTela();
   });
 }
 
