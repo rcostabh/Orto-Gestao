@@ -556,27 +556,27 @@ const MENU = [
   { r: 'inicio', t: 'Início', p: null },
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
-  { g: 'Pacientes', ic: 'prospects', itens: [
-    { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
-    { r: 'documentacao', t: 'Documentação', p: 'documentacao.ver' },
-    { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] },
-  { g: 'Financeiro', ic: 'financeiro', itens: [
-    { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
-    { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] },
-    { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] } ] },
   { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver', 'cobranca.contatar'] },
   { g: 'Configurações', ic: 'unidades', itens: [
-    { r: 'unidades', t: 'Unidades', p: 'unidades.ver' },
-    { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
-    { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
-    { r: 'feriados', t: 'Feriados', p: 'feriados.ver' },
-    { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
-    { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
-    { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
-    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' },
+    { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
     { r: 'email', t: 'E-mail', p: 'diretor' },
-    { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
+    { r: 'feriados', t: 'Feriados', p: 'feriados.ver' },
+    { r: 'funcionarios', t: 'Funcionários', p: 'funcionarios.ver' },
+    { r: 'perfis', t: 'Perfis de acesso', p: 'perfis.ver' },
+    { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' },
+    { r: 'procedimentos', t: 'Procedimentos', p: 'procedimentos.ver' },
+    { r: 'produtos', t: 'Produtos e serviços', p: 'diretor' },
+    { r: 'tratamentos', t: 'Tipos de tratamento', p: 'diretor' },
+    { r: 'unidades', t: 'Unidades', p: 'unidades.ver' } ] },
+  { g: 'Financeiro', ic: 'financeiro', itens: [
+    { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] },
+    { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
+    { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] } ] },
+  { g: 'Pacientes', ic: 'prospects', itens: [
+    { r: 'documentacao', t: 'Documentação', p: 'documentacao.ver' },
+    { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
+    { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
 const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
@@ -604,6 +604,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.30.1', '2026-11-02', 'Menus em ordem alfabética (Início fica sempre no topo): Agenda, Avaliações, Cobrança, Configurações, Financeiro e Pacientes, e os itens dentro de cada grupo.'],
   ['0.30.0', '2026-11-02', 'Feriados: novo cadastro em Configurações › Feriados, com feriados nacionais (valem para todas as unidades, com botão para adicionar os do ano) e municipais (só nas unidades escolhidas). No dia do feriado a agenda fecha e não aceita novos agendamentos; os que já existiam continuam e a tela avisa quantos são para remarcar.'],
   ['0.29.1', '2026-11-02', 'Início do Diretor e do Gerente: os quadros de indicadores agora têm a mesma altura do mapa e tudo cabe na tela, sem rolagem (em telas pequenas continua em coluna).'],
   ['0.29.0', '2026-11-02', 'Cobrança: novas abas Sem agendamento (lista diária de pacientes em tratamento sem próxima consulta), Faltas (controle por dia e por mês, com a lista de quem faltou e se já remarcou) e Campanhas (regra de quem entra, por faixa de cobrança, procedimento atrasado, sem consulta, sem atendimento ou faltas, mais a mensagem). Envio por WhatsApp em fila de 1 toque, com registro do contato e do resultado, e chave para exigir autorização de WhatsApp (LGPD). Quem recusou nunca recebe.'],
