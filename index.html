@@ -70,6 +70,7 @@ button{font-family:inherit}
 .item svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .item.soon{opacity:.5;cursor:default}.item.soon:hover{background:transparent}
 .item .tag{margin-left:auto;font-size:10.5px;background:rgba(255,255,255,.12);padding:2px 7px;border-radius:99px}
+.bsc{margin:12px 4px 0}.bsc-l{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:0 10px}.bsc-l:focus-within{border-color:var(--accent);background:rgba(255,255,255,.12)}.bsc-l svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--side-muted);stroke-width:2;stroke-linecap:round}.bsc-l input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#fff;font:inherit;font-size:14px;padding:9px 0}.bsc-l input::placeholder{color:var(--side-muted)}.bsc-i{display:grid;gap:1px;width:100%;text-align:left;background:transparent;border:0;border-radius:8px;color:var(--side-ink);padding:7px 10px;cursor:pointer;font:inherit}.bsc-i:hover,.bsc-i.on{background:rgba(255,255,255,.12)}.bsc-i b{font-size:14px;font-weight:600}.bsc-i span{font-size:11.5px;color:var(--side-muted)}.bsc-v{padding:8px 10px;font-size:13px;color:var(--side-muted)}#bsc-res{margin-top:6px;display:grid;gap:2px}
 .side .eu{margin-top:auto;padding:14px 10px 4px;border-top:1px solid rgba(255,255,255,.1);font-size:13px}
 .side .eu b{display:block;color:#fff;font-size:14px}.side .eu span{color:var(--side-muted)}
 .side .eu button{margin-top:10px;width:100%}
@@ -355,6 +356,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
     <button class="ver" id="ver" type="button" title="Registro de versões"></button>
     <div class="und" id="und"></div>
     <nav id="menu"></nav>
+    <div class="bsc" id="bsc"><label class="bsc-l" for="bsc-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="bsc-q" type="search" placeholder="Pesquisar função..." autocomplete="off" aria-label="Pesquisar função no sistema" aria-controls="bsc-res"></label><div id="bsc-res" role="listbox" aria-label="Resultados"></div></div>
     <div class="eu"><b id="eu-nome"></b><span id="eu-perfil"></span><select id="eu-emp" hidden aria-label="Empresa" title="Trocar de empresa"></select><select id="eu-ver" hidden aria-label="Ver o sistema como outro perfil" title="Ver o sistema como outro perfil"></select><button class="btn ghost sm" id="sair" type="button">Sair</button></div>
   </aside>
   <div class="col">
@@ -603,6 +605,68 @@ function montarMenu(){
   $$('#menu button[data-r]').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r)));
   $$('#menu .grp.tg').forEach(b => b.addEventListener('click', () => menuGrupo(b)));
   if (ABA) menuAbre(ABA.rota);
+  const bs = $('#bsc'); if (bs) { bs.hidden = !!EU.fora; buscaLiga(); }
+}
+/* ---------- Pesquisar função: digite e ache o caminho (menu e funções dentro das telas) ---------- */
+const BUSCA_EXTRA = [
+  { t: 'Anamnese', c: 'Pacientes e prospects › abra o paciente › aba Anamnese', r: 'prospects', p: 'pacientes.ver', k: 'ficha saude questionario enviar link email assinatura whatsapp formulario' },
+  { t: 'Contrato do paciente', c: 'Pacientes e prospects › abra o paciente › aba Contrato', r: 'prospects', p: 'vendas.ver', k: 'imprimir pdf prestacao servicos odontologicos cnpj' },
+  { t: 'Contrato (imprimir)', c: 'Vendas › Vendas realizadas › abra a venda › Contrato', r: 'vendas', p: 'vendas.ver', k: 'imprimir pdf prestacao servicos' },
+  { t: 'Documentação do paciente', c: 'Pacientes e prospects › abra o paciente › aba Documentação', r: 'prospects', p: 'documentacao.ver', k: 'fotos radiografias exames arquivos anexos upload' },
+  { t: 'Venda avulsa', c: 'Vendas › botão Venda avulsa', r: 'vendas', p: 'financeiro.lancar', k: 'clareamento limpeza produto servico sem contrato pagamento simples receber' },
+  { t: 'Iniciar tratamento', c: 'Vendas › Liberados para venda', r: 'vendas', p: 'vendas.registrar', k: 'vender plano contrato mensalidade' },
+  { t: 'Carta de alta / contenção', c: 'Pacientes e prospects › abra o paciente › Carta de alta: passar para contenção', r: 'prospects', p: 'pacientes.editar', k: 'alta encerrar contrato concluir tratamento' },
+  { t: 'Cancelar contrato', c: 'Pacientes e prospects › abra o paciente › Mais ações › Cancelar contrato', r: 'prospects', p: 'pacientes.ver', k: 'desistencia rescisao desistente aviso previo multa' },
+  { t: 'Cadastrar paciente', c: 'Pacientes e prospects › Novo', r: 'prospects', p: 'pacientes.criar', k: 'novo prospect cadastro cpf telefone' },
+  { t: 'Receber pagamento', c: 'Caixa › buscar o paciente › Receber', r: 'caixa', p: ['financeiro.baixar', 'caixa.ver'], k: 'mensalidade parcela pix dinheiro cartao boleto baixa' },
+  { t: 'Abrir e fechar caixa', c: 'Caixa', r: 'caixa', p: ['caixa.abrir', 'caixa.ver'], k: 'troco conciliar relatorio de caixa' },
+  { t: 'Estornar ou isentar parcela', c: 'Financeiro › parcela do paciente', r: 'financeiro', p: 'financeiro.ver', k: 'estorno isencao desconto cobranca avulsa lancar' },
+  { t: 'Parcelas e mensalidades', c: 'Financeiro', r: 'financeiro', p: 'financeiro.ver', k: 'vencimento atraso inadimplencia a receber' },
+  { t: 'Campanhas e régua de cobrança', c: 'Cobrança › Mensagens e regras', r: 'cobranca', p: ['cobranca.ver', 'cobranca.contatar', 'financeiro.ver'], k: 'whatsapp mensagem atraso contato inativos reativar' },
+  { t: 'Marcar consulta', c: 'Agenda', r: 'agenda', p: 'agenda.ver', k: 'agendar horario compromisso paciente remarcar cancelar' },
+  { t: 'Fazer avaliação (dentista)', c: 'Avaliações', r: 'avaliacoes', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'], k: 'apto nao apto clinico limpeza profunda' },
+  { t: 'CNPJ, endereço e horário da unidade', c: 'Configurações › Unidades', r: 'unidades', p: 'unidades.ver', k: 'cnpj razao social telefone funcionamento almoco' },
+  { t: 'Valores do tratamento (mensalidade e desconto)', c: 'Configurações › Tipos de tratamento', r: 'tratamentos', p: 'diretor', k: 'plano prazo meses preco desconto' },
+  { t: 'Clareamento, limpeza e outros produtos', c: 'Configurações › Produtos e serviços', r: 'produtos', p: 'diretor', k: 'valor padrao catalogo servico' },
+  { t: 'Importar feriados nacionais', c: 'Configurações › Feriados', r: 'feriados', p: 'feriados.ver', k: 'agenda fechada municipal' },
+  { t: 'Senhas e acessos dos funcionários', c: 'Configurações › Funcionários', r: 'funcionarios', p: 'funcionarios.ver', k: 'login usuario redefinir senha cargo' },
+  { t: 'Permissões por perfil', c: 'Configurações › Perfis de acesso', r: 'perfis', p: 'perfis.ver', k: 'acesso permitir bloquear' },
+  { t: 'LGPD: anonimizar e incidentes', c: 'Configurações › Privacidade (LGPD)', r: 'privacidade', p: 'diretor', k: 'dados pessoais excluir titular' },
+  { t: 'Envio de e-mail', c: 'Configurações › E-mail', r: 'email', p: 'diretor', k: 'smtp remetente teste anamnese' },
+  { t: 'Cadeiras e agendas', c: 'Configurações › Agendas', r: 'agendas', p: 'agendas.ver', k: 'cadeira sala dentista dias' }
+];
+const semAcento = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const buscaOkP = p => !p || (p === 'diretor' ? !!EU.acesso_total : [].concat(p).some(x => pode(x)));
+function buscaIndice(){
+  const l = [];
+  for (const m of MENU) {
+    if (m.r) { if (buscaOkP(m.p)) l.push({ t: m.t, c: 'Menu', r: m.r, k: '' }); }
+    else if (m.itens) m.itens.forEach(i => { if (buscaOkP(i.p)) l.push({ t: i.t, c: 'Menu › ' + m.g, r: i.r, k: '' }); });
+  }
+  BUSCA_EXTRA.forEach(x => { if (buscaOkP(x.p)) l.push(x); });
+  return l;
+}
+function buscaResultados(q){
+  const tk = semAcento(q).split(/\s+/).filter(Boolean); if (!tk.length) return [];
+  return buscaIndice().map(x => {
+    const t = semAcento(x.t), rest = semAcento(x.c + ' ' + (x.k || '')); let sc = 0;
+    for (const w of tk) { if (t.startsWith(w) || t.includes(' ' + w)) sc += 3; else if (t.includes(w)) sc += 2; else if (rest.includes(w)) sc += 1; else return null; }
+    return { x, sc };
+  }).filter(Boolean).sort((a, b) => b.sc - a.sc || a.x.t.localeCompare(b.x.t, 'pt')).slice(0, 8).map(o => o.x);
+}
+function buscaLiga(){
+  const q = $('#bsc-q'), res = $('#bsc-res'); if (!q || q.dataset.ok) return; q.dataset.ok = '1';
+  let sel = -1, lista = [];
+  const pinta = () => { res.innerHTML = lista.length ? lista.map((x, i) => '<button type="button" class="bsc-i' + (i === sel ? ' on' : '') + '" data-i="' + i + '"><b>' + esc(x.t) + '</b><span>' + esc(x.c) + '</span></button>').join('') : (q.value.trim() ? '<div class="bsc-v">Nada encontrado. Tente outra palavra.</div>' : '');
+    $$('.bsc-i', res).forEach(b => b.addEventListener('click', () => vai(lista[Number(b.dataset.i)]))); };
+  const vai = x => { if (!x) return; q.value = ''; lista = []; sel = -1; pinta(); irPara(x.r); };
+  q.addEventListener('input', () => { lista = buscaResultados(q.value); sel = lista.length ? 0 : -1; pinta(); });
+  q.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' && lista.length) { e.preventDefault(); sel = (sel + 1) % lista.length; pinta(); }
+    else if (e.key === 'ArrowUp' && lista.length) { e.preventDefault(); sel = (sel - 1 + lista.length) % lista.length; pinta(); }
+    else if (e.key === 'Enter') { e.preventDefault(); vai(lista[Math.max(sel, 0)]); }
+    else if (e.key === 'Escape') { q.value = ''; lista = []; sel = -1; pinta(); }
+  });
 }
 /* menu compacto: cada grupo abre e fecha o seu submenu; abrir um fecha os outros; o grupo da tela atual abre sozinho */
 function menuGrupo(b, abrir){
@@ -615,6 +679,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.35.0', '2026-11-03', 'Pesquisar função: campo abaixo do menu lateral. Digite o que procura (anamnese, contrato, caixa, feriados, CNPJ...) e ele mostra o caminho até a função, inclusive as que ficam dentro da ficha do paciente, e leva até a tela com um clique ou Enter. Só aparecem funções que o seu perfil pode usar.'],
   ['0.34.0', '2026-11-03', 'Venda avulsa: para quem compra um produto ou serviço sem fazer o tratamento (clareamento, limpeza profunda...). Em Vendas, o botão Venda avulsa escolhe o paciente (até prospect), o produto, o valor e a forma de pagamento e já registra o recebimento no caixa, sem contrato e sem mensalidades. Nova aba Avulsas lista essas vendas, e a ficha do paciente também tem o botão.'],
   ['0.33.0', '2026-11-03', 'Carta de alta encerra o contrato: ao passar o paciente para Contenção (alta do dentista), o contrato é marcado como encerrado, as mensalidades futuras são canceladas e nenhuma nova é gerada, sem multa. O contrato impresso ganhou a cláusula de término do tratamento, e a aba Contrato da ficha mostra “Encerrado por alta”.'],
   ['0.32.3', '2026-11-03', 'Contrato refeito com base no modelo da clínica: objeto, tratamento, contenção, preço com reajuste anual, atraso, aviso prévio de 90 dias, multa de 3 mensalidades, restrições técnicas, LGPD, foro de Belo Horizonte e anexo com as declarações de ciência do paciente. O dentista deixou de aparecer no contrato.'],
