@@ -421,10 +421,20 @@ const erroTxt = e => {
   if (e.code === '23505') { const m = e.message || ''; return /sigla/.test(m) ? 'Já existe uma unidade com essa sigla.' : /cpf/.test(m) ? 'Já existe um cadastro com esse CPF.' : /cro/.test(m) ? 'Já existe um dentista com esse CRO.' : /funcionario_id/.test(m) ? 'Esse acesso já está ligado a outro dentista.' : 'Já existe um cadastro igual a esse.'; }
   return e.message || 'Algo deu errado. Tente de novo.';
 };
-async function chamar(body, fn){
-  const { data, error } = await sb.functions.invoke(fn || 'gestao-funcionarios', { body });
+async function chamar(body, fn, tent){
+  /* o token da sessão vence de tempos em tempos; se a aba ficou parada, a função recusa com "Sessão expirada".
+     Antes de chamar, pedimos a sessão atual (isso renova o token vencido) e mandamos o token novo; se ainda assim vier 401, renova e tenta mais uma vez. */
+  const h = {};
+  try { const g = await sb.auth.getSession(); if (g && g.data && g.data.session && g.data.session.access_token) h.Authorization = 'Bearer ' + g.data.session.access_token; } catch (_) {}
+  const { data, error } = await sb.functions.invoke(fn || 'gestao-funcionarios', { body, headers: h });
   if (error) {
-    try { if (error.context && error.context.json) { const j = await error.context.json(); if (j && j.erro) return { erro: j.erro }; } } catch (_) {}
+    let msg = '';
+    try { if (error.context && error.context.json) { const j = await error.context.json(); if (j && j.erro) msg = j.erro; } } catch (_) {}
+    if (msg && /sess[ãa]o expirada/i.test(msg) && !tent) {
+      try { await sb.auth.refreshSession(); } catch (_) {}
+      return chamar(body, fn, 1);
+    }
+    if (msg) return { erro: /sess[ãa]o expirada/i.test(msg) ? 'Sua sessão expirou. Clique em Sair, entre de novo e repita.' : msg };
     return { erro: 'Não foi possível falar com o servidor. Confira se a função está publicada.' };
   }
   if (data && data.erro) return { erro: data.erro };
@@ -604,6 +614,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.31.1', '2026-11-03', 'Correção: o envio de e-mail (anamnese e teste) e o cadastro de funcionários não dão mais “Sessão expirada” quando a aba ficou parada. O sistema renova o acesso e tenta de novo sozinho.'],
   ['0.31.0', '2026-11-02', 'Nova logo do Orto Gestão no login, no menu lateral e no ícone da aba do navegador.'],
   ['0.30.1', '2026-11-02', 'Menus em ordem alfabética (Início fica sempre no topo): Agenda, Avaliações, Cobrança, Configurações, Financeiro e Pacientes, e os itens dentro de cada grupo.'],
   ['0.30.0', '2026-11-02', 'Feriados: novo cadastro em Configurações › Feriados, com feriados nacionais (valem para todas as unidades, com botão para adicionar os do ano) e municipais (só nas unidades escolhidas). No dia do feriado a agenda fecha e não aceita novos agendamentos; os que já existiam continuam e a tela avisa quantos são para remarcar.'],
