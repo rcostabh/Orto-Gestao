@@ -614,6 +614,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.32.0', '2026-11-03', 'Unidades agora têm CNPJ (com validação). Na venda do paciente, o botão Contrato gera o contrato de prestação de serviços odontológicos de ortodontia, pronto para imprimir ou salvar em PDF: 30 meses com renovação após a 30ª parcela, aviso prévio de 90 dias, multa de 3 mensalidades, desconto só para pagamento em dia, divisão 70% plano de tratamento e 30% mensalidades, e foro de Belo Horizonte.'],
   ['0.31.1', '2026-11-03', 'Correção: o envio de e-mail (anamnese e teste) e o cadastro de funcionários não dão mais “Sessão expirada” quando a aba ficou parada. O sistema renova o acesso e tenta de novo sozinho.'],
   ['0.31.0', '2026-11-02', 'Nova logo do Orto Gestão no login, no menu lateral e no ícone da aba do navegador.'],
   ['0.30.1', '2026-11-02', 'Menus em ordem alfabética (Início fica sempre no topo): Agenda, Avaliações, Cobrança, Configurações, Financeiro e Pacientes, e os itens dentro de cada grupo.'],
@@ -1400,7 +1401,7 @@ function uniForm(u){
   abrirJanela(novo ? 'Nova unidade' : 'Unidade ' + u.sigla,
     '<form id="u-form" novalidate><div class="db"><div class="sec">Identificação</div>'
     + '<div class="g2">' + fld('u-razao', 'Razão social', u && u.razao_social, 'maxlength="120"' + ro) + fld('u-sigla', 'Sigla <small>(2 a 8 letras ou números)</small>', u && u.sigla, 'maxlength="8" autocapitalize="characters"' + ro) + '</div>'
-    + '<div class="g2">' + fld('u-tel', 'Telefone', mTel(u && u.telefone), 'inputmode="tel" maxlength="15"' + ro) + '</div>'
+    + '<div class="g2">' + fld('u-cnpj', 'CNPJ', mCnpj(u && u.cnpj), 'inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00"' + ro) + fld('u-tel', 'Telefone', mTel(u && u.telefone), 'inputmode="tel" maxlength="15"' + ro) + '</div>'
     + '<div class="sec">Endereço</div>'
     + '<div class="g3">' + fld('u-cep', 'CEP', mCEP(u && u.cep), 'inputmode="numeric" maxlength="9"' + ro) + fld('u-log', 'Rua / Avenida', u && u.logradouro, ro) + fld('u-num', 'Número', u && u.numero, 'maxlength="10"' + ro) + '</div>'
     + '<div class="sub" id="u-cepmsg" style="margin:-6px 0 0" aria-live="polite"></div><div class="g3">' + fld('u-comp', 'Complemento', u && u.complemento, ro) + fld('u-bai', 'Bairro', u && u.bairro, ro) + fld('u-cid', 'Cidade', u && u.cidade, ro) + '</div>'
@@ -1417,6 +1418,7 @@ function uniForm(u){
   const rep = $('#u-rep'); if (rep) rep.addEventListener('click', () => { const s = linhaDia(1); for (let d = 2; d <= 5; d++) { const l = linhaDia(d); l.on.checked = s.on.checked; l.a.value = s.a.value; l.i.value = s.i.value; l.v.value = s.v.value; l.f.value = s.f.value; liga(l, s.on.checked); } });
   $('#u-cancel').addEventListener('click', fecharJanela);
   $('#u-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
+  $('#u-cnpj').addEventListener('input', e => e.target.value = mCnpj(e.target.value));
   let ultCep = dig(u && u.cep);
   $('#u-cep').addEventListener('input', e => { e.target.value = mCEP(e.target.value); const c = dig(e.target.value); if (c.length < 8) { ultCep = ''; $('#u-cepmsg').textContent = ''; } else if (c !== ultCep) { ultCep = c; cepAuto('u', c); } });
   $('#u-sigla').addEventListener('input', e => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
@@ -1439,10 +1441,11 @@ function uniForm(u){
     const sigla = v('u-sigla');
     if (v('u-razao').length < 3) { er.textContent = 'Informe a razão social.'; return; }
     if (!/^[A-Z0-9]{2,8}$/.test(sigla)) { er.textContent = 'A sigla precisa ter de 2 a 8 letras ou números.'; return; }
+    if (dig(v('u-cnpj')) && !cnpjOk(v('u-cnpj'))) { er.textContent = 'CNPJ inválido. Confira os 14 números.'; return; }
     if (dig(v('u-tel')).length < 10) { er.textContent = 'Informe o telefone com DDD.'; return; }
     if (!v('u-log') || !v('u-num') || !v('u-cid') || !v('u-uf')) { er.textContent = 'Preencha rua, número, cidade e UF.'; return; }
     if (!Object.keys(horario).length) { er.textContent = 'Marque pelo menos um dia de funcionamento.'; return; }
-    const reg = { razao_social: v('u-razao'), sigla, telefone: dig(v('u-tel')), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
+    const reg = { razao_social: v('u-razao'), cnpj: dig(v('u-cnpj')) || null, sigla, telefone: dig(v('u-tel')), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
     const b = $('#u-ok'); b.disabled = true;
     const { error } = novo ? await sb.from('unidades').insert(reg) : await sb.from('unidades').update(reg).eq('id', u.id);
     b.disabled = false;
@@ -2172,14 +2175,16 @@ async function pgrFicha(id){
     $('#pr-form').addEventListener('submit', async e => { e.preventDefault(); const r = await sb.rpc('plataforma_renomear_grupo', { p_id: id, p_nome: $('#pr-nome').value }); if (r.error) { $('#pr-err').textContent = erroTxt(r.error); return; } fecharJanela(); toast('Grupo renomeado.'); recarrega(); });
   });
   const und = $('#gf-und'); if (und) und.addEventListener('click', () => {
-    abrirJanela('Nova unidade', '<form id="pu-form" novalidate><div class="db"><p class="sub" style="margin:0">Só o básico. O Diretor completa endereço, horários e o resto em Configurações › Unidades.</p>' + fld('pu-razao', 'Razão social *', '', 'maxlength="120" autocomplete="off"') + fld('pu-sigla', 'Sigla * <small>(2 a 8 letras ou números)</small>', '', 'maxlength="8" autocomplete="off"') + '<div class="err" id="pu-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pu-cancel">Cancelar</button><button class="btn" type="submit">Criar unidade</button></div></form>');
+    abrirJanela('Nova unidade', '<form id="pu-form" novalidate><div class="db"><p class="sub" style="margin:0">Só o básico. O Diretor completa endereço, horários e o resto em Configurações › Unidades.</p>' + fld('pu-razao', 'Razão social *', '', 'maxlength="120" autocomplete="off"') + fld('pu-sigla', 'Sigla * <small>(2 a 8 letras ou números)</small>', '', 'maxlength="8" autocomplete="off"') + fld('pu-cnpj', 'CNPJ <small>(opcional)</small>', '', 'inputmode="numeric" maxlength="18" autocomplete="off"') + '<div class="err" id="pu-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pu-cancel">Cancelar</button><button class="btn" type="submit">Criar unidade</button></div></form>');
+    $('#pu-cnpj').addEventListener('input', e => { e.target.value = mCnpj(e.target.value); });
     $('#pu-sigla').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
     $('#pu-cancel').addEventListener('click', fecharJanela);
     $('#pu-form').addEventListener('submit', async e => {
       e.preventDefault(); const er = $('#pu-err'); er.textContent = '';
       if ($('#pu-razao').value.trim().length < 3) { er.textContent = 'Informe a razão social.'; return; }
       if (!/^[A-Z0-9]{2,8}$/.test($('#pu-sigla').value)) { er.textContent = 'A sigla precisa ter de 2 a 8 letras ou números.'; return; }
-      const r = await sb.rpc('plataforma_criar_unidade', { p_grupo: id, p_razao: $('#pu-razao').value, p_sigla: $('#pu-sigla').value });
+      if (dig($('#pu-cnpj').value) && !cnpjOk($('#pu-cnpj').value)) { er.textContent = 'CNPJ inválido. Confira os 14 números.'; return; }
+      const r = await sb.rpc('plataforma_criar_unidade', { p_grupo: id, p_razao: $('#pu-razao').value, p_sigla: $('#pu-sigla').value, p_cnpj: dig($('#pu-cnpj').value) || null });
       if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Unidade criada.'); recarrega();
     });
   });
@@ -2514,12 +2519,80 @@ async function vdVender(f){
     fecharJanela(); toast('Tratamento iniciado. O paciente vira Pré-Ativo quando o Início for pago: receba a parcela no Financeiro.'); VD.aba = 'vend'; vdCarregar();
   });
 }
+/* ---------- CNPJ e contrato de prestação de serviços odontológicos ---------- */
+const mCnpj = s => { const d = dig(s).slice(0, 14); return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); };
+function cnpjOk(p){
+  const d = dig(p || ''); if (d.length !== 14 || /^(\d)\1{13}$/.test(d)) return false;
+  const dv = n => { const pe = n === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; let s = 0; for (let i = 0; i < n; i++) s += Number(d[i]) * pe[i]; const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(12) === Number(d[12]) && dv(13) === Number(d[13]);
+}
+const mCpfTxt = s => { const d = dig(s || '').slice(0, 11); return d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : d; };
+const MESES_EXT = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const dExt = iso => { const [a, m, d] = String(iso).slice(0, 10).split('-').map(Number); return d + ' de ' + MESES_EXT[m - 1] + ' de ' + a; };
+const endTxt = o => [[o.logradouro, o.numero].filter(Boolean).join(', '), o.complemento, o.bairro, [o.cidade, o.uf].filter(Boolean).join('/'), o.cep ? 'CEP ' + String(o.cep).replace(/^(\d{5})(\d{3})$/, '$1-$2') : ''].filter(Boolean).join(' — ');
+
+function contratoHtml(d){
+  const u = d.unidade, p = d.paciente, dn = d.dentista, n = d.prazo_meses || 30, m = Number(d.mensalidade), desc = Number(d.desconto || 0), ini = d.inicio == null ? null : Number(d.inicio);
+  const liq = m - desc, total = (ini || 0) + n * m, parteTrat = Math.round(total * 70) / 100, parteMens = Math.round((total - parteTrat) * 100) / 100;
+  const nome = esc(p.nome) + (p.nome_social ? ' (nome social: ' + esc(p.nome_social) + ')' : '');
+  const resp = p.resp_nome ? ', representado(a) por seu responsável legal <b>' + esc(p.resp_nome) + '</b>' + (p.resp_cpf ? ', CPF ' + mCpfTxt(p.resp_cpf) : '') : '';
+  const A = x => '<span class="fa">' + x + '</span>';
+  const cl = [];
+  cl.push(['Do objeto', [
+    'O presente contrato tem por objeto a prestação de serviços odontológicos de <b>ortodontia</b> pela CONTRATADA ao CONTRATANTE, conforme o plano de tratamento “<b>' + esc(d.plano) + '</b>”, definido após avaliação clínica e executado pelo(a) cirurgião(ã)-dentista responsável' + (dn ? ', <b>' + esc(dn.nome) + '</b> (CRO ' + esc(dn.cro) + ')' : '') + '.',
+    'O contrato é formado por duas partes inseparáveis: <b>70% (setenta por cento)</b> do seu valor total corresponde ao <b>plano de tratamento</b> (diagnóstico, planejamento, instalação e condução clínica do tratamento ortodôntico, trabalho técnico do cirurgião-dentista) e <b>30% (trinta por cento)</b> corresponde às <b>mensalidades</b> (acompanhamento, consultas de manutenção e estrutura de atendimento).',
+    'O resultado clínico depende também da colaboração do CONTRATANTE (higiene, uso correto dos elásticos e aparelhos, comparecimento às consultas). A ortodontia é obrigação de meio, e não de resultado.']]);
+  cl.push(['Do prazo e da renovação', [
+    'O contrato vigora por <b>' + n + ' (' + ({ 30: 'trinta' }[n] || n) + ') meses</b>, contados da data de sua assinatura.',
+    'Com o <b>pagamento da ' + n + 'ª mensalidade</b>, o contrato é <b>renovado automaticamente</b>, por igual período e nas mesmas condições, salvo se o CONTRATANTE tiver formalizado, antes disso, o aviso prévio previsto na cláusula 5.']]);
+  cl.push(['Do valor e da forma de pagamento', [
+    (ini != null ? 'No ato da contratação, o CONTRATANTE paga o valor de início de <b>' + reais(ini) + '</b>. ' : '') + 'As mensalidades vencem todo dia <b>' + d.dia_vencimento + '</b> de cada mês, durante o prazo contratado, e seu valor é o <b>valor integral de ' + reais(m) + '</b>.',
+    'O valor total do contrato, somando início e ' + n + ' mensalidades integrais, é de <b>' + reais(total) + '</b>, sendo ' + reais(parteTrat) + ' (70%) referentes ao plano de tratamento e ' + reais(parteMens) + ' (30%) referentes às mensalidades.',
+    desc > 0 ? 'A CONTRATADA concede <b>desconto de ' + reais(desc) + '</b> sobre cada mensalidade, <b>exclusivamente</b> quando o pagamento é feito <b>até a data do vencimento</b>, resultando em ' + reais(liq) + '. O desconto é um benefício de pontualidade: o pagamento após o vencimento é devido pelo valor integral, e o desconto não se incorpora ao valor do contrato.' : 'O pagamento das mensalidades após o vencimento é devido pelo valor integral.',
+    'A mensalidade em atraso por <b>4 (quatro) meses</b> ou mais autoriza a CONTRATADA a considerar o paciente inativo, suspender o atendimento e interromper a geração de novas parcelas, sem prejuízo da cobrança dos valores vencidos.']]);
+  cl.push(['Das obrigações da contratada', [
+    'Realizar o tratamento com a técnica adequada, por profissional regularmente inscrito no Conselho Regional de Odontologia, manter o prontuário do paciente e informar o CONTRATANTE sobre a evolução do tratamento e eventuais alterações do plano.']]);
+  cl.push(['Das obrigações do contratante', [
+    'Comparecer às consultas agendadas, avisar com antecedência quando não puder comparecer, seguir as orientações de higiene e uso dos aparelhos, informar qualquer alteração em sua saúde (mantendo a anamnese atualizada) e pagar as mensalidades nas datas ajustadas.']]);
+  cl.push(['Da desistência e do aviso prévio', [
+    'Se o CONTRATANTE manifestar o interesse de encerrar o contrato, ele passa a cumprir <b>aviso prévio de 90 (noventa) dias</b>, contados da data em que comunicar a CONTRATADA, por escrito ou pelos canais de atendimento.',
+    'Durante o aviso prévio o tratamento continua e as mensalidades que vencerem no período continuam devidas. Encerrado o aviso, o contrato é extinto sem outros encargos.']]);
+  cl.push(['Da multa por término antecipado', [
+    'Se o CONTRATANTE decidir encerrar o contrato <b>sem cumprir o aviso prévio</b> de 90 dias, pagará à CONTRATADA multa equivalente a <b>3 (três) mensalidades integrais, no valor total de ' + reais(3 * m) + '</b>, em substituição ao período de aviso que não cumprir.',
+    'A multa não é devida quando o contrato é encerrado por culpa da CONTRATADA ou nos demais casos previstos em lei.']]);
+  cl.push(['Dos dados pessoais', [
+    'A CONTRATADA trata os dados pessoais e de saúde do CONTRATANTE exclusivamente para a prestação do serviço, a cobrança e o cumprimento de obrigações legais e do Conselho de Odontologia, nos termos da Lei nº 13.709/2018 (LGPD), podendo o CONTRATANTE exercer seus direitos de titular pelos canais de atendimento da unidade.']]);
+  cl.push(['Do foro', [
+    'As partes elegem o <b>foro da Comarca de Belo Horizonte, Estado de Minas Gerais</b>, para dirimir quaisquer questões decorrentes deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.']]);
+  const corpo = cl.map((c, i) => '<h3>Cláusula ' + (i + 1) + ' — ' + c[0] + '</h3>' + c[1].map((t, j) => '<p><span class="nm">' + (i + 1) + '.' + (j + 1) + '</span> ' + t + '</p>').join('')).join('');
+  const css = 'body{font:14px/1.55 Georgia,"Times New Roman",serif;color:#111;margin:0;background:#eee}.pg{max-width:800px;margin:0 auto;background:#fff;padding:40px 52px}.bar{max-width:800px;margin:0 auto;padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;font-family:sans-serif}.bar button{font:600 14px sans-serif;padding:9px 16px;border-radius:8px;border:0;background:#0b6b6b;color:#fff;cursor:pointer}'
+    + 'h1{font-size:19px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em}.sub{text-align:center;color:#555;margin:0 0 22px;font-size:13px}h3{font-size:14px;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.04em}p{margin:0 0 8px;text-align:justify}.nm{font-weight:700;margin-right:4px}.par{border:1px solid #bbb;border-radius:6px;padding:10px 14px;margin:0 0 10px}.par b{font-weight:700}'
+    + '.ass{display:grid;grid-template-columns:1fr 1fr;gap:34px 36px;margin-top:46px;page-break-inside:avoid}.ass div{border-top:1px solid #111;padding-top:6px;font-size:13px;text-align:center}.loc{margin-top:26px;text-align:center}@media print{body{background:#fff}.pg{padding:0;max-width:none}.bar{display:none}@page{margin:18mm 16mm}}@media(max-width:620px){.pg{padding:22px 18px}.ass{grid-template-columns:1fr}}';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contrato — ' + esc(p.nome) + '</title><style>' + css + '</style></head><body>'
+    + '<div class="bar"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><div class="pg">'
+    + '<h1>Contrato de prestação de serviços odontológicos</h1><p class="sub">Tratamento ortodôntico · Contrato nº ' + esc(d.venda_id) + '</p>'
+    + '<div class="par"><b>CONTRATADA:</b> ' + esc(u.razao_social) + ', inscrita no CNPJ sob o nº <b>' + (u.cnpj ? mCnpj(u.cnpj) : '__.___.___/____-__') + '</b>, com sede em ' + esc(endTxt(u) || '—') + '.</div>'
+    + '<div class="par"><b>CONTRATANTE:</b> ' + nome + ', CPF ' + (p.cpf ? mCpfTxt(p.cpf) : '___.___.___-__') + (p.rg ? ', RG ' + esc(p.rg) : '') + (p.nascimento ? ', nascido(a) em ' + dBR(p.nascimento) : '') + ', residente em ' + esc(endTxt(p) || '—') + (p.telefone ? ', telefone ' + mTel(p.telefone) : '') + (p.email ? ', e-mail ' + esc(p.email) : '') + resp + '.</div>'
+    + '<p>As partes acima identificadas têm entre si justo e contratado o que segue, de acordo com as cláusulas abaixo.</p>' + corpo
+    + '<p class="loc">' + esc(u.cidade || 'Belo Horizonte') + ', ' + dExt(d.data_venda) + '.</p>'
+    + '<div class="ass"><div>' + esc(p.nome) + '<br>CONTRATANTE' + (p.resp_nome ? '<br><small>Responsável: ' + esc(p.resp_nome) + '</small>' : '') + '</div><div>' + esc(u.razao_social) + '<br>CONTRATADA' + (u.cnpj ? '<br><small>CNPJ ' + mCnpj(u.cnpj) + '</small>' : '') + '</div>'
+    + '<div>Testemunha 1<br><small>Nome e CPF</small></div><div>Testemunha 2<br><small>Nome e CPF</small></div></div></div></body></html>';
+}
+async function contratoAbrir(vendaId){
+  const w = window.open('', '_blank'); if (!w) { toast('O navegador bloqueou a janela. Libere pop-ups para este site e tente de novo.'); return; }
+  w.document.write('<p style="font:15px sans-serif;margin:32px">Gerando o contrato...</p>');
+  const r = await sb.rpc('contrato_dados', { p_venda: vendaId });
+  if (r.error) { w.close(); toast(erroTxt(r.error)); return; }
+  if (!r.data.unidade.cnpj) toast('Atenção: esta unidade ainda não tem CNPJ cadastrado. Preencha em Configurações › Unidades.');
+  w.document.open(); w.document.write(contratoHtml(r.data)); w.document.close();
+}
 function vdDetalhe(v){
   const pode_c = v.status === 'ativa' && pode('vendas.cancelar');
   abrirJanela('Venda', '<div class="db"><p style="margin:0;font-size:16px"><b>' + esc(v.paciente_nome) + '</b> <span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></p>'
     + '<div class="kv dkv"><span>Plano</span><b>' + esc(v.plano_nome) + '</b><span>Mensalidade</span><b>' + reais(v.valor) + (v.desconto ? ' (desconto ' + reais(v.desconto) + ' até o vencimento)' : '') + '</b>' + (v.prazo_meses ? '<span>Prazo médio</span><b>' + v.prazo_meses + ' meses</b>' : '') + (v.dentista_nome ? '<span>Dentista</span><b>' + esc(v.dentista_nome) + ' — ' + NOMES_DIA[v.dia_semana] + '</b>' : '') + (v.dia_vencimento ? '<span>Vencimento</span><b>Todo dia ' + v.dia_vencimento + '</b>' : '') + '<span>Vendedor</span><b>' + esc(v.vendedor_nome || '—') + '</b><span>Data</span><b>' + dtHora(v.criado_em) + '</b>' + (v.observacao ? '<span>Observação</span><b>' + esc(v.observacao) + '</b>' : '') + '</div>'
     + (pode_c ? '<p class="sub" style="margin:0">Cancelar a venda devolve o paciente para prospecção, cancela as parcelas em aberto e os horários de tratamento ainda não realizados. Não é possível cancelar depois de um pagamento.</p>' : '') + '<div class="err" id="vc-err" role="alert"></div></div>'
-    + '<div class="df"><div class="esq">' + (pode_c ? '<button class="btn danger" type="button" id="vc-canc">Cancelar venda</button>' : '') + '</div><button class="btn ghost" type="button" id="vc-x">Fechar</button></div>');
+    + '<div class="df"><div class="esq">' + (pode_c ? '<button class="btn danger" type="button" id="vc-canc">Cancelar venda</button>' : '') + '</div><button class="btn ghost" type="button" id="vc-ctr">Contrato</button><button class="btn ghost" type="button" id="vc-x">Fechar</button></div>');
+  $('#vc-ctr').addEventListener('click', () => contratoAbrir(v.id));
   $('#vc-x').addEventListener('click', fecharJanela);
   const c = $('#vc-canc'); if (c) c.addEventListener('click', async () => {
     if (c.dataset.c !== '1') { c.dataset.c = '1'; c.textContent = 'Confirmar cancelamento'; return; }
