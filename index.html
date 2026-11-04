@@ -679,6 +679,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.36.0', '2026-11-03', 'Situações do paciente simplificadas: Prospecção, Pré-Ativo, Ativo, Inativo e Contenção. O cancelamento do contrato agora deixa o paciente Inativo (antes era Desistente) e as situações Concluído e Desistente deixaram de existir; quem estava nelas passa a Inativo. A alta continua levando para Contenção. Um Inativo que teve o contrato cancelado pode ser reaberto como prospect para uma nova venda.'],
   ['0.35.0', '2026-11-03', 'Pesquisar função: campo abaixo do menu lateral. Digite o que procura (anamnese, contrato, caixa, feriados, CNPJ...) e ele mostra o caminho até a função, inclusive as que ficam dentro da ficha do paciente, e leva até a tela com um clique ou Enter. Só aparecem funções que o seu perfil pode usar.'],
   ['0.34.0', '2026-11-03', 'Venda avulsa: para quem compra um produto ou serviço sem fazer o tratamento (clareamento, limpeza profunda...). Em Vendas, o botão Venda avulsa escolhe o paciente (até prospect), o produto, o valor e a forma de pagamento e já registra o recebimento no caixa, sem contrato e sem mensalidades. Nova aba Avulsas lista essas vendas, e a ficha do paciente também tem o botão.'],
   ['0.33.0', '2026-11-03', 'Carta de alta encerra o contrato: ao passar o paciente para Contenção (alta do dentista), o contrato é marcado como encerrado, as mensalidades futuras são canceladas e nenhuma nova é gerada, sem multa. O contrato impresso ganhou a cláusula de término do tratamento, e a aba Contrato da ficha mostra “Encerrado por alta”.'],
@@ -1889,7 +1890,7 @@ async function pacCarregar(){
   if (!UN) { $('#area').innerHTML = semUn('Prospects'); return; }
   D.pac = rs[0].data.filter(p => p.unidade_id === UN); D.avAb = rs[1].data.filter(a => a.unidade_id === UN);
   $('#area').innerHTML = '<div class="head"><div><h1>Pacientes e prospects</h1><p class="sub">Prospects são quem ainda não iniciou o tratamento. Cadastre, inicie a avaliação com o dentista do dia ou agende na Agenda.</p></div>' + (pode('pacientes.criar') ? '<button class="btn" type="button" id="pc-novo">+ Novo prospect</button>' : '') + '</div>'
-    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF, código ou telefone" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Inativo', 'Contenção', 'Concluído', 'Desistente'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
+    + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF, código ou telefone" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Inativo', 'Contenção'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
     + '<label class="dtf">Cadastro de <input type="date" id="pc-de" value="' + PAC.de + '" aria-label="Cadastrados a partir de"></label><label class="dtf">até <input type="date" id="pc-ate" value="' + PAC.ate + '" aria-label="Cadastrados até"></label><button class="btn ghost sm" type="button" id="pc-limpa-dt">Limpar datas</button></div><small id="pc-dica" style="display:block;color:var(--muted);margin:2px 2px 8px;min-height:16px"></small><div class="lista" id="pc-lista"></div></div>';
   pacLista();
   $('#pc-q').addEventListener('input', e => { PAC.q = e.target.value; pacLista(); });
@@ -2006,8 +2007,10 @@ function pacForm(p, aoSalvar){
 const ROTA_ATIVA = () => ABA ? ABA.rota : '';
 
 /* ---------- ficha do paciente (uma aba por paciente) ---------- */
-const PROX_ST = { 'Ativo': [['Contenção', 'Carta de alta: passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Inativo': [['Contenção', 'Carta de alta: passar para contenção'], ['Concluído', 'Concluir tratamento']], 'Concluído': [['Contenção', 'Passar para contenção']], 'Contenção': [['Concluído', 'Concluir (alta definitiva)']], 'Desistente': [['Prospecção', 'Reabrir como prospect']] };
-const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Contenção': 'nu', 'Desistente': 'off' };
+const PROX_ST = { 'Ativo': [['Contenção', 'Carta de alta: passar para contenção']], 'Inativo': [['Contenção', 'Carta de alta: passar para contenção']] };
+// Inativo sem contrato ativo (contrato cancelado) pode voltar a prospect para uma nova venda
+const proxSt = (p, semContrato) => (PROX_ST[p.status] || []).concat(p.status === 'Inativo' && semContrato ? [['Prospecção', 'Reabrir como prospect']] : []);
+const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Contenção': 'nu' };
 async function pacFicha(id){
   sb.rpc('lgpd_registrar_acesso', { p_paciente: id }).then(() => {}, () => {});
   await sb.rpc('financeiro_atualizar');
@@ -2020,11 +2023,12 @@ async function pacFicha(id){
   const ocs = rs[6].error ? [] : (rs[6].data || []), concl = avs.some(a => a.status === 'concluida'), jaAvaliei = avs.some(a => a.status === 'concluida' && a.minha);
   const marc = (rs[3].error ? [] : rs[3].data || []).filter(g => g.status !== 'cancelado'), nAg = id2 => ((rs[4].data || []).find(x => x.id === id2) || {}).nome || '', nPr = id2 => ((rs[5].data || []).find(x => x.id === id2) || {}).nome || '';
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
+  const vAt = p.status === 'Inativo' ? await sb.from('vendas').select('id').eq('paciente_id', id).eq('status', 'ativa').limit(1) : null, semContrato = !!vAt && !vAt.error && !(vAt.data || []).length;
   const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
   const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
   $('#area').innerHTML = '<div class="card tit"><h1>' + p.codigo + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
-    + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' + (PROX_ST[p.status] || []).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
-    + (['Pré-Ativo', 'Ativo', 'Inativo'].includes(p.status) && (ehGer() || pode('contratos.solicitar')) ? '<span class="mais"><button class="btn ghost sm" type="button" id="fi-mais" aria-haspopup="true" aria-expanded="false">Mais ações ▾</button><span class="mais-m" id="fi-mais-m" hidden><button type="button" id="fi-cc">' + (ehGer() ? 'Cancelar contrato' : 'Solicitar cancelamento de contrato') + '</button></span></span>' : '')
+    + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' + proxSt(p, semContrato).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
+    + (['Pré-Ativo', 'Ativo', 'Inativo'].includes(p.status) && !semContrato && (ehGer() || pode('contratos.solicitar')) ? '<span class="mais"><button class="btn ghost sm" type="button" id="fi-mais" aria-haspopup="true" aria-expanded="false">Mais ações ▾</button><span class="mais-m" id="fi-mais-m" hidden><button type="button" id="fi-cc">' + (ehGer() ? 'Cancelar contrato' : 'Solicitar cancelamento de contrato') + '</button></span></span>' : '')
     + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '')
       : p.status === 'Prospecção' ? (concl && pode('avaliacoes.atender') && souDent() && !jaAvaliei ? '<button class="btn sm" type="button" id="fi-rea" title="Outro dentista avalia e registra o seu parecer">Reavaliar (meu parecer)</button>' : '')
         + (pode('avaliacoes.iniciar') ? '<button class="btn ' + (concl ? 'ghost ' : '') + 'sm" type="button" id="fi-ini">' + (concl ? 'Solicitar reavaliação' : 'Iniciar avaliação') + '</button>' : '') : '') + '</div></div>'
@@ -2750,7 +2754,7 @@ function motivoDialogo(o){
 function cancelarContratoDialogo(p, aoFim){
   const ger = ehGer();
   motivoDialogo({ titulo: ger ? 'Cancelar contrato' : 'Solicitar cancelamento de contrato', resumo: '<b>' + esc(p.nome_social || p.nome) + '</b> <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status) + '</span>',
-    intro: ger ? 'O contrato será cancelado, as parcelas em aberto e os horários futuros serão cancelados e o paciente passa a Desistente. Pagamentos já recebidos continuam registrados (use o estorno se for devolver algum).'
+    intro: ger ? 'O contrato será cancelado, as parcelas em aberto e os horários futuros serão cancelados e o paciente passa a Inativo. Pagamentos já recebidos continuam registrados (use o estorno se for devolver algum).'
       : 'Sua solicitação vai para o Gerente ou o Diretor, que decidem. Enquanto isso nada muda no contrato.',
     rotulo: 'Motivo do cancelamento', obrigatorio: true, msgObrig: 'Informe o motivo do cancelamento.', confirmar: ger ? 'Cancelar contrato' : 'Enviar solicitação', perigo: ger, voltar: 'Voltar',
     acao: async t => { const r = ger ? await sb.rpc('cancelar_contrato', { p_paciente: p.id, p_motivo: t }) : await sb.rpc('solicitar_cancelamento', { p_paciente: p.id, p_motivo: t }); return r.error ? erroTxt(r.error) : ''; },
@@ -2904,7 +2908,7 @@ const CB_RES = [['enviado', 'Enviado'], ['agendou', 'Agendou'], ['sem_resposta',
 const CB_BLOQ = { sem_telefone: 'Sem telefone', recusou: 'Recusou WhatsApp', sem_autorizacao: 'Sem autorização' };
 const CB_WPP = { sim: ['on', 'Autorizado'], nao: ['off', 'Recusou'], sem_registro: ['wr', 'Sem registro'] };
 const CB_VARS = [['primeiro_nome', 'Primeiro nome'], ['nome', 'Nome completo'], ['unidade', 'Unidade'], ['ultima_visita', 'Última visita'], ['procedimento', 'Procedimento'], ['valor_em_atraso', 'Valor em atraso'], ['data_falta', 'Data da falta']];
-const CB_STATUS = ['Ativo', 'Pré-Ativo', 'Contenção', 'Inativo', 'Concluído'];
+const CB_STATUS = ['Ativo', 'Pré-Ativo', 'Contenção', 'Inativo'];
 const CB_REGUAS = [['preventivo', 'Preventiva'], ['cob0', 'Cob 0'], ['cob30', 'Cob 30'], ['cob60', 'Cob 60'], ['cob90', 'Cob 90'], ['mais90', '+90']];
 const waNum = t => { let d = dig(t); if (d.length === 10 || d.length === 11) d = '55' + d; return d; };
 const cbCap = s => String(s || '').toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
@@ -3481,7 +3485,7 @@ function solLista(){
   $$('#so-lista [data-pac]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.pac))));
   const dec = (id, ap) => { const x = D.sols.find(y => y.id === id), isen = x.tipo === 'isencao';
     motivoDialogo({ titulo: (ap ? 'Aprovar ' : 'Recusar ') + (isen ? 'isenção' : 'cancelamento de contrato'), resumo: '<b>' + esc(x.paciente_nome) + '</b>' + (isen ? '<br>' + (x.parcela_desc || LBL_PARC(x.parcela_numero)) + ' · ' + reais(x.valor) : '') + '<br><small style="color:var(--muted)">Pedido de ' + esc(x.solicitante_nome || '') + ':</small> ' + esc(x.motivo),
-      intro: ap ? (isen ? 'A parcela será isentada e a próxima será gerada.' : 'O contrato será cancelado e o paciente passa a Desistente.') : '', rotulo: 'Observação da decisão', obrigatorio: false, confirmar: ap ? 'Aprovar' : 'Recusar', perigo: ap && !isen,
+      intro: ap ? (isen ? 'A parcela será isentada e a próxima será gerada.' : 'O contrato será cancelado e o paciente passa a Inativo.') : '', rotulo: 'Observação da decisão', obrigatorio: false, confirmar: ap ? 'Aprovar' : 'Recusar', perigo: ap && !isen,
       acao: async t => { const r = await sb.rpc('decidir_solicitacao', { p_id: id, p_aprovar: ap, p_obs: t || null }); return r.error ? erroTxt(r.error) : ''; }, ok: ap ? 'Solicitação aprovada.' : 'Solicitação recusada.', aoFim: () => { fecharJanela(); solCarregar(); } }); };
   $$('#so-lista [data-ap]').forEach(b => b.addEventListener('click', () => dec(Number(b.dataset.ap), true)));
   $$('#so-lista [data-rec]').forEach(b => b.addEventListener('click', () => dec(Number(b.dataset.rec), false)));
