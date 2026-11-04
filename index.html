@@ -562,7 +562,8 @@ const IC = {
   cobranca: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
   produtos: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
   tratamentos: '<path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 4-5 2-5 4 2 3 5 3 5-1 5-3"/>',
-  cobranca: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>'
+  cobranca: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>',
+  comunicacao: '<path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 9.5c.5 2.5 2.5 4.5 5 5"/>'
 };
 const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg>';
 const MENU = [
@@ -570,6 +571,7 @@ const MENU = [
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
   { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver', 'cobranca.contatar'] },
+  { r: 'comunicacao', t: 'Comunicação', p: ['cobranca.contatar', 'cobranca.campanhas'] },
   { g: 'Configurações', ic: 'unidades', itens: [
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
     { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
@@ -591,7 +593,7 @@ const MENU = [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -623,6 +625,7 @@ const BUSCA_EXTRA = [
   { t: 'Estornar ou isentar parcela', c: 'Financeiro › parcela do paciente', r: 'financeiro', p: 'financeiro.ver', k: 'estorno isencao desconto cobranca avulsa lancar' },
   { t: 'Parcelas e mensalidades', c: 'Financeiro', r: 'financeiro', p: 'financeiro.ver', k: 'vencimento atraso inadimplencia a receber' },
   { t: 'Campanhas e régua de cobrança', c: 'Cobrança › Mensagens e regras', r: 'cobranca', p: ['cobranca.ver', 'cobranca.contatar', 'financeiro.ver'], k: 'whatsapp mensagem atraso contato inativos reativar' },
+  { t: 'Comunicação por WhatsApp', c: 'Comunicação › Enviar', r: 'comunicacao', p: ['cobranca.contatar', 'cobranca.campanhas'], k: 'whatsapp mensagem lembrete campanha enviar api modelos historico conexao meta recuperacao vencimento' },
   { t: 'Marcar consulta', c: 'Agenda', r: 'agenda', p: 'agenda.ver', k: 'agendar horario compromisso paciente remarcar cancelar' },
   { t: 'Fazer avaliação (dentista)', c: 'Avaliações', r: 'avaliacoes', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'], k: 'apto nao apto clinico limpeza profunda' },
   { t: 'CNPJ, endereço e horário da unidade', c: 'Configurações › Unidades', r: 'unidades', p: 'unidades.ver', k: 'cnpj razao social telefone funcionamento almoco' },
@@ -679,6 +682,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.37.0', '2026-11-03', 'Central de Comunicação (WhatsApp pela API oficial da Meta), fase 1. Novo item Comunicação no menu, com quatro abas: Enviar (busca pacientes por situação, faixa da régua de cobrança, vencimento da parcela e falta de consulta marcada, escolhe um modelo aprovado e envia agora ou agenda), Modelos (cria os textos, envia à Meta e acompanha a aprovação), Histórico (fila, enviada, entregue, lida e falha, com cancelamento do que ainda não saiu) e Conexão (gerência informa a conta e o número de cada unidade). Quem recusou o WhatsApp nunca recebe e o intervalo mínimo entre mensagens iguais continua valendo. O token da Meta fica só nos segredos do Supabase. Precisa do SQL 39 e das duas funções do Supabase (guia de conexão).'],
   ['0.36.0', '2026-11-03', 'Situações do paciente simplificadas: Prospecção, Pré-Ativo, Ativo, Inativo e Contenção. O cancelamento do contrato agora deixa o paciente Inativo (antes era Desistente) e as situações Concluído e Desistente deixaram de existir; quem estava nelas passa a Inativo. A alta continua levando para Contenção. Um Inativo que teve o contrato cancelado pode ser reaberto como prospect para uma nova venda.'],
   ['0.35.0', '2026-11-03', 'Pesquisar função: campo abaixo do menu lateral. Digite o que procura (anamnese, contrato, caixa, feriados, CNPJ...) e ele mostra o caminho até a função, inclusive as que ficam dentro da ficha do paciente, e leva até a tela com um clique ou Enter. Só aparecem funções que o seu perfil pode usar.'],
   ['0.34.0', '2026-11-03', 'Venda avulsa: para quem compra um produto ou serviço sem fazer o tratamento (clareamento, limpeza profunda...). Em Vendas, o botão Venda avulsa escolhe o paciente (até prospect), o produto, o valor e a forma de pagamento e já registra o recebimento no caixa, sem contrato e sem mensalidades. Nova aba Avulsas lista essas vendas, e a ficha do paciente também tem o botão.'],
@@ -779,7 +783,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -799,6 +803,7 @@ function abrirRota(r, o){
   if (r === 'vendas') return vdCarregar();
   if (r === 'financeiro') return finCarregar();
   if (r === 'cobranca') return cobCarregar();
+  if (r === 'comunicacao') return waCarregar();
   if (r === 'caixa') return caixaCarregar();
   if (r === 'solicitacoes') return solCarregar();
   if (r === 'produtos') return ehDir() ? prdCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os produtos e serviços.</div></div>');
@@ -3167,6 +3172,177 @@ function cbConfigDialogo(){
     if ($('#cf-ms').value.trim().length < 5 || $('#cf-mf').value.trim().length < 5) { er.textContent = 'As mensagens precisam ter pelo menos 5 caracteres.'; return; }
     const b = $('#cf-ok'); b.disabled = true; const r = await sb.rpc('cobranca_config_salvar', { p_exigir: $('#cf-ex').checked, p_cooldown: cd, p_msg_semag: $('#cf-ms').value.trim(), p_msg_falta: $('#cf-mf').value.trim() });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Configurações salvas.'); cobCarregar();
+  });
+}
+
+/* ---------- Central de Comunicação (WhatsApp, API oficial da Meta) ---------- */
+const WAX = { aba: 'enviar', est: null, modelos: [], pub: null, sel: new Set(), camp: [], campId: null, de: '', ate: '', hist: null,
+  f: { status: ['Ativo', 'Pré-Ativo'], regua: [], vde: '', vate: '', semag: false } };
+const WA_MOD = { rascunho: ['nu', 'Rascunho'], em_analise: ['wr', 'Em análise na Meta'], aprovado: ['on', 'Aprovado'], rejeitado: ['off', 'Rejeitado'], pausado: ['off', 'Pausado'] };
+const WA_MSG = { pendente: ['wr', 'Na fila'], enviando: ['wr', 'Enviando'], enviada: ['nu', 'Enviada'], entregue: ['on', 'Entregue'], lida: ['on', 'Lida'], falhou: ['off', 'Falhou'], cancelada: ['nu', 'Cancelada'] };
+const WA_IGN = { fora_da_unidade: 'de outra unidade', anonimizado: 'anonimizados', sem_telefone: 'sem telefone válido', recusou: 'recusaram WhatsApp', sem_autorizacao: 'sem autorização de WhatsApp', contatado_recentemente: 'já receberam este modelo há pouco' };
+const WA_VARS = [['primeiro_nome', 'Primeiro nome'], ['nome', 'Nome completo'], ['unidade', 'Unidade'], ['proxima_consulta', 'Próxima consulta'], ['valor_aberto', 'Valor em aberto'], ['vencimento', 'Vencimento']];
+const waSlug = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+const waDH = s => s ? new Date(s).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+
+async function waCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Comunicação'); return; }
+  const rs = await Promise.all([sb.rpc('wa_ler_estado', { p_unidade: UN }), sb.rpc('wa_modelos_listar'), sb.rpc('campanhas_listar')]);
+  const er = rs.slice(0, 2).map(r => r.error).find(Boolean);
+  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  WAX.est = rs[0].data || {}; WAX.modelos = rs[1].data || []; WAX.camp = rs[2].error ? [] : (rs[2].data || []);
+  if (!WAX.est.pode_gerir && WAX.aba === 'conexao') WAX.aba = 'enviar';
+  waTela();
+}
+function waAbas(){
+  const t = [['enviar', 'Enviar'], ['modelos', 'Modelos'], ['hist', 'Histórico']].concat(WAX.est.pode_gerir ? [['conexao', 'Conexão']] : []);
+  return '<div class="tools" id="wa-nav" role="tablist" style="margin-top:4px">' + t.map(a => '<button class="btn ' + (WAX.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (WAX.aba === a[0]) + '" data-wa="' + a[0] + '">' + a[1] + '</button>').join(' ') + '</div>';
+}
+function waTela(){
+  const e = WAX.est;
+  $('#area').innerHTML = '<div class="head"><div><h1>Comunicação</h1><p class="sub">Mensagens de WhatsApp pelo número oficial da unidade: avisos, lembretes e campanhas. ' + (e.ativo ? '<span class="pill on">WhatsApp conectado</span> ' + esc(e.numero || '') : '<span class="pill wr">WhatsApp ainda não conectado</span>') + (e.pendentes ? ' · ' + e.pendentes + ' na fila' : '') + (e.falhas_7d ? ' · <span class="pill off">' + e.falhas_7d + ' falha(s) em 7 dias</span>' : '') + '</p></div></div>' + waAbas() + '<div id="wa-corpo"></div>';
+  $$('#wa-nav [data-wa]').forEach(b => b.addEventListener('click', () => { WAX.aba = b.dataset.wa; waTela(); }));
+  if (WAX.aba === 'enviar') waEnviar(); else if (WAX.aba === 'modelos') waModelos(); else if (WAX.aba === 'hist') waHist(); else waConexao();
+}
+
+/* --- Enviar --- */
+function waEnviar(){
+  const f = WAX.f, ap = WAX.modelos.filter(m => m.status === 'aprovado');
+  $('#wa-corpo').innerHTML = (WAX.est.ativo ? '' : '<div class="card"><div class="err">Esta unidade ainda não tem o WhatsApp conectado.' + (WAX.est.pode_gerir ? ' Faça isso na aba Conexão.' : ' Peça à gerência para conectar.') + '</div></div>')
+    + '<div class="card"><h2 style="margin-top:0">1. Quem vai receber</h2>'
+    + (WAX.camp.length ? '<label class="field" for="wa-camp" style="max-width:420px">Começar de uma campanha (opcional)<select id="wa-camp"><option value="">Nenhuma</option>' + WAX.camp.map(c => '<option value="' + c.id + '"' + (WAX.campId === c.id ? ' selected' : '') + '>' + esc(c.nome) + '</option>').join('') + '</select></label>' : '')
+    + '<div class="tools" style="flex-wrap:wrap"><b>Situação:</b> ' + CB_STATUS.map(s => '<label class="chk"><input type="checkbox" data-wst="' + esc(s) + '"' + (f.status.includes(s) ? ' checked' : '') + '> ' + esc(s) + '</label>').join(' ') + '</div>'
+    + '<div class="tools" style="flex-wrap:wrap"><b>Régua de cobrança:</b> ' + CB_REGUAS.map(r => '<label class="chk"><input type="checkbox" data-wrg="' + r[0] + '"' + (f.regua.includes(r[0]) ? ' checked' : '') + '> ' + r[1] + '</label>').join(' ') + '</div>'
+    + '<div class="tools" style="flex-wrap:wrap;align-items:end"><label class="field" for="wa-vde" style="margin:0;max-width:170px">Parcela vence de (dias)<input id="wa-vde" type="number" inputmode="numeric" placeholder="ex.: 0" value="' + esc(f.vde) + '"></label>'
+    + '<label class="field" for="wa-vate" style="margin:0;max-width:170px">até (dias)<input id="wa-vate" type="number" inputmode="numeric" placeholder="ex.: 7" value="' + esc(f.vate) + '"></label>'
+    + '<label class="chk"><input type="checkbox" id="wa-semag"' + (f.semag ? ' checked' : '') + '> Só quem está sem consulta marcada</label>'
+    + '<button class="btn" type="button" id="wa-buscar">Buscar pacientes</button></div>'
+    + '<p class="sub" style="margin:0">Dias contam a partir de hoje: 0 a 7 = vence nos próximos 7 dias; -30 a -1 = venceu nos últimos 30 dias. Deixe em branco para ignorar.</p><div class="err" id="wa-err" role="alert"></div></div>'
+    + '<div id="wa-res"></div>' + '<div id="wa-env"></div>';
+  $('#wa-camp') && $('#wa-camp').addEventListener('change', e => {
+    const c = WAX.camp.find(x => String(x.id) === e.target.value); WAX.campId = c ? c.id : null; if (!c) return;
+    const k = c.filtro || {}; f.status = (k.status && k.status.length) ? k.status.slice() : ['Ativo', 'Pré-Ativo', 'Contenção']; f.regua = (k.regua || []).slice();
+    f.vde = k.venc_de == null ? '' : String(k.venc_de); f.vate = k.venc_ate == null ? '' : String(k.venc_ate); f.semag = !!k.sem_agendamento; WAX.pub = null; WAX.sel = new Set(); waEnviar();
+  });
+  $$('[data-wst]').forEach(c => c.addEventListener('change', () => { f.status = $$('[data-wst]').filter(x => x.checked).map(x => x.dataset.wst); }));
+  $$('[data-wrg]').forEach(c => c.addEventListener('change', () => { f.regua = $$('[data-wrg]').filter(x => x.checked).map(x => x.dataset.wrg); }));
+  $('#wa-buscar').addEventListener('click', waBuscar);
+  waResultado();
+}
+async function waBuscar(){
+  const f = WAX.f, er = $('#wa-err'); er.textContent = '';
+  f.vde = $('#wa-vde').value.trim(); f.vate = $('#wa-vate').value.trim(); f.semag = $('#wa-semag').checked;
+  if (!f.status.length) { er.textContent = 'Escolha ao menos uma situação.'; return; }
+  const filtro = { status: f.status }; if (f.regua.length) filtro.regua = f.regua; if (f.vde !== '') filtro.venc_de = Number(f.vde); if (f.vate !== '') filtro.venc_ate = Number(f.vate); if (f.semag) filtro.sem_agendamento = true;
+  const b = $('#wa-buscar'); b.disabled = true; const r = await sb.rpc('cobranca_publico', { p_unidade: UN, p_filtro: filtro }); b.disabled = false;
+  if (r.error) { er.textContent = erroTxt(r.error); return; }
+  WAX.pub = r.data || []; WAX.sel = new Set(WAX.pub.filter(x => !x.bloqueio).map(x => x.paciente_id)); waResultado();
+}
+const WA_BLQ = { sem_telefone: 'Sem telefone', recusou: 'Recusou WhatsApp', sem_autorizacao: 'Sem autorização' };
+function waResultado(){
+  const box = $('#wa-res'), env = $('#wa-env'); if (!box) return;
+  if (!WAX.pub) { box.innerHTML = ''; env.innerHTML = ''; return; }
+  const l = WAX.pub, livres = l.filter(x => !x.bloqueio);
+  box.innerHTML = '<div class="card"><h2 style="margin-top:0">Pacientes encontrados: ' + l.length + ' <small style="font-weight:400">(' + livres.length + ' podem receber)</small></h2>'
+    + (l.length ? '<div class="tw"><table><thead><tr><th><input type="checkbox" id="wa-all" aria-label="Marcar todos"' + (livres.length && livres.every(x => WAX.sel.has(x.paciente_id)) ? ' checked' : '') + '></th><th>Paciente</th><th>Situação</th><th>Régua</th><th>Em aberto</th><th>Aviso</th></tr></thead><tbody>'
+      + l.map(x => '<tr><td><input type="checkbox" data-wp="' + x.paciente_id + '"' + (x.bloqueio ? ' disabled' : (WAX.sel.has(x.paciente_id) ? ' checked' : '')) + ' aria-label="Selecionar ' + esc(x.nome) + '"></td><td>' + esc(x.nome) + '</td><td>' + esc(x.status) + '</td><td>' + esc((CB_REGUAS.find(r => r[0] === x.regua) || [0, x.regua || '—'])[1]) + '</td><td>' + (x.valor_atraso ? reais(x.valor_atraso) : '—') + '</td><td>' + (x.bloqueio ? '<span class="pill off">' + esc(WA_BLQ[x.bloqueio] || x.bloqueio) + '</span>' : '') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="vazio">Nenhum paciente com esses critérios.</div>') + '</div>';
+  $('#wa-all') && $('#wa-all').addEventListener('change', e => { WAX.sel = e.target.checked ? new Set(livres.map(x => x.paciente_id)) : new Set(); waResultado(); });
+  $$('[data-wp]').forEach(c => c.addEventListener('change', () => { const id = Number(c.dataset.wp); c.checked ? WAX.sel.add(id) : WAX.sel.delete(id); waEnvio(); }));
+  waEnvio();
+}
+function waEnvio(){
+  const env = $('#wa-env'), ap = WAX.modelos.filter(m => m.status === 'aprovado'), n = WAX.sel.size;
+  if (!WAX.pub || !WAX.pub.length) { env.innerHTML = ''; return; }
+  env.innerHTML = '<div class="card"><h2 style="margin-top:0">2. O que enviar</h2>' + (ap.length
+    ? '<label class="field" for="wa-mod" style="max-width:520px">Modelo de mensagem<select id="wa-mod">' + ap.map(m => '<option value="' + m.id + '">' + esc(m.titulo) + '</option>').join('') + '</select></label><div class="msgprev" id="wa-prev" style="background:var(--bg2,#f3f5f6);border-radius:12px;padding:12px 14px;max-width:520px"></div>'
+      + '<div class="tools" style="flex-wrap:wrap;align-items:end;margin-top:10px"><label class="field" for="wa-quando" style="margin:0;max-width:260px">Quando<select id="wa-quando"><option value="agora">Agora</option><option value="agendar">Agendar</option></select></label><label class="field" for="wa-dt" style="margin:0;display:none" id="wa-dtl">Data e hora<input id="wa-dt" type="datetime-local"></label>'
+      + '<button class="btn" type="button" id="wa-enviar"' + (n && WAX.est.ativo ? '' : ' disabled') + '>Enviar para ' + n + ' paciente' + (n === 1 ? '' : 's') + '</button></div><div class="err" id="wa-eerr" role="alert"></div>'
+    : '<p class="sub">Nenhum modelo aprovado ainda. Crie e envie um modelo à Meta na aba Modelos; quando for aprovado ele aparece aqui.</p>') + '</div>';
+  if (!ap.length) return;
+  const prev = () => { const m = ap.find(x => String(x.id) === $('#wa-mod').value); $('#wa-prev').textContent = m ? m.corpo : ''; };
+  $('#wa-mod').addEventListener('change', prev); prev();
+  $('#wa-quando').addEventListener('change', e => { $('#wa-dtl').style.display = e.target.value === 'agendar' ? '' : 'none'; });
+  $('#wa-enviar').addEventListener('click', async () => {
+    const er = $('#wa-eerr'); er.textContent = ''; let quando = null;
+    if ($('#wa-quando').value === 'agendar') { if (!$('#wa-dt').value) { er.textContent = 'Escolha a data e a hora.'; return; } quando = new Date($('#wa-dt').value).toISOString(); if (Date.parse(quando) < Date.now()) { er.textContent = 'Escolha um horário no futuro.'; return; } }
+    const b = $('#wa-enviar'); b.disabled = true;
+    const r = await sb.rpc('wa_enfileirar', { p_unidade: UN, p_modelo: Number($('#wa-mod').value), p_pacientes: [...WAX.sel], p_campanha: WAX.campId || null, p_agendar: quando });
+    if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; }
+    const d = r.data || {}, ign = Object.entries(d.ignoradas || {}).map(([k, v]) => v + ' ' + (WA_IGN[k] || k)).join('; ');
+    if (d.enfileiradas && !quando) await waProcessar();
+    toast(d.enfileiradas + ' mensagem(ns) ' + (quando ? 'agendada(s)' : 'enviada(s) para a fila') + (ign ? '. Não entraram: ' + ign + '.' : '.'));
+    WAX.pub = null; WAX.sel = new Set(); WAX.aba = 'hist'; waCarregar();
+  });
+}
+async function waProcessar(){ try { const r = await sb.functions.invoke('wa-api', { body: { acao: 'processar_fila' } }); return r; } catch (e) { return null; } }
+
+/* --- Modelos --- */
+function waModelos(){
+  const ger = WAX.est.pode_gerir, ed = pode('cobranca.campanhas') || ger;
+  $('#wa-corpo').innerHTML = '<div class="card"><div class="tools"><b>Modelos de mensagem</b><span style="flex:1"></span>' + (ger ? '<button class="btn ghost sm" type="button" id="wa-sync">Atualizar situação na Meta</button>' : '') + (ed ? '<button class="btn sm" type="button" id="wa-novo">Novo modelo</button>' : '') + '</div>'
+    + '<p class="sub">A Meta só permite que a clínica inicie conversa com um modelo aprovado. Lembretes e avisos entram como Utilidade; recuperação e promoções, como Marketing (que costuma custar mais por mensagem).</p>'
+    + (WAX.modelos.length ? '<div class="tw"><table><thead><tr><th>Modelo</th><th>Categoria</th><th>Situação</th><th>Texto</th><th></th></tr></thead><tbody>' + WAX.modelos.map(m => '<tr><td><b>' + esc(m.titulo) + '</b><br><small>' + esc(m.nome) + '</small></td><td>' + (m.categoria === 'UTILITY' ? 'Utilidade' : 'Marketing') + '</td><td><span class="pill ' + (WA_MOD[m.status] || WA_MOD.rascunho)[0] + '">' + (WA_MOD[m.status] || WA_MOD.rascunho)[1] + '</span>' + (m.motivo ? '<br><small>' + esc(m.motivo) + '</small>' : '') + '</td><td style="max-width:360px">' + esc(m.corpo) + '</td><td style="white-space:nowrap">'
+      + (ed && ['rascunho', 'rejeitado', 'pausado'].includes(m.status) ? '<button class="btn ghost sm" type="button" data-wme="' + m.id + '">Editar</button> ' : '') + (ger && ['rascunho', 'rejeitado'].includes(m.status) ? '<button class="btn sm" type="button" data-wmm="' + m.id + '">Enviar à Meta</button> ' : '') + (ed ? '<button class="btn ghost sm" type="button" data-wmx="' + m.id + '">Excluir</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="vazio">Nenhum modelo criado ainda.</div>') + '<div class="err" id="wa-merr" role="alert"></div></div>';
+  $('#wa-novo') && $('#wa-novo').addEventListener('click', () => waModeloForm(null));
+  $('#wa-sync') && $('#wa-sync').addEventListener('click', async () => { const b = $('#wa-sync'); b.disabled = true; const r = await sb.functions.invoke('wa-api', { body: { acao: 'sincronizar_modelos' } }); b.disabled = false; const d = r.data || {}; if (r.error || d.erro) { $('#wa-merr').textContent = d.erro || erroTxt(r.error); return; } toast(d.atualizados ? d.atualizados + ' modelo(s) atualizado(s).' : 'Nada mudou na Meta.'); waCarregar(); });
+  $$('[data-wme]').forEach(b => b.addEventListener('click', () => waModeloForm(WAX.modelos.find(m => m.id === Number(b.dataset.wme)))));
+  $$('[data-wmm]').forEach(b => b.addEventListener('click', async () => { b.disabled = true; const r = await sb.functions.invoke('wa-api', { body: { acao: 'enviar_modelo', modelo_id: Number(b.dataset.wmm) } }); const d = r.data || {}; if (r.error || d.erro) { b.disabled = false; $('#wa-merr').textContent = d.erro || erroTxt(r.error); return; } toast(d.status === 'aprovado' ? 'Modelo aprovado.' : 'Modelo enviado à Meta. A análise costuma levar de minutos a poucos dias.'); waCarregar(); }));
+  $$('[data-wmx]').forEach(b => b.addEventListener('click', async () => { const r = await sb.rpc('wa_modelo_excluir', { p_id: Number(b.dataset.wmx) }); if (r.error) { $('#wa-merr').textContent = erroTxt(r.error); return; } toast('Modelo excluído.'); waCarregar(); }));
+}
+function waModeloForm(m){
+  abrirJanela(m ? 'Editar modelo' : 'Novo modelo', '<form id="wm-form" novalidate><div class="db">'
+    + '<label class="field" for="wm-t">Nome do modelo<input id="wm-t" maxlength="60" value="' + esc(m ? m.titulo : '') + '" placeholder="Ex.: Lembrete de parcela"></label>'
+    + '<label class="field" for="wm-n">Identificador na Meta<input id="wm-n" maxlength="60" value="' + esc(m ? m.nome : '') + '"' + (m ? ' readonly' : '') + ' placeholder="lembrete_parcela"></label><p class="sub" style="margin:0">Só letras minúsculas, números e _. Não muda depois.</p>'
+    + '<label class="field" for="wm-c">Categoria<select id="wm-c"><option value="UTILITY"' + (m && m.categoria === 'UTILITY' || !m ? ' selected' : '') + '>Utilidade (lembretes e avisos)</option><option value="MARKETING"' + (m && m.categoria === 'MARKETING' ? ' selected' : '') + '>Marketing (recuperação e promoções)</option></select></label>'
+    + '<label class="field" for="wm-b">Texto da mensagem<textarea id="wm-b" rows="5" maxlength="1000" style="resize:vertical">' + esc(m ? m.corpo : '') + '</textarea></label>'
+    + '<div class="tools" style="flex-wrap:wrap"><span class="sub">Inserir:</span> ' + WA_VARS.map(v => '<button class="btn ghost sm" type="button" data-wv="' + v[0] + '">' + v[1] + '</button>').join(' ') + '</div>'
+    + '<p class="sub" style="margin:0">Dica da Meta: não comece nem termine o texto com uma variável, e evite mensagens só com variáveis.</p><div class="err" id="wm-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="wm-cancel">Voltar</button><button class="btn" type="submit" id="wm-ok">Salvar</button></div></form>');
+  const t = $('#wm-t'), n = $('#wm-n'); if (!m) t.addEventListener('input', () => { n.value = waSlug(t.value); });
+  $$('[data-wv]').forEach(b => b.addEventListener('click', () => { const a = $('#wm-b'), v = '{' + b.dataset.wv + '}', s = a.selectionStart, e = a.selectionEnd; a.value = a.value.slice(0, s) + v + a.value.slice(e); a.focus(); a.selectionStart = a.selectionEnd = s + v.length; }));
+  $('#wm-cancel').addEventListener('click', fecharJanela);
+  $('#wm-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#wm-err'); er.textContent = '';
+    if (t.value.trim().length < 3) { er.textContent = 'Dê um nome ao modelo.'; return; }
+    if (!/^[a-z0-9_]{3,60}$/.test(n.value)) { er.textContent = 'O identificador usa só letras minúsculas, números e _ (mínimo 3).'; return; }
+    if ($('#wm-b').value.trim().length < 5) { er.textContent = 'Escreva o texto da mensagem.'; return; }
+    const b = $('#wm-ok'); b.disabled = true; const r = await sb.rpc('wa_modelo_salvar', { p_id: m ? m.id : null, p_nome: n.value, p_titulo: t.value, p_categoria: $('#wm-c').value, p_corpo: $('#wm-b').value });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Modelo salvo.'); waCarregar();
+  });
+}
+
+/* --- Histórico --- */
+async function waHist(){
+  if (!WAX.de) { const l = mesLimites(); WAX.de = l[0]; WAX.ate = l[1]; }
+  $('#wa-corpo').innerHTML = '<div class="card"><div class="tools" style="flex-wrap:wrap;align-items:end"><label class="field" for="wh-de" style="margin:0">De<input id="wh-de" type="date" value="' + esc(WAX.de) + '"></label><label class="field" for="wh-ate" style="margin:0">Até<input id="wh-ate" type="date" value="' + esc(WAX.ate) + '"></label><button class="btn" type="button" id="wh-ok">Atualizar</button><button class="btn ghost" type="button" id="wh-fila">Enviar a fila agora</button></div><div class="err" id="wh-err" role="alert"></div><div id="wh-lista"><p class="sub">Carregando...</p></div></div>';
+  const carregar = async () => {
+    const r = await sb.rpc('wa_historico', { p_unidade: UN, p_de: WAX.de || null, p_ate: WAX.ate || null, p_paciente: null });
+    if (r.error) { $('#wh-err').textContent = erroTxt(r.error); $('#wh-lista').innerHTML = ''; return; }
+    const l = r.data || [];
+    $('#wh-lista').innerHTML = l.length ? '<div class="tw"><table><thead><tr><th>Quando</th><th>Paciente</th><th>Modelo</th><th>Mensagem</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(x => { const s = WA_MSG[x.status] || WA_MSG.pendente; return '<tr><td>' + waDH(x.enviada_em || x.agendada_para || x.criado_em) + '</td><td>' + esc(x.paciente_nome) + '</td><td>' + esc(x.modelo_titulo || '') + (x.campanha_nome ? '<br><small>' + esc(x.campanha_nome) + '</small>' : '') + '</td><td style="max-width:340px">' + esc(x.texto) + '</td><td><span class="pill ' + s[0] + '">' + s[1] + '</span>' + (x.erro ? '<br><small>' + esc(x.erro) + '</small>' : '') + (x.status === 'pendente' && Date.parse(x.agendada_para) > Date.now() ? '<br><small>agendada para ' + waDH(x.agendada_para) + '</small>' : '') + '</td><td>' + (x.status === 'pendente' ? '<button class="btn ghost sm" type="button" data-wc="' + x.id + '">Cancelar</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="vazio">Nenhuma mensagem neste período.</div>';
+    $$('[data-wc]').forEach(b => b.addEventListener('click', async () => { const q = await sb.rpc('wa_cancelar', { p_id: Number(b.dataset.wc) }); if (q.error) { $('#wh-err').textContent = erroTxt(q.error); return; } toast('Mensagem cancelada.'); carregar(); }));
+  };
+  $('#wh-ok').addEventListener('click', () => { WAX.de = $('#wh-de').value; WAX.ate = $('#wh-ate').value; carregar(); });
+  $('#wh-fila').addEventListener('click', async () => { const b = $('#wh-fila'); b.disabled = true; const r = await waProcessar(); b.disabled = false; const d = r && r.data || {}; if (!r || r.error || d.erro) { $('#wh-err').textContent = (d && d.erro) || 'Não foi possível acionar o envio. Confira se a função wa-api foi publicada.'; return; } toast((d.enviadas || 0) + ' enviada(s), ' + (d.falhas || 0) + ' com falha.'); carregar(); });
+  carregar();
+}
+
+/* --- Conexão (gerência) --- */
+function waConexao(){
+  const e = WAX.est, u = MINHAS.find(x => x.id === UN) || {};
+  $('#wa-corpo').innerHTML = '<div class="card"><h2 style="margin-top:0">Conexão de ' + esc(u.sigla || 'unidade') + '</h2>'
+    + '<p class="sub">O token de acesso da Meta não fica aqui: ele é guardado nos segredos seguros do Supabase (veja o guia de conexão). Aqui você só informa os identificadores.</p>'
+    + '<form id="wc-form" novalidate><div class="db"><label class="field" for="wc-waba">ID da conta do WhatsApp Business (WABA), igual para toda a rede<input id="wc-waba" inputmode="numeric" value="' + esc(e.waba_id || '') + '"></label>'
+    + '<label class="field" for="wc-ph">ID do número desta unidade (Phone Number ID)<input id="wc-ph" inputmode="numeric" value="' + esc(e.phone_number_id || '') + '"></label>'
+    + '<label class="field" for="wc-num">Número que aparece para o paciente (opcional)<input id="wc-num" value="' + esc(e.numero || '') + '" placeholder="(31) 99999-0000"></label>'
+    + '<label class="chk"><input type="checkbox" id="wc-at"' + (e.ativo || !e.phone_number_id ? ' checked' : '') + '> Envio ligado nesta unidade</label><div class="err" id="wc-err" role="alert"></div></div><div class="df"><button class="btn" type="submit" id="wc-ok">Salvar conexão</button></div></form></div>';
+  $('#wc-form').addEventListener('submit', async ev => {
+    ev.preventDefault(); const er = $('#wc-err'); er.textContent = '';
+    const b = $('#wc-ok'); b.disabled = true; const r = await sb.rpc('wa_salvar_conta', { p_unidade: UN, p_waba: $('#wc-waba').value, p_phone_id: $('#wc-ph').value, p_numero: $('#wc-num').value, p_ativo: $('#wc-at').checked });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } toast('Conexão salva.'); waCarregar();
   });
 }
 
