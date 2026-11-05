@@ -689,7 +689,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
-  ['0.42.0', '2026-11-05', 'Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
+  ['0.42.0', '2026-11-05', 'Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
   ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
   ['0.40.0', '2026-11-04', 'Módulo Clínico (etapa 1): catálogo de serviços e materiais importados da planilha, custo e margem por serviço, notas de compra que atualizam estoque e custo, orçamento clínico (o dentista indica, o comercial negocia de valor até o mínimo), desconto abaixo do mínimo só com login e senha de diretor e simulador de financiamento pela tabela price com a regra de liberação do tratamento.'],
   ['0.39.0', '2026-11-04', 'Carta de alta só pelo dentista: o botão Carta de alta (passar para contenção) só aparece para quem é dentista, e o banco recusa a mudança de quem não for. Recepção, cobrança e gerência que não atendem como dentista não dão mais alta.'],
@@ -2065,9 +2065,11 @@ async function pacFicha(id){
   const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
   const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
   $('#area').innerHTML = '<div class="card tit"><h1>' + p.codigo + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
-    + (pode('pacientes.editar') ? '<button class="btn ghost sm" type="button" id="fi-edit">Editar cadastro</button>' + proxSt(p, semContrato).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
+    + (pode('pacientes.editar') ? proxSt(p, semContrato).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
     + (pode('clinico.ver') && (pode('clinico.indicar') || pode('clinico.negociar')) && !p.anonimizado_em ? '<button class="btn ghost sm" type="button" id="fi-clin">Orçamento clínico</button>' : '')
-    + (['Pré-Ativo', 'Ativo', 'Inativo'].includes(p.status) && !semContrato && (ehGer() || pode('contratos.solicitar')) ? '<span class="mais"><button class="btn ghost sm" type="button" id="fi-mais" aria-haspopup="true" aria-expanded="false">Mais ações ▾</button><span class="mais-m" id="fi-mais-m" hidden><button type="button" id="fi-cc">' + (ehGer() ? 'Cancelar contrato' : 'Solicitar cancelamento de contrato') + '</button></span></span>' : '')
+    + (() => { const ed = pode('pacientes.editar'), cc = ['Pré-Ativo', 'Ativo', 'Inativo'].includes(p.status) && !semContrato && (ehGer() || pode('contratos.solicitar'));
+        return ed || cc ? '<span class="mais"><button class="btn ghost sm" type="button" id="fi-mais" aria-haspopup="true" aria-expanded="false">Mais ações ▾</button><span class="mais-m" id="fi-mais-m" hidden>'
+          + (ed ? '<button type="button" id="fi-edit">Editar cadastro</button>' : '') + (cc ? '<button type="button" id="fi-cc">' + (ehGer() ? 'Cancelar contrato' : 'Solicitar cancelamento de contrato') + '</button>' : '') + '</span></span>' : ''; })()
     + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '')
       : p.status === 'Prospecção' ? (concl && pode('avaliacoes.atender') && souDent() && !jaAvaliei ? '<button class="btn sm" type="button" id="fi-rea" title="Outro dentista avalia e registra o seu parecer">Reavaliar (meu parecer)</button>' : '')
         + (pode('avaliacoes.iniciar') ? '<button class="btn ' + (concl ? 'ghost ' : '') + 'sm" type="button" id="fi-ini">' + (concl ? 'Solicitar reavaliação' : 'Iniciar avaliação') + '</button>' : '') : '') + '</div></div>'
@@ -2126,7 +2128,7 @@ async function pacFicha(id){
   const mais = $('#fi-mais'); if (mais) {
     mais.addEventListener('click', e => { e.stopPropagation(); const m = $('#fi-mais-m'); m.hidden = !m.hidden; mais.setAttribute('aria-expanded', String(!m.hidden)); });
     document.addEventListener('click', function f(){ const m = $('#fi-mais-m'); if (!m) { document.removeEventListener('click', f); return; } m.hidden = true; mais.setAttribute('aria-expanded', 'false'); });
-    $('#fi-cc').addEventListener('click', () => cancelarContratoDialogo(p, recarrega));
+    if ($('#fi-cc')) $('#fi-cc').addEventListener('click', () => cancelarContratoDialogo(p, recarrega));
   }
   const ini = $('#fi-ini'); if (ini) ini.addEventListener('click', () => avIniciarDialogo(p, recarrega));
   const fcl = $('#fi-clin'); if (fcl) fcl.addEventListener('click', () => clinOrcDoPaciente(p.id));
@@ -3292,7 +3294,7 @@ function clinTela(){
 }
 /* ----- Orçamentos ----- */
 function clinOrcTab(){
-  const b = $('#cl-body');
+  const b = $('#cl-body'), neg = pode('clinico.negociar');
   const f = () => CLX.orcs.filter(o => (CLX.st === 'todos' ? true : CLX.st === 'abertos' ? ['rascunho', 'encaminhado', 'salvo'].includes(o.status) : o.status === CLX.st) && (!CLX.q || clNorm(o.paciente).includes(clNorm(CLX.q))));
   const podeNovo = pode('clinico.indicar') || pode('clinico.negociar');
   b.innerHTML = (podeNovo ? '<div class="card"><label class="field" for="co-np" style="margin:0">Novo orçamento: buscar paciente<input id="co-np" type="search" placeholder="Digite o nome do paciente" autocomplete="off"></label><div class="lista" id="co-res" aria-live="polite"></div></div>' : '')
@@ -3302,8 +3304,8 @@ function clinOrcTab(){
     + '<div class="tw" id="co-tab"></div></div>';
   const tab = () => {
     const l = f();
-    $('#co-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Unidade</th><th class="n">Serviços</th><th class="n">Total</th><th>Situação</th><th>Atualizado</th><th></th></tr></thead><tbody>'
-      + l.map(o => '<tr><td>' + esc(o.paciente) + '</td><td>' + esc(o.unidade) + '</td><td class="n">' + o.itens + '</td><td class="n">' + brl(o.total) + '</td><td><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span></td><td>' + dBR(String(o.atualizado_em).slice(0, 10)) + '</td><td><button class="btn ghost sm" type="button" data-co="' + o.id + '">Abrir</button></td></tr>').join('') + '</tbody></table>'
+    $('#co-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Unidade</th><th class="n">Serviços</th>' + (neg ? '<th class="n">Total</th>' : '') + '<th>Situação</th><th>Atualizado</th><th></th></tr></thead><tbody>'
+      + l.map(o => '<tr><td>' + esc(o.paciente) + '</td><td>' + esc(o.unidade) + '</td><td class="n">' + o.itens + '</td>' + (neg ? '<td class="n">' + brl(o.total) + '</td>' : '') + '<td><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span></td><td>' + dBR(String(o.atualizado_em).slice(0, 10)) + '</td><td><button class="btn ghost sm" type="button" data-co="' + o.id + '">Abrir</button></td></tr>').join('') + '</tbody></table>'
       : '<div class="vazio">Nenhum orçamento nesta situação.</div>';
     $$('[data-co]', $('#co-tab')).forEach(x => x.addEventListener('click', () => clinOrcAbrir(Number(x.dataset.co))));
   };
@@ -3335,7 +3337,7 @@ function clinSit(s){
   return '<span class="pill on">Dentro da margem</span>';
 }
 function clinServTab(){
-  const b = $('#cl-body'), cat = CLX.cat, cust = pode('clinico.custos'), edit = pode('clinico.catalogo');
+  const b = $('#cl-body'), cat = CLX.cat, cust = pode('clinico.custos'), edit = pode('clinico.catalogo'), verV = pode('clinico.negociar') || edit || cust;
   const esps = [...new Set(cat.servicos.map(s => s.especialidade).filter(Boolean))].sort();
   b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cs-esp" style="margin:0">Especialidade<select id="cs-esp"><option value="">Todas</option>' + esps.map(e => '<option' + (CLX.esp === e ? ' selected' : '') + '>' + esc(e) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="cs-q" style="margin:0;min-width:200px">Serviço<input id="cs-q" type="search" placeholder="Buscar" value="' + esc(CLX.sq) + '"></label>'
@@ -3343,8 +3345,8 @@ function clinServTab(){
     + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo serviço</button><button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') + '</div><div class="tw" id="cs-tab"></div></div>';
   const tab = () => {
     const l = cat.servicos.filter(s => (!CLX.esp || s.especialidade === CLX.esp) && (!CLX.sq || clNorm(s.nome).includes(clNorm(CLX.sq))) && (!CLX.abaixo || clinAbaixo(s)));
-    $('#cs-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Serviço</th><th>Especialidade</th><th class="n">Valor</th><th class="n">Mínimo</th>' + (cust ? '<th class="n">Custo</th><th class="n">Margem no valor</th><th class="n">Margem no mínimo</th><th class="n">Preço ideal</th><th>Situação</th>' : '') + '<th></th></tr></thead><tbody>'
-      + l.map(s => '<tr' + (s.ativo ? '' : ' style="opacity:.55"') + '><td>' + esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') + '</td><td>' + esc(s.especialidade || '—') + '</td><td class="n">' + brl(s.valor) + '</td><td class="n">' + (s.minimo == null ? '—' : brl(s.minimo)) + '</td>'
+    $('#cs-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Serviço</th><th>Especialidade</th>' + (verV ? '<th class="n">Valor</th><th class="n">Mínimo</th>' : '') + '' + (cust ? '<th class="n">Custo</th><th class="n">Margem no valor</th><th class="n">Margem no mínimo</th><th class="n">Preço ideal</th><th>Situação</th>' : '') + '<th></th></tr></thead><tbody>'
+      + l.map(s => '<tr' + (s.ativo ? '' : ' style="opacity:.55"') + '><td>' + esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') + '</td><td>' + esc(s.especialidade || '—') + '</td>' + (verV ? '<td class="n">' + brl(s.valor) + '</td><td class="n">' + (s.minimo == null ? '—' : brl(s.minimo)) + '</td>' : '')
         + (cust ? '<td class="n">' + brl(s.custo) + '</td><td class="n">' + pctTxt(s.margem) + '</td><td class="n">' + pctTxt(s.margem_minimo) + '</td><td class="n">' + (s.preco_ideal == null ? '—' : brl(s.preco_ideal)) + '</td><td>' + clinSit(s) + '</td>' : '')
         + '<td>' + (edit ? '<button class="btn ghost sm" type="button" data-se="' + s.id + '">Editar</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhum serviço encontrado.</div>';
     $$('[data-se]', $('#cs-tab')).forEach(x => x.addEventListener('click', () => clinServForm(cat.servicos.find(s => s.id === Number(x.dataset.se)))));
@@ -3513,23 +3515,23 @@ async function clinOrcAbrir(id){
 }
 const clTotal = o => r2(o.itens.reduce((s, i) => s + i.valor_unit * i.qtd, 0));
 function clinOrcDesenha(){
-  const o = CLO.o, neg = pode('clinico.negociar'), ind = pode('clinico.indicar') || neg, edit = !['fechado', 'perdido'].includes(o.status), cust = pode('clinico.custos');
+  const o = CLO.o, neg = pode('clinico.negociar'), ind = pode('clinico.indicar') || neg, vv = neg && o.ver_valores !== false, edit = !['fechado', 'perdido'].includes(o.status), cust = pode('clinico.custos');
   const servs = (CLX.cat.servicos || []).filter(s => s.ativo), esps = [...new Set(servs.map(s => s.especialidade || 'Outros'))].sort();
-  const tot = clTotal(o), totTab = r2(o.itens.reduce((s, i) => s + i.valor_tabela * i.qtd, 0));
+  const tot = vv ? clTotal(o) : 0, totTab = vv ? r2(o.itens.reduce((s, i) => s + i.valor_tabela * i.qtd, 0)) : 0;
   abrirJanela('Orçamento clínico — ' + o.paciente, '<div class="db" id="oc-box">'
-    + '<div class="tools" style="margin:0;align-items:center"><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span><span class="sub">Criado por ' + esc(o.criado_por || '—') + ' em ' + dBR(String(o.criado_em).slice(0, 10)) + '</span></div>'
-    + (o.itens.length ? '<div class="tw"><table class="tb"><thead><tr><th>Serviço</th><th>Dente/região</th><th class="n">Qtd</th><th class="n">Tabela</th>' + (neg ? '<th class="n">Valor negociado</th>' : '') + '<th class="n">Subtotal</th><th></th></tr></thead><tbody>'
-      + o.itens.map(i => '<tr data-it="' + i.id + '"><td>' + esc(i.servico) + (i.margem_ok === false ? '<br><small style="color:var(--red)">' + (i.margem != null ? 'Margem de ' + pctTxt(i.margem) + ', abaixo do mínimo de ' + nTxt(o.margem_min_pct, 2) + '%' + (i.preco_ideal != null ? '. Preço ideal: ' + brl(i.preco_ideal) : '') : 'Abaixo da margem mínima da clínica') + '</small>' : '') + (i.piso_autorizado != null ? '<br><small class="sub">Desconto autorizado por diretor' + (i.motivo ? ': ' + esc(i.motivo) : '') + '</small>' : '') + '</td><td>' + (ind && edit ? '<input data-dn aria-label="Dente ou região" maxlength="40" style="width:90px" value="' + esc(i.dente || '') + '">' : esc(i.dente || '—')) + '</td>'
-        + '<td class="n">' + (ind && edit ? '<input data-qt aria-label="Quantidade" inputmode="numeric" style="width:56px;text-align:right" value="' + i.qtd + '">' : i.qtd) + '</td><td class="n">' + brl(i.valor_tabela) + '</td>'
-        + (neg ? '<td class="n">' + (edit ? '<input data-vl aria-label="Valor negociado" inputmode="numeric" style="width:104px;text-align:right" value="' + esc(moedaTxt(i.valor_unit)) + '"><br><small class="sub">mín. ' + brl(i.valor_minimo) + '</small>' : brl(i.valor_unit)) + '</td>' : '')
-        + '<td class="n">' + brl(r2(i.valor_unit * i.qtd)) + '</td><td>' + (ind && edit ? '<button class="btn ghost sm" type="button" data-rm="' + i.id + '" aria-label="Remover serviço">×</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>'
+    + '<div class="tools" style="margin:0;align-items:center"><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span><span class="sub">' + (o.dentista ? 'Dentista: <b>' + esc(o.dentista) + '</b> · ' : '') + 'Criado por ' + esc(o.criado_por || '—') + ' em ' + dBR(String(o.criado_em).slice(0, 10)) + '</span></div>'
+    + (o.itens.length ? '<div class="tw"><table class="tb"><thead><tr><th>Serviço</th><th>Dente/região</th><th class="n">Qtd</th>' + (vv ? '<th class="n">Tabela</th><th class="n">Valor negociado</th><th class="n">Subtotal</th>' : '') + '<th></th></tr></thead><tbody>'
+      + o.itens.map(i => '<tr data-it="' + i.id + '"><td>' + esc(i.servico) + (vv && i.margem_ok === false ? '<br><small style="color:var(--red)">' + (i.margem != null ? 'Margem de ' + pctTxt(i.margem) + ', abaixo do mínimo de ' + nTxt(o.margem_min_pct, 2) + '%' + (i.preco_ideal != null ? '. Preço ideal: ' + brl(i.preco_ideal) : '') : 'Abaixo da margem mínima da clínica') + '</small>' : '') + (i.piso_autorizado != null ? '<br><small class="sub">Desconto autorizado por diretor' + (i.motivo ? ': ' + esc(i.motivo) : '') + '</small>' : '') + '</td><td>' + (ind && edit ? '<input data-dn aria-label="Dente ou região" maxlength="40" style="width:90px" value="' + esc(i.dente || '') + '">' : esc(i.dente || '—')) + '</td>'
+        + '<td class="n">' + (ind && edit ? '<input data-qt aria-label="Quantidade" inputmode="numeric" style="width:56px;text-align:right" value="' + i.qtd + '">' : i.qtd) + '</td>'
+        + (vv ? '<td class="n">' + brl(i.valor_tabela) + '</td><td class="n">' + (edit ? '<input data-vl aria-label="Valor negociado" inputmode="numeric" style="width:104px;text-align:right" value="' + esc(moedaTxt(i.valor_unit)) + '"><br><small class="sub">mín. ' + brl(i.valor_minimo) + '</small>' : brl(i.valor_unit)) + '</td><td class="n">' + brl(r2(i.valor_unit * i.qtd)) + '</td>' : '')
+        + '<td>' + (ind && edit ? '<button class="btn ghost sm" type="button" data-rm="' + i.id + '" aria-label="Remover serviço">×</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>'
       : '<div class="vazio">Nenhum serviço indicado ainda.</div>')
     + '<div id="oc-aut" hidden></div>'
-    + (ind && edit ? '<div class="tools" style="margin:0;align-items:end"><label class="field" for="oc-s" style="margin:0;flex:1;min-width:220px">Adicionar serviço<select id="oc-s"><option value="">Escolha…</option>' + esps.map(e => '<optgroup label="' + esc(e) + '">' + servs.filter(s => (s.especialidade || 'Outros') === e).map(s => '<option value="' + s.id + '">' + esc(s.nome) + ' — ' + brl(s.valor) + '</option>').join('') + '</optgroup>').join('') + '</select></label>'
+    + (ind && edit ? '<div class="tools" style="margin:0;align-items:end"><label class="field" for="oc-s" style="margin:0;flex:1;min-width:220px">Adicionar serviço<select id="oc-s"><option value="">Escolha…</option>' + esps.map(e => '<optgroup label="' + esc(e) + '">' + servs.filter(s => (s.especialidade || 'Outros') === e).map(s => '<option value="' + s.id + '">' + esc(s.nome) + (s.valor != null && neg ? ' — ' + brl(s.valor) : '') + '</option>').join('') + '</optgroup>').join('') + '</select></label>'
       + '<label class="field" for="oc-d" style="margin:0">Dente/região<input id="oc-d" maxlength="40" style="width:110px" placeholder="ex.: 16, 24"></label><label class="field" for="oc-q" style="margin:0">Qtd<input id="oc-q" inputmode="numeric" style="width:60px" value="1"></label><button class="btn sm" type="button" id="oc-add">Adicionar</button></div>' : '')
-    + '<div class="card" style="margin:0"><div class="kv"><span>Total de tabela</span><b>' + brl(totTab) + '</b><span>Total do orçamento</span><b>' + brl(tot) + '</b>' + (tot < totTab ? '<span>Desconto</span><b>' + brl(r2(totTab - tot)) + ' (' + nTxt((totTab - tot) / totTab * 100, 1) + '%)</b>' : '')
-      + (cust && o.itens.length && o.itens.every(i => i.custo != null) ? '<span>Margem estimada</span><b>' + (tot > 0 ? nTxt((tot - o.itens.reduce((s, i) => s + i.custo * i.qtd, 0)) / tot * 100, 1) + '%' : '—') + '</b>' : '') + '</div></div>'
-    + (o.itens.length && neg ? '<div class="card" style="margin:0"><div class="sec">Simulador de financiamento</div><p class="sub" style="margin:4px 0 10px">Juros de ' + nTxt(o.juros_mensal, 3) + '% ao mês (tabela price, definido pela diretoria).</p>'
+    + (!vv ? '' : '<div class="card" style="margin:0"><div class="kv"><span>Total de tabela</span><b>' + brl(totTab) + '</b><span>Total do orçamento</span><b>' + brl(tot) + '</b>' + (tot < totTab ? '<span>Desconto</span><b>' + brl(r2(totTab - tot)) + ' (' + nTxt((totTab - tot) / totTab * 100, 1) + '%)</b>' : '')
+      + (cust && o.itens.length && o.itens.every(i => i.custo != null) ? '<span>Margem estimada</span><b>' + (tot > 0 ? nTxt((tot - o.itens.reduce((s, i) => s + i.custo * i.qtd, 0)) / tot * 100, 1) + '%' : '—') + '</b>' : '') + '</div></div>')
+    + (o.itens.length && vv ? '<div class="card" style="margin:0"><div class="sec">Simulador de financiamento</div><p class="sub" style="margin:4px 0 10px">Juros de ' + nTxt(o.juros_mensal, 3) + '% ao mês.</p>'
       + '<div class="tools" style="margin:0;align-items:end"><label class="field" for="sm-e" style="margin:0">Entrada (R$)<input id="sm-e" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.entrada) + '" placeholder="0,00"></label>'
       + '<label class="field" for="sm-m" style="margin:0">Simular por<select id="sm-m"><option value="n"' + (CLX.sim.modo === 'n' ? ' selected' : '') + '>Número de parcelas</option><option value="v"' + (CLX.sim.modo === 'v' ? ' selected' : '') + '>Valor da parcela</option></select></label>'
       + '<label class="field" for="sm-v" style="margin:0"><span id="sm-vl">' + (CLX.sim.modo === 'n' ? 'Parcelas' : 'Parcela (R$)') + '</span><input id="sm-v" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.valor) + '"></label></div><div id="sm-out" style="margin-top:12px"></div></div>' : '')
