@@ -328,6 +328,15 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}.cp-off{opacity:.65}
 .tools .chk input[type=checkbox]{flex:none;min-height:0;width:18px;height:18px;padding:0;border:0}
 .cbres{margin-top:3px;font:400 12.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 6px;max-width:150px}
+/* início: os quadros nunca se sobrepõem; a altura acompanha o conteúdo */
+.com-mapa .dwrap{height:auto!important;max-height:none!important;min-height:0!important;align-items:start}
+.com-mapa .dmapa{min-height:480px!important}.com-mapa #dm-svg{flex:1;height:auto;min-height:400px}
+.com-mapa .dkp .dgrid,.com-mapa .dkp.stk .dgrid{grid-template-rows:none!important;grid-auto-rows:auto!important;overflow:visible!important;flex:none!important}
+.com-mapa .dkp.stk .dk,.com-mapa .dkp .dk{overflow:visible!important;min-height:0!important;padding:15px!important}
+#dm-sx{margin-top:28px!important}
+.dk.sx{padding:18px!important;min-height:190px}.dk.sx .lb{font-size:12.5px;min-height:2.6em}
+.dk.sx .v b{font-size:28px!important}.dk.sx .v span{font-size:14px}
+.dk.sx{display:flex;flex-direction:column}.dk.sx .dl{font-size:11px;padding:3px 9px;margin-top:auto;align-self:flex-start;opacity:.9}.dk.sx .v{margin-bottom:12px}
 </style>
 </head>
 <body>
