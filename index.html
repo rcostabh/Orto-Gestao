@@ -589,6 +589,7 @@ const IC = {
   comunicacao: '<path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 9.5c.5 2.5 2.5 4.5 5 5"/>',
   clinico: '<path d="M7 4c-2 0-3.5 1.6-3.5 4 0 2 1 3.5 1.5 5.5S6 20 7.5 20 9 16 12 16s2.5 4 4.5 4c1.5 0 1.5-4 2.5-6.5s1.5-3.5 1.5-5.5c0-2.4-1.5-4-3.5-4-1.7 0-2.5 1-5 1S8.7 4 7 4z"/>'
 };
+IC['clin-proc'] = IC['clin-mat'] = IC['clin-comp'] = IC['clin-cfg'] = IC.clinico;
 const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg>';
 const MENU = [
   { r: 'inicio', t: 'Início', p: null },
@@ -596,7 +597,12 @@ const MENU = [
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
   { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver', 'cobranca.contatar'] },
   { r: 'comunicacao', t: 'Comunicação', p: ['cobranca.contatar', 'cobranca.campanhas'] },
-  { r: 'clinico', t: 'Clínico', p: 'clinico.ver' },
+  { g: 'Clínico', ic: 'clinico', itens: [
+    { r: 'clinico', t: 'Orçamentos', p: 'clinico.ver' },
+    { r: 'clin-proc', t: 'Procedimentos clínicos', p: 'clinico.ver' },
+    { r: 'clin-mat', t: 'Materiais', p: ['clinico.catalogo', 'clinico.custos'] },
+    { r: 'clin-comp', t: 'Compras', p: 'clinico.catalogo' },
+    { r: 'clin-cfg', t: 'Configuração do clínico', p: 'clinico.custos' } ] },
   { g: 'Configurações', ic: 'unidades', itens: [
     { r: 'agendas', t: 'Agendas', p: 'agendas.ver' },
     { r: 'dentistas', t: 'Dentistas', p: 'dentistas.ver' },
@@ -618,7 +624,7 @@ const MENU = [
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -650,7 +656,9 @@ const BUSCA_EXTRA = [
   { t: 'Estornar ou isentar parcela', c: 'Financeiro › parcela do paciente', r: 'financeiro', p: 'financeiro.ver', k: 'estorno isencao desconto cobranca avulsa lancar' },
   { t: 'Parcelas e mensalidades', c: 'Financeiro', r: 'financeiro', p: 'financeiro.ver', k: 'vencimento atraso inadimplencia a receber' },
   { t: 'Campanhas e régua de cobrança', c: 'Cobrança › Mensagens e regras', r: 'cobranca', p: ['cobranca.ver', 'cobranca.contatar', 'financeiro.ver'], k: 'whatsapp mensagem atraso contato inativos reativar' },
-  { t: 'Tratamento clínico: orçamento, serviços e materiais', c: 'Clínico', r: 'clinico', p: 'clinico.ver', k: 'clinico clinica orcamento servicos materiais compra nota fiscal protese implante restauracao financiamento price juros desconto' },
+  { t: 'Orçamento clínico', c: 'Clínico › Orçamentos', r: 'clinico', p: 'clinico.ver', k: 'clinico clinica orcamento protese implante restauracao financiamento juros desconto' },
+  { t: 'Cadastro de procedimentos clínicos', c: 'Clínico › Procedimentos clínicos', r: 'clin-proc', p: 'clinico.ver', k: 'clinico servico procedimento valor minimo especialidade importar planilha csv margem preco ideal' },
+  { t: 'Materiais e compras do clínico', c: 'Clínico › Materiais / Compras', r: 'clin-mat', p: ['clinico.catalogo', 'clinico.custos'], k: 'clinico material insumo protetico fornecedor nota fiscal estoque custo' },
   { t: 'Comunicação por WhatsApp', c: 'Comunicação › Enviar', r: 'comunicacao', p: ['cobranca.contatar', 'cobranca.campanhas'], k: 'whatsapp mensagem lembrete campanha enviar api modelos historico conexao meta recuperacao vencimento' },
   { t: 'Marcar consulta', c: 'Agenda', r: 'agenda', p: 'agenda.ver', k: 'agendar horario compromisso paciente remarcar cancelar' },
   { t: 'Fazer avaliação (dentista)', c: 'Avaliações', r: 'avaliacoes', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'], k: 'apto nao apto clinico limpeza profunda' },
@@ -708,7 +716,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
-  ['0.42.0', '2026-11-05', 'Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
+  ['0.42.0', '2026-11-05', 'Clínico virou grupo no menu lateral (Orçamentos, Procedimentos clínicos, Materiais, Compras, Configuração). Venda e cobrança valem só para a ortodontia. Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
   ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
   ['0.40.0', '2026-11-04', 'Módulo Clínico (etapa 1): catálogo de serviços e materiais importados da planilha, custo e margem por serviço, notas de compra que atualizam estoque e custo, orçamento clínico (o dentista indica, o comercial negocia de valor até o mínimo), desconto abaixo do mínimo só com login e senha de diretor e simulador de financiamento pela tabela price com a regra de liberação do tratamento.'],
   ['0.39.0', '2026-11-04', 'Carta de alta só pelo dentista: o botão Carta de alta (passar para contenção) só aparece para quem é dentista, e o banco recusa a mudança de quem não for. Recepção, cobrança e gerência que não atendem como dentista não dão mais alta.'],
@@ -814,7 +822,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -835,7 +843,7 @@ function abrirRota(r, o){
   if (r === 'financeiro') return finCarregar();
   if (r === 'cobranca') return cobCarregar();
   if (r === 'comunicacao') return waCarregar();
-  if (r === 'clinico') return clinCarregar();
+  if (r === 'clinico' || r.startsWith('clin-')) return clinCarregar(r);
   if (r === 'caixa') return caixaCarregar();
   if (r === 'solicitacoes') return solCarregar();
   if (r === 'produtos') return ehDir() ? prdCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os produtos e serviços.</div></div>');
@@ -3289,28 +3297,24 @@ async function clinGarante(){
   const er = rs.map(r => r.error).find(Boolean); if (er) return er;
   CLX.cat = rs[0].data; CLX.cfg = rs[1].data; return null;
 }
-async function clinCarregar(){
+const CLROTA = { 'clinico': 'orc', 'clin-proc': 'serv', 'clin-mat': 'mat', 'clin-comp': 'comp', 'clin-cfg': 'cfg' };
+async function clinCarregar(r0){
+  if (r0 && CLROTA[r0]) CLX.aba = CLROTA[r0];
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.rpc('clin_catalogo'), sb.rpc('clin_config_obter'), sb.rpc('clin_orc_listar')]);
   const er = rs.map(r => r.error).find(Boolean);
   if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
   CLX.cat = rs[0].data; CLX.cfg = rs[1].data; CLX.orcs = rs[2].data || [];
-  const ab = clinAbas(); if (!ab.some(a => a[0] === CLX.aba)) CLX.aba = ab[0][0];
   clinTela();
 }
-function clinAbas(){
-  const t = [['orc', 'Orçamentos'], ['serv', 'Serviços']];
-  if (pode('clinico.catalogo') || pode('clinico.custos')) t.push(['mat', 'Materiais']);
-  if (pode('clinico.catalogo')) t.push(['comp', 'Compras']);
-  if (ehGer()) t.push(['proc', 'Procedimentos']);
-  if (pode('clinico.custos')) t.push(['cfg', 'Configuração']);
-  return t;
-}
+const CLTIT = { orc: ['Orçamentos clínicos', 'Orçamentos de tratamentos clínicos (restaurações, próteses, implantes e outros), negociação e financiamento.'],
+  serv: ['Procedimentos clínicos', 'Cadastro dos procedimentos clínicos: especialidade, valor de tabela, valor mínimo e os materiais usados em cada um.'],
+  mat: ['Materiais', 'Materiais e insumos (inclui o protético) que compõem o custo de cada procedimento.'], comp: ['Compras', 'Notas de compra que atualizam estoque e custo dos materiais.'],
+  cfg: ['Configuração do clínico', 'Impostos, comissões, margem mínima e juros do financiamento.'] };
 function clinTela(){
-  $('#area').innerHTML = '<div class="head"><div><h1>Clínico</h1><p class="sub">Tratamentos clínicos (restaurações, próteses, implantes e outros): serviços, materiais, orçamento e financiamento.</p></div></div>'
-    + '<div class="tools" id="cl-nav" role="tablist" style="margin-top:4px">' + clinAbas().map(a => '<button class="btn ' + (CLX.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CLX.aba === a[0]) + '" data-cl="' + a[0] + '">' + a[1] + '</button>').join(' ') + '</div><div id="cl-body"></div>';
-  $$('#cl-nav [data-cl]').forEach(b => b.addEventListener('click', () => { CLX.aba = b.dataset.cl; clinTela(); }));
-  ({ orc: clinOrcTab, serv: clinServTab, mat: clinMatTab, comp: clinCompTab, proc: clinProcTab, cfg: clinCfgTab })[CLX.aba]();
+  const t = CLTIT[CLX.aba] || CLTIT.orc;
+  $('#area').innerHTML = '<div class="head"><div><h1>' + t[0] + '</h1><p class="sub">' + t[1] + '</p></div></div><div id="cl-body"></div>';
+  ({ orc: clinOrcTab, serv: clinServTab, mat: clinMatTab, comp: clinCompTab, cfg: clinCfgTab })[CLX.aba]();
 }
 /* ----- Orçamentos ----- */
 function clinOrcTab(){
@@ -3346,24 +3350,6 @@ function clinOrcTab(){
   $('#co-st').addEventListener('change', e => { CLX.st = e.target.value; tab(); });
   $('#co-q').addEventListener('input', e => { CLX.q = e.target.value; tab(); });
   tab();
-}
-/* ----- Procedimentos (tipos de lançamento: venda ou cobrança) ----- */
-const CLP = { f: [], dados: [] };
-async function clinProcTab(){
-  const b = $('#cl-body'), dir = ehDir();
-  b.innerHTML = '<div class="card"><div class="tools" style="align-items:center"><p class="sub" style="margin:0;flex:1;min-width:240px">Cada procedimento é <b>venda</b> (feita pela equipe de vendas da clínica) ou <b>cobrança</b> (recebida pela equipe de cobrança do escritório). Isso alimenta os quadros de venda e cobrança do Início.' + (dir ? ' Clique numa linha para alterar.' : '') + '</p>'
-    + (dir ? '<button class="btn sm" type="button" id="pr-novo">+ Novo procedimento</button>' : '') + '</div><div id="pr-grid" style="margin-top:10px"><p class="sub">Carregando...</p></div></div>';
-  const carrega = async () => {
-    const r = await sb.rpc('tipos_lancamento_listar'); if (!$('#pr-grid')) return;
-    if (r.error) { $('#pr-grid').innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
-    CLP.dados = r.data || []; D.tip = CLP.dados;
-    gradeF($('#pr-grid'), { dados: CLP.dados, f: CLP.f, vazio: 'Nenhum procedimento cadastrado.', maxH: 560, clique: dir ? x => { tpForm(x, carrega); } : null, cols: [
-      { t: 'Procedimento', v: x => x.nome },
-      { t: 'Setor', v: x => x.setor === 'venda' ? 'Venda' : 'Cobrança', h: x => '<span class="pill ' + (x.setor === 'venda' ? 'on' : 'wr') + '">' + (x.setor === 'venda' ? 'Venda' : 'Cobrança') + '</span>' },
-      { t: 'Situação', v: x => x.ativo ? 'Ativo' : 'Inativo', h: x => '<span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span>' }] });
-  };
-  if ($('#pr-novo')) $('#pr-novo').addEventListener('click', () => tpForm(null, carrega));
-  carrega();
 }
 /* ----- Serviços ----- */
 const clinAbaixo = s => s.margem != null && (s.margem * 100 < CLX.cfg.margem_min_pct || (s.margem_minimo != null && s.margem_minimo * 100 < CLX.cfg.margem_min_pct));
@@ -4277,7 +4263,7 @@ function prdLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Produtos e serviços</h1><p class="sub">Lista usada ao lançar uma cobrança avulsa na ficha financeira do paciente. Só o Diretor cadastra. O valor é sugerido na hora de lançar e pode ser ajustado. Vale para todas as unidades do grupo.</p></div>'
     + '<button class="btn" type="button" id="pd-novo">+ Novo produto ou serviço</button></div>'
     + '<div class="card"><div class="tools"><input id="pd-q" type="search" placeholder="Buscar" aria-label="Buscar produto ou serviço" value="' + esc(PD.q) + '"></div><div class="lista" id="pd-lista"></div></div>'
-    + '<div class="card"><div class="head" style="margin:0 0 8px"><div><h2 style="margin:0;font-size:16px">Tipos de lançamento: Venda ou Cobrança</h2><p class="sub" style="margin:2px 0 0">Venda é feita pela equipe de vendas da clínica; cobrança é recebida pela equipe de cobrança do escritório. O Início do gerente e do diretor soma cada setor. Início do tratamento conta como venda; 1ª mensalidade e mensalidades contam como cobrança.</p></div><button class="btn ghost" type="button" id="tp-novo">+ Novo tipo</button></div>'
+    + '<div class="card"><div class="head" style="margin:0 0 8px"><div><h2 style="margin:0;font-size:16px">Procedimentos de ortodontia: Venda ou Cobrança</h2><p class="sub" style="margin:2px 0 0">Vale só para os procedimentos de ortodontia (nada do clínico). Venda é feita pela equipe de vendas da clínica; cobrança é recebida pela equipe de cobrança do escritório. O Início do gerente e do diretor soma cada setor. Início do tratamento conta como venda; 1ª mensalidade e mensalidades contam como cobrança.</p></div><button class="btn ghost" type="button" id="tp-novo">+ Novo tipo</button></div>'
     + '<div class="g2"><div><b>Venda</b><div class="lista" id="tp-venda"></div></div><div><b>Cobrança</b><div class="lista" id="tp-cob"></div></div></div></div>';
   const pintaTp = () => ['venda', 'cobranca'].forEach(st => { $('#tp-' + (st === 'venda' ? 'venda' : 'cob')).innerHTML = (D.tip || []).filter(t => t.setor === st).map(t => '<button class="row f" type="button" data-tp="' + t.id + '"><b>' + esc(t.nome) + '</b>' + (t.ativo ? '' : '<span class="pill off">Inativo</span>') + '</button>').join('') || '<div class="vazio">Nenhum tipo.</div>'; });
   pintaTp(); $$('[data-tp]').forEach(b => b.addEventListener('click', () => tpForm(D.tip.find(t => t.id === Number(b.dataset.tp)))));
