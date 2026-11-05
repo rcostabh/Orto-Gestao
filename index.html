@@ -274,6 +274,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 #in-cx .card{margin-bottom:14px}.eu select{width:100%;margin:2px 0 6px;font-size:12px;padding:5px 6px;border-radius:8px}.eu select.sim{border-color:var(--brand,#ff6a00);outline:1px solid var(--brand,#ff6a00)}.dsx{--mu:#8b97b4;--line:rgba(255,255,255,.09);position:relative;overflow:hidden;border-radius:24px;padding:20px;color:#eaf0ff;background:radial-gradient(800px 360px at 90% -10%,rgba(255,122,26,.20),transparent 60%),radial-gradient(600px 360px at 0 100%,rgba(34,211,238,.12),transparent 60%),#07090f}.dsx:before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:44px 44px;opacity:.3;-webkit-mask-image:radial-gradient(ellipse at 50% 0,#000 0,transparent 70%);mask-image:radial-gradient(ellipse at 50% 0,#000 0,transparent 70%);pointer-events:none}
 .dgrid{position:relative;display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.dk{grid-column:span 3;position:relative;overflow:hidden;border-radius:20px;padding:15px;border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02))}.dk.hero{grid-column:span 5;display:flex;gap:16px;align-items:center;flex-wrap:wrap;min-height:150px}.dk.fat{grid-column:span 7;display:grid;grid-template-columns:1.2fr 1fr;gap:14px;min-height:150px}
 .dsx .lb{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);font-weight:600}.dsx .big{font-size:38px;font-weight:700;letter-spacing:-.04em;line-height:1;margin:10px 0;background:linear-gradient(180deg,#fff,#aeb9d6);-webkit-background-clip:text;background-clip:text;color:transparent}.dsx .big.or{font-size:32px;background:linear-gradient(180deg,#fff,#ffb347);-webkit-background-clip:text;background-clip:text}.dsx .big small{font-size:18px;color:var(--mu);-webkit-text-fill-color:var(--mu);font-weight:500}
+.dk.sx .v{flex-direction:column;align-items:flex-start;gap:3px}.dk.sx .v b{white-space:nowrap;font-size:24px}.dk.sx .v span{white-space:normal;line-height:1.3}.dk.sx{overflow:visible}
 .dk .v{display:flex;align-items:baseline;gap:10px;margin:12px 0 6px}.dk .v b{font-size:26px;letter-spacing:-.03em}.dk .v span{color:var(--mu);font-size:13px}.chips{display:flex;gap:6px;flex-wrap:wrap}
 .dl{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px}.dl.dn{color:#fb7185;background:rgba(251,113,133,.14)}.dl.up{color:#34d399;background:rgba(52,211,153,.14)}.dl.eq{color:#aab6d3;background:rgba(255,255,255,.07)}
 .cmp div{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mu);margin-top:8px}.cmp i{flex:1;height:7px;border-radius:9px;background:rgba(255,255,255,.07);overflow:hidden}.cmp em{display:block;height:100%;border-radius:9px;min-width:2px}
@@ -992,7 +993,7 @@ function dmMontar(){
   box.innerHTML = '<div class="dsx' + (mapa ? ' com-mapa' : '') + '"><div class="dwrap">'
     + (mapa ? '<section class="dmapa"><div class="dmh"><div><div class="lb">Mapa de Minas Gerais</div><div class="dd2" id="dm-dica">Clique numa região ou unidade. Arraste para escolher várias.</div></div></div><svg id="dm-svg" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mapa de Minas Gerais com as unidades"></svg>'
       + '<div class="dsem" id="dm-sem">' + (sem.length ? 'Sem localização no mapa: ' + sem.map(o => esc(o.u.sigla)).join(', ') + '. Informe a cidade em Configurações › Unidades.' : '') + '</div></section>' : '')
-    + '<div class="dkp' + (mapa ? ' stk' : '') + '" id="dm-kp"></div></div>'
+    + '<div class="dkp' + (mapa ? ' stk' : '') + '" id="dm-kp"></div></div><div id="dm-sx" style="margin-top:12px"></div>'
     + (DM.multi && !mapa ? '<p class="dnota">' + (DM.geoErro ? 'Não consegui carregar o mapa agora (' + esc(DM.geoErro) + '). ' : '') + 'Escolha as unidades pelos botões acima.</p>' : '')
     + '<p class="dnota">Faturamento = recebido no mês (estornos descontados). 1ª mensalidade = o que entrou de 1ª mensalidade no mês. Vendas · dia compara hoje com o mesmo dia do mês anterior.</p></div>';
   if (mapa) dmDesenhar();
@@ -1000,13 +1001,13 @@ function dmMontar(){
 }
 function dmValores(){
   const el = $('#dm-kp'); if (!el) return; const em = dmEm(), f = DM.filtro;
-  if (!em.length) { el.innerHTML = ''; return; }
+  if (!em.length) { el.innerHTML = ''; const x0 = $('#dm-sx'); if (x0) x0.innerHTML = ''; return; }
   const d = dmAgrega(em), multi = DM.multi;
   const titulo = !f ? (multi ? 'Todas as unidades' : em[0].u.sigla + ' · ' + em[0].u.razao_social) : f.rotulo;
   const sub = !f ? (multi ? em.length + ' unidades' : 'Unidade') : (f.tipo === 'regiao' ? 'Região em foco' : em.length === 1 ? 'Unidade em foco' : 'Unidades selecionadas');
   const cab = '<div class="dkh"><div><span class="lb">' + esc(sub) + '</span><h3>' + esc(titulo) + '</h3></div>' + (f ? '<button type="button" class="dbtn" id="dm-limpa">Ver todas</button>' : '') + '</div>'
     + (multi ? '<div class="dchips">' + DM.us.map(o => '<button type="button" data-u="' + o.u.id + '" class="' + (f && f.ids.has(o.u.id) ? 'on' : '') + '">' + esc(o.u.sigla) + '</button>').join('') + '</div>' : '');
-  el.innerHTML = cab + dmKpis(d) + dmSetores(em);
+  el.innerHTML = cab + dmKpis(d); const sx = $('#dm-sx'); if (sx) sx.innerHTML = dmSetores(em);
   const l = $('#dm-limpa'); if (l) l.addEventListener('click', () => dmFiltrar(null));
   $$('#dm-kp [data-u]').forEach(b => b.addEventListener('click', () => { const o = DM.us.find(x => String(x.u.id) === b.dataset.u); dmFiltrar({ tipo: 'sel', ids: new Set([o.u.id]), rotulo: o.u.sigla + ' · ' + o.u.razao_social }); }));
 }
@@ -1029,14 +1030,14 @@ function dmSetores(em){
   const som = k => r2(l.reduce((a, x) => a + Number(x[k] || 0), 0)), mx = k => Math.max(...l.map(x => Number(x[k] || 0))), n = v => Number(v).toLocaleString('pt-BR');
   const ma = MES3[Number(l[0].mes_ant.slice(5)) - 1];
   const chip = (x, y, lb) => { const c = Number(x) > Number(y) ? 'up' : Number(x) < Number(y) ? 'dn' : 'eq'; return '<span class="dl ' + c + '">' + (c === 'up' ? '▲' : c === 'dn' ? '▼' : '•') + ' ' + lb + '</span>'; };
-  const card = (t, v, sub, x, y, lb) => '<section class="dk"><div class="lb">' + t + '</div><div class="v"><b>' + reais(v) + '</b><span>' + sub + '</span></div>' + chip(x, y, lb + ': ' + reais(y)) + '</section>';
+  const card = (t, v, sub, x, y, lb) => '<section class="dk sx"><div class="lb">' + t + '</div><div class="v"><b>' + reais(v) + '</b><span>' + sub + '</span></div>' + chip(x, y, lb + ': ' + reais(y)) + '</section>';
   const tr = mx('uteis_trab'), re = mx('uteis_rest');
   return '<div class="dgrid" id="dm-set">'
     + card('Vendas · mês até hoje', som('venda'), 'recebido', som('venda'), som('venda_ant'), ma + ' até o mesmo dia')
     + card('Cobrança · mês até hoje', som('cobranca'), 'recebido', som('cobranca'), som('cobranca_ant'), ma + ' até o mesmo dia')
     + card('Média diária de venda', som('media_dia'), 'por dia útil', som('media_dia'), som('media_dia_ant'), ma)
     + card('Projeção de vendas do mês', som('projecao'), n(tr) + ' dias úteis trabalhados · ' + n(re) + ' a trabalhar', som('projecao'), som('venda_ant_total'), ma + ' fechou')
-    + '</div><p class="dnota">Venda e cobrança seguem o tipo de cada lançamento (Produtos e serviços › Tipos). Dias úteis = segunda a sexta, sem os feriados cadastrados; hoje conta como dia trabalhado. Projeção = vendas do mês + média diária × dias úteis restantes.</p>';
+    + '</div><p class="dnota">Venda e cobrança seguem o tipo de cada lançamento (Produtos e serviços › Tipos). Dias úteis = todos os dias, menos domingos e feriados cadastrados (sábado conta); hoje conta como dia trabalhado. Projeção = vendas do mês + média diária × dias úteis restantes.</p>';
 }
 function dmDesenhar(){
   const svg = $('#dm-svg'); if (!svg) return;
