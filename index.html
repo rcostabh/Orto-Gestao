@@ -716,6 +716,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.43.0', '2026-11-05', 'Procedimentos clínicos: o valor mínimo é calculado pelo sistema (materiais, impostos, cartão, comissões e margem desejada) e só o diretor altera o valor de venda, nunca abaixo do mínimo.'],
   ['0.42.0', '2026-11-05', 'Clínico virou grupo no menu lateral (Orçamentos, Procedimentos clínicos, Materiais, Compras, Configuração). Venda e cobrança valem só para a ortodontia. Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
   ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
   ['0.40.0', '2026-11-04', 'Módulo Clínico (etapa 1): catálogo de serviços e materiais importados da planilha, custo e margem por serviço, notas de compra que atualizam estoque e custo, orçamento clínico (o dentista indica, o comercial negocia de valor até o mínimo), desconto abaixo do mínimo só com login e senha de diretor e simulador de financiamento pela tabela price com a regra de liberação do tratamento.'],
@@ -1514,8 +1515,8 @@ function uniLista(){
   const desenhar = () => {
     const q = $('#u-q').value.trim().toLowerCase(), st = $('#u-st').value;
     const l = D.unidades.filter(u => (st === 't' || (st === 'a') === u.ativa) && (!q || [u.sigla, u.razao_social, u.cidade].join(' ').toLowerCase().includes(q)));
-    $('#u-lista').innerHTML = l.length ? l.map(u => '<button class="row" type="button" data-id="' + u.id + '"><span class="sig">' + esc(u.sigla) + '</span><b>' + esc(u.razao_social) + '</b><span class="m x">' + esc([u.cidade, u.uf].filter(Boolean).join(' / ')) + '</span><span class="m x">' + esc(mTel(u.telefone)) + ' · ' + esc(horarioResumo(u.horario)) + '</span><span class="pill ' + (u.ativa ? 'on' : 'off') + '">' + (u.ativa ? 'Ativa' : 'Inativa') + '</span></button>').join('') : '<div class="vazio">Nenhuma unidade encontrada.</div>';
-    $$('#u-lista .row').forEach(b => b.addEventListener('click', () => uniForm(D.unidades.find(u => u.id === Number(b.dataset.id)))));
+    gradeCad($('#u-lista'), 'uni', l, [{ t: 'Sigla', v: u => u.sigla }, { t: 'Unidade', v: u => u.razao_social }, { t: 'Cidade', v: u => [u.cidade, u.uf].filter(Boolean).join(' / ') },
+      { t: 'Telefone', v: u => mTel(u.telefone) }, { t: 'Funcionamento', v: u => horarioResumo(u.horario) }, { t: 'Situação', v: u => u.ativa ? 'Ativa' : 'Inativa', h: u => '<span class="pill ' + (u.ativa ? 'on' : 'off') + '">' + (u.ativa ? 'Ativa' : 'Inativa') + '</span>' }], u => uniForm(u), 'Nenhuma unidade encontrada.');
   };
   $('#u-q').addEventListener('input', desenhar); $('#u-st').addEventListener('change', desenhar); desenhar();
   const n = $('#u-novo'); if (n) n.addEventListener('click', () => uniForm(null));
@@ -1606,8 +1607,10 @@ function funLista(){
   const desenhar = () => {
     const q = $('#f-q').value.trim().toLowerCase(), st = $('#f-st').value;
     const l = D.func.filter(f => (st === 't' || (st === 'a') === !inativoEm(f.data_inativacao)) && (!q || [f.nome, f.login, f.cargo].join(' ').toLowerCase().includes(q)));
-    $('#f-lista').innerHTML = l.length ? l.map(f => { const xe = extDe(f.id); return '<button class="row f" type="button" data-id="' + f.id + '"><b>' + esc(f.nome) + '</b><span class="m x">' + esc((xe ? xe.cargo : '') || f.cargo || '') + '</span><span class="m x">' + esc(xe ? nomePerfil(xe.perfil_id) : nomePerfil(f.perfil_id)) + '</span><span class="m x">' + (xe ? 'Convidado de outra empresa' : 'Login: ' + esc(f.login)) + '</span><span class="pill ' + (inativoEm(f.data_inativacao) ? 'off' : 'on') + '">' + (inativoEm(f.data_inativacao) ? 'Inativo' : 'Ativo') + '</span></button>'; }).join('') : '<div class="vazio">Nenhum funcionário encontrado.</div>';
-    $$('#f-lista .row').forEach(b => b.addEventListener('click', () => { const f = D.func.find(x => x.id === Number(b.dataset.id)); if (extDe(f.id)) funFormExterno(f); else funForm(f); }));
+    gradeCad($('#f-lista'), 'fun', l, [{ t: 'Funcionário', v: f => f.nome }, { t: 'Cargo', v: f => { const xe = extDe(f.id); return (xe ? xe.cargo : '') || f.cargo || ''; } },
+      { t: 'Perfil', v: f => { const xe = extDe(f.id); return nomePerfil(xe ? xe.perfil_id : f.perfil_id); } }, { t: 'Acesso', v: f => extDe(f.id) ? 'Convidado de outra empresa' : 'Login: ' + f.login },
+      { t: 'Situação', v: f => inativoEm(f.data_inativacao) ? 'Inativo' : 'Ativo', h: f => '<span class="pill ' + (inativoEm(f.data_inativacao) ? 'off' : 'on') + '">' + (inativoEm(f.data_inativacao) ? 'Inativo' : 'Ativo') + '</span>' }],
+      f => { if (extDe(f.id)) funFormExterno(f); else funForm(f); }, 'Nenhum funcionário encontrado.');
   };
   $('#f-q').addEventListener('input', desenhar); $('#f-st').addEventListener('change', desenhar); desenhar();
   const n = $('#f-novo'); if (n) n.addEventListener('click', () => funForm(null));
@@ -1835,8 +1838,8 @@ function denLista(){
     const q = $('#d-q').value.trim().toLowerCase(), qd = dig(q), st = $('#d-st').value;
     const l = D.dent.filter(d => (st === 't' || (st === 'a') === d.ativo) && (!q || [d.nome, d.nome_social, d.cro].join(' ').toLowerCase().includes(q) || (qd && d.cpf.includes(qd))));
     const sig = id => D.du.filter(x => x.dentista_id === id).map(x => (D.unidades.find(u => u.id === x.unidade_id) || {}).sigla).filter(Boolean).join(', ');
-    $('#d-lista').innerHTML = l.length ? l.map(d => '<button class="row f" type="button" data-id="' + d.id + '"><b>' + esc(d.nome) + '</b><span class="m x">' + (d.ortodontista ? 'Orto · ' : '') + 'CRO ' + esc(d.cro) + '</span><span class="m x">' + esc(mTel(d.celular)) + '</span><span class="m x">' + esc(sig(d.id) || 'Sem unidade') + '</span><span class="pill ' + (d.ativo ? 'on' : 'off') + '">' + (d.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nenhum dentista encontrado.</div>';
-    $$('#d-lista .row').forEach(b => b.addEventListener('click', () => denForm(D.dent.find(d => d.id === Number(b.dataset.id)))));
+    gradeCad($('#d-lista'), 'den', l, [{ t: 'Dentista', v: d => d.nome }, { t: 'Especialidade', v: d => d.especialidade || (d.ortodontista ? 'Ortodontia' : '—') }, { t: 'CRO', v: d => d.cro }, { t: 'Celular', v: d => mTel(d.celular) },
+      { t: 'Unidades', v: d => sig(d.id) || 'Sem unidade' }, { t: 'Situação', v: d => d.ativo ? 'Ativo' : 'Inativo', h: d => '<span class="pill ' + (d.ativo ? 'on' : 'off') + '">' + (d.ativo ? 'Ativo' : 'Inativo') + '</span>' }], d => denForm(d), 'Nenhum dentista encontrado.');
   };
   $('#d-q').addEventListener('input', desenhar); $('#d-st').addEventListener('change', desenhar); desenhar();
   const n = $('#d-novo'); if (n) n.addEventListener('click', () => denForm(null));
@@ -2372,13 +2375,15 @@ function pusForm(u){
     if (novo) mostrarCredenciais('Usuário criado', 'Passe estes dados para ' + nome + ':', loginN, senha);
   });
 }
+const PLOG = { f: [] };
 async function plogCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const r = await sb.rpc('plataforma_log_lista', { p_limite: 300 });
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
   const l = r.data || [];
-  $('#area').innerHTML = '<div class="head"><div><h1>Registro de acessos</h1><p class="sub">Quem entrou em qual grupo e o que foi feito na plataforma (últimos 300).</p></div></div><div class="card"><div class="tw">'
-    + (l.length ? '<table class="tb"><thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Grupo</th><th>Unidade</th><th>Detalhe</th></tr></thead><tbody>' + l.map(x => '<tr><td>' + dtHora(x.quando) + '</td><td>' + esc(x.usuario || '') + '</td><td>' + esc(x.acao) + '</td><td>' + esc(x.grupo_nome || '') + '</td><td>' + esc(x.unidade_sigla || '') + '</td><td>' + esc(x.detalhe || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nada registrado ainda.</div>') + '</div></div>';
+  $('#area').innerHTML = '<div class="head"><div><h1>Registro de acessos</h1><p class="sub">Quem entrou em qual grupo e o que foi feito na plataforma (últimos 300).</p></div></div><div class="card"><div id="pl-grid"></div></div>';
+  gradeF($('#pl-grid'), { dados: l, f: PLOG.f, vazio: 'Nada registrado ainda.', maxH: 600, cols: [{ t: 'Quando', k: x => x.quando, v: x => dtHora(x.quando) }, { t: 'Usuário', v: x => x.usuario || '' }, { t: 'Ação', v: x => x.acao },
+    { t: 'Grupo', v: x => x.grupo_nome || '' }, { t: 'Unidade', v: x => x.unidade_sigla || '' }, { t: 'Detalhe', v: x => x.detalhe || '' }] });
 }
 
 /* ---------- DOCUMENTAÇÃO DO PACIENTE (fotos, raio-X) ---------- */
@@ -2524,11 +2529,9 @@ function agsLista(){
     + '<div class="card"><div class="tools" style="margin-bottom:6px"><span class="pill nu">Unidade ' + esc(un.sigla) + ' — ' + esc(un.razao_social) + '</span></div><div class="lista" id="a-lista"></div></div>';
   const l = D.agendas.filter(a => a.unidade_id === AGS.un).sort((x, y) => (y.tipo === 'geral') - (x.tipo === 'geral') || x.ordem - y.ordem || x.nome.localeCompare(y.nome));
   const resp = id => D.dun.find(x => x.id === id);
-  $('#a-lista').innerHTML = l.length ? l.map(a => { const r = resp(a.dentista_id);
-    return '<button class="row f" type="button" data-id="' + a.id + '"><b><span class="sig" style="margin-right:8px">' + esc(a.nome) + '</span>' + (a.tipo === 'geral' ? 'Agenda Geral' : esc(r ? r.nome : 'Responsável #' + a.dentista_id)) + '</b>'
-      + '<span class="m x">' + (a.tipo === 'geral' ? 'Todos os dias de funcionamento' : esc(diasTxt(r && r.dias))) + '</span><span class="m x">' + (a.tipo === 'geral' ? 'Sem responsável fixo' : a.principal ? 'Cadeira principal' : 'Cadeira auxiliar') + '</span><span class="m x"></span><span class="pill ' + (a.ativa ? 'on' : 'off') + '">' + (a.ativa ? 'Ativa' : 'Inativa') + '</span></button>'; }).join('')
-    : '<div class="vazio">Nenhuma agenda nesta unidade ainda.</div>';
-  $$('#a-lista .row').forEach(b => b.addEventListener('click', () => agsForm(D.agendas.find(a => a.id === Number(b.dataset.id)))));
+  gradeCad($('#a-lista'), 'ags', l, [{ t: 'Agenda', v: a => a.nome }, { t: 'Responsável', v: a => { const r = resp(a.dentista_id); return a.tipo === 'geral' ? 'Agenda Geral' : (r ? r.nome : 'Responsável #' + a.dentista_id); } },
+    { t: 'Dias', v: a => { const r = resp(a.dentista_id); return a.tipo === 'geral' ? 'Todos os dias de funcionamento' : diasTxt(r && r.dias); } }, { t: 'Cadeira', v: a => a.tipo === 'geral' ? 'Sem responsável fixo' : a.principal ? 'Cadeira principal' : 'Cadeira auxiliar' },
+    { t: 'Situação', v: a => a.ativa ? 'Ativa' : 'Inativa', h: a => '<span class="pill ' + (a.ativa ? 'on' : 'off') + '">' + (a.ativa ? 'Ativa' : 'Inativa') + '</span>' }], a => agsForm(a), 'Nenhuma agenda nesta unidade ainda.');
   const n = $('#a-nova'); if (n) n.addEventListener('click', () => agsForm(null));
 }
 function agsForm(a){
@@ -2781,14 +2784,17 @@ async function contratoAbrir(vendaId){
   if (!r.data.unidade.cnpj) toast('Atenção: esta unidade ainda não tem CNPJ cadastrado. Preencha em Configurações › Unidades.');
   w.document.open(); w.document.write(contratoHtml(r.data)); w.document.close();
 }
+const PCTR = { f: [] };
 async function pacContrato(el, p){
   el.innerHTML = '<p class="sub" style="margin:12px 0">Carregando...</p>';
   const r = await sb.from('vendas').select('id,status,data_venda,valor,prazo_meses,encerrada_em').eq('paciente_id', p.id).order('id', { ascending: false });
   if (r.error) { el.innerHTML = '<div class="vazio">' + esc(erroTxt(r.error)) + '</div>'; return; }
   const l = r.data || [];
-  el.innerHTML = l.length ? '<div class="tw"><table class="tb"><thead><tr><th>Contrato</th><th>Data</th><th>Prazo</th><th>Mensalidade</th><th>Situação</th><th></th></tr></thead><tbody>' + l.map(v => '<tr><td>Nº ' + v.id + '</td><td>' + dBR(v.data_venda) + '</td><td>' + (v.prazo_meses || 30) + ' meses</td><td>' + reais(v.valor) + '</td><td><span class="pill ' + (v.status === 'ativa' && !v.encerrada_em ? 'on' : 'off') + '">' + (v.status !== 'ativa' ? 'Cancelado' : v.encerrada_em ? 'Encerrado por alta' : 'Ativo') + '</span></td><td><button class="btn sm" type="button" data-ctr="' + v.id + '">Abrir contrato</button></td></tr>').join('') + '</tbody></table></div>'
-    : '<div class="vazio">Este paciente ainda não tem contrato. Ele nasce quando o tratamento é iniciado em Vendas.</div>';
-  $$('[data-ctr]', el).forEach(b => b.addEventListener('click', () => contratoAbrir(Number(b.dataset.ctr))));
+  if (!l.length) el.innerHTML = '<div class="vazio">Este paciente ainda não tem contrato. Ele nasce quando o tratamento é iniciado em Vendas.</div>';
+  else { const st = v => v.status !== 'ativa' ? 'Cancelado' : v.encerrada_em ? 'Encerrado por alta' : 'Ativo';
+    gradeF(el, { dados: l, f: PCTR.f, vazio: '', maxH: 360, cols: [{ t: 'Contrato', v: v => 'Nº ' + v.id }, { t: 'Data', v: v => dBR(v.data_venda) }, { t: 'Prazo', v: v => (v.prazo_meses || 30) + ' meses' }, { t: 'Mensalidade', r: 1, v: v => reais(v.valor) },
+      { t: 'Situação', v: st, h: v => '<span class="pill ' + (v.status === 'ativa' && !v.encerrada_em ? 'on' : 'off') + '">' + st(v) + '</span>' }],
+      acao: v => '<button class="btn sm" type="button" data-ctr="' + v.id + '">Abrir contrato</button>', liga: bx => $$('[data-ctr]', bx).forEach(b => b.addEventListener('click', () => contratoAbrir(Number(b.dataset.ctr)))) }); }
 }
 function vdDetalhe(v){
   const pode_c = v.status === 'ativa' && pode('vendas.cancelar');
@@ -3325,13 +3331,13 @@ function clinOrcTab(){
     + '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="co-st" style="margin:0">Situação<select id="co-st">'
     + [['abertos', 'Em aberto'], ['encaminhado', 'Aguardando negociação'], ['salvo', 'Salvos'], ['rascunho', 'Rascunhos'], ['perdido', 'Perdidos'], ['todos', 'Todos']].map(x => '<option value="' + x[0] + '"' + (CLX.st === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('')
     + '</select></label><label class="field" for="co-q" style="margin:0;min-width:200px">Filtrar orçamentos por paciente<input id="co-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.q) + '"></label></div>'
-    + '<div class="tw" id="co-tab"></div></div>';
+    + '<div id="co-tab"></div></div>';
   const tab = () => {
     const l = f();
-    $('#co-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Unidade</th><th class="n">Serviços</th>' + (neg ? '<th class="n">Total</th>' : '') + '<th>Situação</th><th>Atualizado</th><th></th></tr></thead><tbody>'
-      + l.map(o => '<tr><td>' + esc(o.paciente) + '</td><td>' + esc(o.unidade) + '</td><td class="n">' + o.itens + '</td>' + (neg ? '<td class="n">' + brl(o.total) + '</td>' : '') + '<td><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span></td><td>' + dBR(String(o.atualizado_em).slice(0, 10)) + '</td><td><button class="btn ghost sm" type="button" data-co="' + o.id + '">Abrir</button></td></tr>').join('') + '</tbody></table>'
-      : '<div class="vazio">Nenhum orçamento nesta situação.</div>';
-    $$('[data-co]', $('#co-tab')).forEach(x => x.addEventListener('click', () => clinOrcAbrir(Number(x.dataset.co))));
+    gradeF($('#co-tab'), { dados: l, f: CLX.gfo = CLX.gfo || [], vazio: 'Nenhum orçamento nesta situação.', maxH: 520, clique: o => clinOrcAbrir(o.id), cols: [
+      { t: 'Paciente', v: o => o.paciente }, { t: 'Unidade', v: o => o.unidade }, { t: 'Serviços', r: 1, v: o => String(o.itens) }]
+      .concat(neg ? [{ t: 'Total', r: 1, v: o => brl(o.total) }] : [])
+      .concat([{ t: 'Situação', v: o => CLST[o.status][0], h: o => '<span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span>' }, { t: 'Atualizado', v: o => dBR(String(o.atualizado_em).slice(0, 10)) }]) });
   };
   const np = $('#co-np');
   if (np) { let tk = 0, tm = null;
@@ -3365,7 +3371,7 @@ function clinServTab(){
   CLX.gf = CLX.gf || [];
   b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cs-q" style="margin:0;min-width:220px">Procedimento<input id="cs-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.sq) + '"></label>'
     + (cust ? '<label style="display:flex;gap:8px;align-items:center;margin:0 0 8px"><input type="checkbox" id="cs-ab"' + (CLX.abaixo ? ' checked' : '') + '> Só abaixo da margem mínima (' + nTxt(CLX.cfg.margem_min_pct, 2) + '%)</label>' : '')
-    + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo procedimento</button><button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') + '</div><div id="cs-tab"></div></div>';
+    + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo procedimento</button>' + (ehDir() ? '<button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') : '') + '</div><div id="cs-tab"></div></div>';
   const sit = s => { const mm = CLX.cfg.margem_min_pct; return s.margem == null ? '—' : s.margem * 100 < mm ? 'Valor abaixo da margem' : s.margem_minimo != null && s.margem_minimo * 100 < mm ? 'Mínimo abaixo da margem' : 'Dentro da margem'; };
   const cols = [{ t: 'Procedimento', v: s => s.nome, h: s => esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') }, { t: 'Especialidade', v: s => s.especialidade || '—' }];
   if (verV) cols.push({ t: 'Valor', r: 1, v: s => brl(s.valor) }, { t: 'Mínimo', r: 1, v: s => s.minimo == null ? '—' : brl(s.minimo) });
@@ -3376,46 +3382,49 @@ function clinServTab(){
     gradeF($('#cs-tab'), { dados: l, f: CLX.gf, vazio: 'Nenhum procedimento encontrado.', maxH: 560, cols, clique: edit ? s => clinServForm(s) : null });
   };
   $('#cs-q').addEventListener('input', e => { CLX.sq = e.target.value; tab(); }); if (cust) $('#cs-ab').addEventListener('change', e => { CLX.abaixo = e.target.checked; tab(); });
-  if (edit) { $('#cs-novo').addEventListener('click', () => clinServForm(null)); $('#cs-imp').addEventListener('click', clinServImportar); }
+  if (edit) { $('#cs-novo').addEventListener('click', () => clinServForm(null)); if ($('#cs-imp')) $('#cs-imp').addEventListener('click', clinServImportar); }
   tab();
 }
 function clinServForm(s){
   const mats = (CLX.cat.materiais || []).filter(m => m.ativo), cust = pode('clinico.custos'), cfg = CLX.cfg;
   const linha = (i) => '<div class="tools" data-ir style="margin:0;align-items:center;flex-wrap:nowrap"><select data-im aria-label="Material" style="flex:1;min-width:0">' + mats.map(m => '<option value="' + m.id + '"' + (i && i.material_id === m.id ? ' selected' : '') + '>' + esc(m.nome) + (m.protetico ? ' (protético)' : '') + '</option>').join('') + '</select>'
     + '<input data-iq aria-label="Quantidade" inputmode="decimal" style="width:84px" value="' + esc(i ? nTxt(i.qtd) : '1') + '"><button class="btn ghost sm" type="button" data-ix aria-label="Remover material">×</button></div>';
-  abrirJanela(s ? 'Editar serviço' : 'Novo serviço', '<form id="sf-form" novalidate><div class="db">'
-    + '<label class="field" for="sf-n">Nome do serviço<input id="sf-n" maxlength="160" value="' + esc(s ? s.nome : '') + '"></label>'
+  const dir = ehDir();
+  abrirJanela(s ? 'Editar procedimento' : 'Novo procedimento', '<form id="sf-form" novalidate><div class="db">'
+    + '<label class="field" for="sf-n">Nome do procedimento<input id="sf-n" maxlength="160" value="' + esc(s ? s.nome : '') + '"></label>'
     + '<label class="field" for="sf-e">Especialidade<input id="sf-e" maxlength="60" list="sf-el" value="' + esc(s ? s.especialidade || '' : '') + '"><datalist id="sf-el">' + [...new Set(CLX.cat.servicos.map(x => x.especialidade).filter(Boolean))].map(e => '<option value="' + esc(e) + '">').join('') + '</datalist></label>'
-    + '<div class="tools" style="margin:0"><label class="field" for="sf-v" style="margin:0">Valor (R$)<input id="sf-v" inputmode="numeric" value="' + esc(s ? moedaTxt(s.valor) : '') + '"></label><label class="field" for="sf-m" style="margin:0">Mínimo (R$)<input id="sf-m" inputmode="numeric" value="' + esc(s ? moedaTxt(s.minimo) : '') + '"></label></div>'
+    + '<div class="tools" style="margin:0"><label class="field" for="sf-v" style="margin:0">Valor de venda (R$)<input id="sf-v" inputmode="numeric" value="' + esc(s ? moedaTxt(s.valor) : '') + '"' + (dir ? '' : ' disabled') + '></label><label class="field" for="sf-m" style="margin:0">Mínimo (R$), calculado<input id="sf-m" inputmode="numeric" disabled value="' + esc(s ? moedaTxt(s.minimo) : '') + '"></label></div>'
+    + '<p class="sub" style="margin:0">O mínimo é fixo e calculado pelo sistema: materiais e protético, impostos, taxa de cartão e comissões, sobrando a margem mínima desejada (' + nTxt(cfg.margem_min_pct, 2) + '%). ' + (dir ? 'O valor de venda não pode ser menor que o mínimo.' : 'Só o diretor altera o valor de venda.') + '</p>'
     + '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sf-a"' + (!s || s.ativo ? ' checked' : '') + '> Serviço ativo (aparece nos orçamentos)</label>'
     + '<div><div class="sec">Materiais usados (insumos)</div><div id="sf-ins" style="display:grid;gap:8px;margin-top:8px">' + ((s && s.insumos) || []).map(linha).join('') + '</div><button class="btn ghost sm" type="button" id="sf-add" style="margin-top:8px">Adicionar material</button></div>'
     + (cust ? '<div class="card" id="sf-cm" style="margin:0"></div>' : '') + '<div class="err" id="sf-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="sf-x">Voltar</button><button class="btn" type="submit" id="sf-ok">Salvar</button></div></form>');
   const ler = () => $$('#sf-ins [data-ir]').map(r => ({ material_id: Number($('[data-im]', r).value), qtd: numBR($('[data-iq]', r).value) }));
   const calc = () => {
-    if (!cust) return; const v = moedaNum($('#sf-v').value) || 0, m = moedaNum($('#sf-m').value) || 0;
+    if (!cust) return; const v = moedaNum($('#sf-v').value) || 0;
     const ins = ler().filter(x => x.qtd > 0).map(x => { const mt = mats.find(y => y.id === x.material_id) || { custo_unit: 0 }; return { qtd: x.qtd, custo_unit: mt.custo_unit, protetico: !!mt.protetico }; });
+    const id = clinIdealJs(ins, cfg), m = id == null ? v : id; $('#sf-m').value = moedaTxt(m);
     const c1 = clinCustoJs(ins, v, cfg), c2 = clinCustoJs(ins, m, cfg);
-    const id = clinIdealJs(ins, cfg), mg = x => x > 0 ? pctTxt((x - clinCustoJs(ins, x, cfg)) / x) : '—';
+    const mg = x => x > 0 ? pctTxt((x - clinCustoJs(ins, x, cfg)) / x) : '—';
     $('#sf-cm').innerHTML = '<div class="kv"><span>Custo no valor cheio</span><b>' + brl(c1) + '</b><span>Margem no valor cheio</span><b>' + mg(v) + '</b><span>Custo no mínimo</span><b>' + brl(c2) + '</b><span>Margem no mínimo</span><b>' + mg(m) + '</b>'
-      + '<span>Margem mínima desejada</span><b>' + nTxt(cfg.margem_min_pct, 2) + '%</b><span>Preço ideal</span><b>' + (id == null ? 'impossível com esses percentuais' : brl(id)) + '</b></div>'
-      + (id == null ? '' : '<div class="tools" style="margin:10px 0 0"><button class="btn ghost sm" type="button" id="sf-ideal">Usar o preço ideal como valor do serviço</button></div>');
-    const bi = $('#sf-ideal'); if (bi) bi.addEventListener('click', () => { $('#sf-v').value = moedaTxt(id); if (moedaNum($('#sf-m').value) > id) $('#sf-m').value = moedaTxt(id); calc(); });
+      + '<span>Margem mínima desejada</span><b>' + nTxt(cfg.margem_min_pct, 2) + '%</b><span>Mínimo calculado</span><b>' + (id == null ? 'impossível com esses percentuais' : brl(id)) + '</b></div>'
+      + (id == null || !dir ? '' : '<div class="tools" style="margin:10px 0 0"><button class="btn ghost sm" type="button" id="sf-ideal">Usar o mínimo como valor de venda</button></div>');
+    const bi = $('#sf-ideal'); if (bi) bi.addEventListener('click', () => { $('#sf-v').value = moedaTxt(id); calc(); });
   };
   const lig = r => { $('[data-ix]', r).addEventListener('click', () => { r.remove(); calc(); }); $('[data-im]', r).addEventListener('change', calc); $('[data-iq]', r).addEventListener('input', calc); };
   $$('#sf-ins [data-ir]').forEach(lig);
   $('#sf-add').addEventListener('click', () => { if (!mats.length) { $('#sf-err').textContent = 'Cadastre os materiais primeiro (aba Materiais).'; return; } const d = document.createElement('div'); d.innerHTML = linha(null); const r = d.firstChild; $('#sf-ins').appendChild(r); lig(r); calc(); });
-  ['#sf-v', '#sf-m'].forEach(q => $(q).addEventListener('input', e => { e.target.value = mMoeda(e.target.value); calc(); }));
+  $('#sf-v').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); calc(); });
   $('#sf-x').addEventListener('click', fecharJanela); calc();
   $('#sf-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#sf-err'); er.textContent = '';
     const v = moedaNum($('#sf-v').value), m = moedaNum($('#sf-m').value), ins = ler();
-    if ($('#sf-n').value.trim().length < 2) { er.textContent = 'Informe o nome do serviço.'; return; }
-    if (v == null || m == null) { er.textContent = 'Informe o valor e o mínimo.'; return; }
-    if (m > v) { er.textContent = 'O mínimo não pode ser maior que o valor.'; return; }
+    if ($('#sf-n').value.trim().length < 2) { er.textContent = 'Informe o nome do procedimento.'; return; }
+    if (dir && v == null) { er.textContent = 'Informe o valor de venda.'; return; }
+    if (dir && m != null && cust && v < m) { er.textContent = 'O valor de venda não pode ser menor que o mínimo calculado (' + brl(m) + ').'; return; }
     if (ins.some(x => !(x.qtd > 0))) { er.textContent = 'A quantidade de cada material deve ser maior que zero.'; return; }
     const b = $('#sf-ok'); b.disabled = true;
-    const r = await sb.rpc('clin_servico_salvar', { p: { id: s ? s.id : null, nome: $('#sf-n').value, especialidade: $('#sf-e').value, valor: v, minimo: m, ativo: $('#sf-a').checked, insumos: ins } });
-    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Serviço salvo.'); CLX.cat = null; clinCarregar();
+    const r = await sb.rpc('clin_servico_salvar', { p: { id: s ? s.id : null, nome: $('#sf-n').value, especialidade: $('#sf-e').value, valor: dir ? v : null, ativo: $('#sf-a').checked, insumos: ins } });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Procedimento salvo.'); CLX.cat = null; clinCarregar();
   });
 }
 function clinCsv(txt){
@@ -3424,13 +3433,13 @@ function clinCsv(txt){
   return l.map(x => x.split(d).map(c => c.trim().replace(/^"|"$/g, '')));
 }
 function clinServImportar(){
-  abrirJanela('Importar serviços da planilha', '<form id="si-form" novalidate><div class="db"><p class="sub" style="margin:0">Salve a aba da planilha como <b>CSV</b> (Excel: Arquivo › Salvar como › CSV) com as colunas, nesta ordem: <b>Procedimento; Especialidade; Valor; Mínimo</b>. Serviços com o mesmo nome são atualizados; os novos são criados.</p>'
-    + '<label class="field" for="si-f">Arquivo CSV<input id="si-f" type="file" accept=".csv,text/csv,text/plain"></label><label class="field" for="si-t">ou cole as linhas aqui<textarea id="si-t" rows="6" style="resize:vertical" placeholder="RESTAURAÇÃO;Dentística;250;180"></textarea></label>'
+  abrirJanela('Importar serviços da planilha', '<form id="si-form" novalidate><div class="db"><p class="sub" style="margin:0">Salve a aba da planilha como <b>CSV</b> (Excel: Arquivo › Salvar como › CSV) com as colunas, nesta ordem: <b>Procedimento; Especialidade; Valor de venda</b>. A coluna Mínimo da planilha é ignorada: o sistema calcula. Procedimentos com o mesmo nome são atualizados (o valor não pode ficar abaixo do mínimo); os novos são criados.</p>'
+    + '<label class="field" for="si-f">Arquivo CSV<input id="si-f" type="file" accept=".csv,text/csv,text/plain"></label><label class="field" for="si-t">ou cole as linhas aqui<textarea id="si-t" rows="6" style="resize:vertical" placeholder="RESTAURAÇÃO;Dentística;250"></textarea></label>'
     + '<div id="si-prev" class="sub"></div><div class="err" id="si-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="si-x">Voltar</button><button class="btn" type="submit" id="si-ok">Importar</button></div></form>');
   let linhas = [];
   const prep = () => {
     const rows = clinCsv($('#si-t').value); linhas = [];
-    rows.forEach((c, i) => { const v = numBR(c[2]); if (v == null) return; const m = c[3] === undefined || c[3] === '' ? v : numBR(c[3]); linhas.push({ nome: c[0], especialidade: c[1] || '', valor: v, minimo: m == null ? v : m }); });
+    rows.forEach((c, i) => { const v = numBR(c[2]); if (v == null) return; linhas.push({ nome: c[0], especialidade: c[1] || '', valor: v }); });
     $('#si-prev').textContent = rows.length ? linhas.length + ' serviço(s) reconhecido(s)' + (rows.length - linhas.length > 0 ? ' · ' + (rows.length - linhas.length) + ' linha(s) ignorada(s) (cabeçalho ou sem valor)' : '') + '.' : '';
   };
   $('#si-t').addEventListener('input', prep);
@@ -3438,7 +3447,7 @@ function clinServImportar(){
   $('#si-x').addEventListener('click', fecharJanela);
   $('#si-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#si-err'); er.textContent = ''; prep();
-    if (!linhas.length) { er.textContent = 'Nenhuma linha válida. Confira as colunas: Procedimento; Especialidade; Valor; Mínimo.'; return; }
+    if (!linhas.length) { er.textContent = 'Nenhuma linha válida. Confira as colunas: Procedimento; Especialidade; Valor.'; return; }
     const b = $('#si-ok'); b.disabled = true; const r = await sb.rpc('clin_servicos_importar', { p: linhas }); b.disabled = false;
     if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast(r.data.novos + ' novo(s) e ' + r.data.atualizados + ' atualizado(s).'); CLX.cat = null; clinCarregar();
   });
@@ -3446,12 +3455,13 @@ function clinServImportar(){
 /* ----- Materiais ----- */
 function clinMatTab(){
   const b = $('#cl-body'), l = CLX.cat.materiais || [], edit = pode('clinico.catalogo');
-  b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cm-q" style="margin:0;min-width:220px">Material<input id="cm-q" type="search" placeholder="Buscar" value=""></label>' + (edit ? '<button class="btn sm" type="button" id="cm-novo">Novo material</button>' : '') + '</div><div class="tw" id="cm-tab"></div><p class="sub" style="margin:10px 0 0">O custo unitário muda sozinho quando você lança uma nota de compra (aba Compras).</p></div>';
+  b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cm-q" style="margin:0;min-width:220px">Material<input id="cm-q" type="search" placeholder="Buscar" value=""></label>' + (edit ? '<button class="btn sm" type="button" id="cm-novo">Novo material</button>' : '') + '</div><div id="cm-tab"></div><p class="sub" style="margin:10px 0 0">O custo unitário muda sozinho quando você lança uma nota de compra (aba Compras).</p></div>';
   const tab = () => {
     const q = clNorm($('#cm-q').value), r = l.filter(m => !q || clNorm(m.nome).includes(q));
-    $('#cm-tab').innerHTML = r.length ? '<table class="tb"><thead><tr><th>Material</th><th>Tipo</th><th>Embalagem</th><th class="n">Valor emb.</th><th class="n">Custo unit.</th><th class="n">Estoque</th><th></th></tr></thead><tbody>'
-      + r.map(m => '<tr' + (m.ativo ? '' : ' style="opacity:.55"') + '><td>' + esc(m.nome) + '</td><td>' + (m.protetico ? 'Protético' + (m.laboratorio ? ' · ' + esc(m.laboratorio) : '') : 'Material') + '</td><td>' + esc(m.embalagem || '—') + '</td><td class="n">' + brl(m.valor_embalagem) + '</td><td class="n">' + brl(m.custo_unit).replace(/,(\d{2})$/, ',$1') + '</td><td class="n">' + nTxt(m.estoque, 3) + '</td><td>' + (edit ? '<button class="btn ghost sm" type="button" data-me="' + m.id + '">Editar</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhum material.</div>';
-    $$('[data-me]', $('#cm-tab')).forEach(x => x.addEventListener('click', () => clinMatForm(l.find(m => m.id === Number(x.dataset.me)))));
+    gradeF($('#cm-tab'), { dados: r, f: CLX.gfm = CLX.gfm || [], vazio: 'Nenhum material.', maxH: 560, clique: edit ? m => clinMatForm(m) : null, cols: [
+      { t: 'Material', v: m => m.nome, h: m => esc(m.nome) + (m.ativo ? '' : ' <span class="pill off">inativo</span>') },
+      { t: 'Tipo', v: m => m.protetico ? 'Protético' + (m.laboratorio ? ' · ' + m.laboratorio : '') : 'Material' }, { t: 'Embalagem', v: m => m.embalagem || '—' },
+      { t: 'Valor emb.', r: 1, v: m => brl(m.valor_embalagem) }, { t: 'Custo unit.', r: 1, v: m => brl(m.custo_unit) }, { t: 'Estoque', r: 1, v: m => nTxt(m.estoque, 3) }] });
   };
   $('#cm-q').addEventListener('input', tab); if (edit) $('#cm-novo').addEventListener('click', () => clinMatForm(null)); tab();
 }
@@ -3480,8 +3490,10 @@ async function clinCompTab(){
   const b = $('#cl-body'); b.innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const r = await sb.rpc('clin_compras_listar'); if (r.error) { b.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
   CLX.comp = r.data || [];
-  b.innerHTML = '<div class="card"><div class="tools"><button class="btn sm" type="button" id="cc-novo">Lançar nota de compra</button></div><div class="tw">' + (CLX.comp.length ? '<table class="tb"><thead><tr><th>Data</th><th>Fornecedor</th><th>Nota</th><th class="n">Itens</th><th class="n">Total</th><th>Lançada por</th></tr></thead><tbody>'
-    + CLX.comp.map(c => '<tr><td>' + dBR(c.data) + '</td><td>' + esc(c.fornecedor || '—') + '</td><td>' + esc(c.numero_nf || '—') + '</td><td class="n">' + c.itens + '</td><td class="n">' + brl(c.total) + '</td><td>' + esc(c.criado_por || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma nota lançada ainda.</div>') + '</div></div>';
+  b.innerHTML = '<div class="card"><div class="tools"><button class="btn sm" type="button" id="cc-novo">Lançar nota de compra</button></div><div id="cc-tab" style="margin-top:10px"></div></div>';
+  gradeF($('#cc-tab'), { dados: CLX.comp, f: CLX.gfc = CLX.gfc || [], vazio: 'Nenhuma nota lançada ainda.', maxH: 560, cols: [
+    { t: 'Data', v: c => dBR(c.data) }, { t: 'Fornecedor', v: c => c.fornecedor || '—' }, { t: 'Nota', v: c => c.numero_nf || '—' },
+    { t: 'Itens', r: 1, v: c => String(c.itens) }, { t: 'Total', r: 1, v: c => brl(c.total) }, { t: 'Lançada por', v: c => c.criado_por || '' }] });
   $('#cc-novo').addEventListener('click', clinCompraForm);
 }
 function clinCompraForm(){
@@ -3920,6 +3932,8 @@ function relGridMonta(box){
 }
 window.addEventListener('resize', () => { try { relAjusta(); } catch (e) {} });
 
+const GCAD = {};
+const gradeCad = (box, key, dados, cols, onClick, vazio) => gradeF(box, { dados, f: (GCAD[key] = GCAD[key] || []), vazio, maxH: 560, clique: onClick, cols });
 /* grid genérico com funil de filtro por coluna e totalizador (usado na ficha do paciente) */
 function gradeF(box, cfg){
   relPopFecha(); cfg.f = cfg.f || [];
@@ -4133,8 +4147,8 @@ function trtLista(){
     + '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 4px;font-size:16px">Dias de vencimento</h2><p class="sub" style="margin:0 0 10px">Dias que o vendedor pode escolher para o vencimento das mensalidades.</p>'
     + '<div id="dv-dias" style="display:flex;flex-wrap:wrap;gap:6px 14px">' + dias.map(d => '<label class="chk" style="min-height:30px"><input type="checkbox" value="' + d + '"' + (D.dv.includes(d) ? ' checked' : '') + (edDias ? '' : ' disabled') + '> ' + d + '</label>').join('') + '</div>'
     + (edDias ? '<div style="margin-top:10px"><button class="btn sm" type="button" id="dv-ok">Salvar dias</button> <span class="err" id="dv-err" role="alert"></span></div>' : '') + '</div>';
-  $('#tr-lista').innerHTML = D.trt.length ? D.trt.map(p => '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + '</b><span class="m x">' + (p.mensalidade ? reais(p.mensalidade) + '/mês' : 'sem valor') + '</span><span class="m x">' + (p.mensalidade ? 'desconto ' + reais(p.desconto) : '') + '</span><span class="m x">' + (p.prazo_meses ? p.prazo_meses + ' meses' : '') + '</span><span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nenhum tipo cadastrado.</div>';
-  $$('#tr-lista .row').forEach(b => b.addEventListener('click', () => trtForm(D.trt.find(p => p.id === Number(b.dataset.id)))));
+  gradeCad($('#tr-lista'), 'trt', D.trt, [{ t: 'Tipo de tratamento', v: p => p.nome }, { t: 'Mensalidade', r: 1, v: p => p.mensalidade ? reais(p.mensalidade) + '/mês' : 'sem valor' }, { t: 'Desconto', r: 1, v: p => p.mensalidade ? 'desconto ' + reais(p.desconto) : '' },
+    { t: 'Prazo', v: p => p.prazo_meses ? p.prazo_meses + ' meses' : '' }, { t: 'Situação', v: p => p.ativo ? 'Ativo' : 'Inativo', h: p => '<span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span>' }], p => trtForm(p), 'Nenhum tipo cadastrado.');
   const n = $('#tr-novo'); if (n) n.addEventListener('click', () => trtForm(null));
   const ok = $('#dv-ok'); if (ok) ok.addEventListener('click', async () => {
     const sel = $$('#dv-dias input:checked').map(i => Number(i.value)), er = $('#dv-err'); er.textContent = '';
@@ -4269,8 +4283,8 @@ function prdLista(){
   pintaTp(); $$('[data-tp]').forEach(b => b.addEventListener('click', () => tpForm(D.tip.find(t => t.id === Number(b.dataset.tp)))));
   $('#tp-novo').addEventListener('click', () => tpForm(null));
   const pinta = () => { const q = PD.q.trim().toLowerCase(), l = D.prd.filter(x => !q || x.nome.toLowerCase().includes(q));
-    $('#pd-lista').innerHTML = l.length ? l.map(x => '<button class="row f" type="button" data-id="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">' + (x.valor_padrao ? reais(x.valor_padrao) : 'sem valor sugerido') + '</span><span class="m x">' + esc(prdSetor(x)) + '</span><span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nada encontrado.</div>';
-    $$('#pd-lista .row').forEach(b => b.addEventListener('click', () => prdForm(D.prd.find(x => x.id === Number(b.dataset.id))))); };
+    gradeCad($('#pd-lista'), 'prd', l, [{ t: 'Produto ou serviço', v: x => x.nome }, { t: 'Valor sugerido', r: 1, v: x => x.valor_padrao ? reais(x.valor_padrao) : 'sem valor sugerido' }, { t: 'Tipo', v: x => prdSetor(x) },
+      { t: 'Situação', v: x => x.ativo ? 'Ativo' : 'Inativo', h: x => '<span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span>' }], x => prdForm(x), 'Nada encontrado.'); };
   pinta(); $('#pd-q').addEventListener('input', e => { PD.q = e.target.value; pinta(); }); $('#pd-novo').addEventListener('click', () => prdForm(null));
 }
 const prdSetor = x => { const t = (D.tip || []).find(y => y.id === x.tipo_id); return t ? t.nome + ' · ' + (t.setor === 'venda' ? 'Venda' : 'Cobrança') : 'Venda'; };
@@ -4329,9 +4343,8 @@ function prcLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Procedimentos</h1><p class="sub">Cada procedimento tem um tempo e um tipo de cadeira. Isso define onde e em quanto tempo ele pode ser agendado. Vale para todas as unidades do grupo.</p></div>'
     + (pode('procedimentos.criar') ? '<button class="btn" type="button" id="pr-novo">+ Novo procedimento</button>' : '') + '</div>'
     + '<div class="card"><div class="lista" id="pr-lista"></div></div>';
-  $('#pr-lista').innerHTML = D.procs.length ? D.procs.map(p => '<button class="row f" type="button" data-id="' + p.id + '"><b>' + esc(p.nome) + '</b><span class="m x">' + minTxt(p.duracao_min) + '</span><span class="m x">' + LOCAL_PROC[p.local] + '</span><span class="m x">' + (p.avaliacao ? 'Avaliação' : '') + '</span><span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('')
-    : '<div class="vazio">Nenhum procedimento cadastrado.</div>';
-  $$('#pr-lista .row').forEach(b => b.addEventListener('click', () => prcForm(D.procs.find(p => p.id === Number(b.dataset.id)))));
+  gradeCad($('#pr-lista'), 'prc', D.procs, [{ t: 'Procedimento', v: p => p.nome }, { t: 'Duração', v: p => minTxt(p.duracao_min) }, { t: 'Cadeira', v: p => LOCAL_PROC[p.local] }, { t: 'Avaliação', v: p => p.avaliacao ? 'Avaliação' : '' },
+    { t: 'Situação', v: p => p.ativo ? 'Ativo' : 'Inativo', h: p => '<span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span>' }], p => prcForm(p), 'Nenhum procedimento cadastrado.');
   const n = $('#pr-novo'); if (n) n.addEventListener('click', () => prcForm(null));
 }
 function prcForm(p){
@@ -4403,11 +4416,9 @@ function ferLista(){
     + '<div class="card"><div class="tools" style="margin-bottom:6px"><button class="btn ghost sm" type="button" id="fe-ant" aria-label="Ano anterior">◀</button><b id="fe-ano" style="min-width:56px;text-align:center">' + FER.ano + '</b><button class="btn ghost sm" type="button" id="fe-prox" aria-label="Próximo ano">▶</button></div>'
     + '<div class="lista" id="fe-lista"></div></div>';
   const h = hoje();
-  $('#fe-lista').innerHTML = FER.lista.length ? FER.lista.map(f => '<button class="row f" type="button" data-id="' + f.id + '"><b>' + esc(f.nome) + '</b><span class="m x">' + ferDia(f.data) + '</span>'
-    + '<span class="m x"><span class="pill ' + (f.tipo === 'nacional' ? 'on' : 'nu') + '">' + (f.tipo === 'nacional' ? 'Nacional' : 'Municipal') + '</span></span><span class="m x">' + esc(f.unidades_txt) + '</span>'
-    + '<span class="m x">' + (f.data < h ? '<small style="color:var(--muted)">passou</small>' : Number(f.afetados) > 0 ? '<span class="pill wr" title="Agendamentos já marcados neste dia. Remarque.">' + f.afetados + ' agendado(s)</span>' : '') + '</span></button>').join('')
-    : '<div class="vazio">Nenhum feriado cadastrado em ' + FER.ano + '.' + (gere ? ' Use <b>Adicionar feriados nacionais</b> para começar.' : '') + '</div>';
-  $$('#fe-lista .row').forEach(b => b.addEventListener('click', () => ferForm(FER.lista.find(f => f.id === Number(b.dataset.id)))));
+  gradeCad($('#fe-lista'), 'fer', FER.lista, [{ t: 'Feriado', v: f => f.nome }, { t: 'Data', v: f => ferDia(f.data) }, { t: 'Tipo', v: f => f.tipo === 'nacional' ? 'Nacional' : 'Municipal', h: f => '<span class="pill ' + (f.tipo === 'nacional' ? 'on' : 'nu') + '">' + (f.tipo === 'nacional' ? 'Nacional' : 'Municipal') + '</span>' },
+    { t: 'Unidades', v: f => f.unidades_txt || '' }, { t: 'Agenda', v: f => f.data < h ? 'passou' : Number(f.afetados) > 0 ? f.afetados + ' agendado(s)' : '', h: f => f.data < h ? '<small style="color:var(--muted)">passou</small>' : Number(f.afetados) > 0 ? '<span class="pill wr" title="Agendamentos já marcados neste dia. Remarque.">' + f.afetados + ' agendado(s)</span>' : '' }],
+    f => ferForm(f), 'Nenhum feriado cadastrado em ' + FER.ano + '.' + (gere ? ' Use "Adicionar feriados nacionais" para começar.' : ''));
   $('#fe-ant').addEventListener('click', () => { FER.ano--; ferCarregar(); }); $('#fe-prox').addEventListener('click', () => { FER.ano++; ferCarregar(); });
   const n = $('#fe-novo'); if (n) n.addEventListener('click', () => ferForm(null));
   const im = $('#fe-imp'); if (im) im.addEventListener('click', ferImportar);
