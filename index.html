@@ -3362,20 +3362,20 @@ function clinSit(s){
 }
 function clinServTab(){
   const b = $('#cl-body'), cat = CLX.cat, cust = pode('clinico.custos'), edit = pode('clinico.catalogo'), verV = pode('clinico.negociar') || edit || cust;
-  const esps = [...new Set(cat.servicos.map(s => s.especialidade).filter(Boolean))].sort();
-  b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cs-esp" style="margin:0">Especialidade<select id="cs-esp"><option value="">Todas</option>' + esps.map(e => '<option' + (CLX.esp === e ? ' selected' : '') + '>' + esc(e) + '</option>').join('') + '</select></label>'
-    + '<label class="field" for="cs-q" style="margin:0;min-width:200px">Serviço<input id="cs-q" type="search" placeholder="Buscar" value="' + esc(CLX.sq) + '"></label>'
+  CLX.gf = CLX.gf || [];
+  b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cs-q" style="margin:0;min-width:220px">Procedimento<input id="cs-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.sq) + '"></label>'
     + (cust ? '<label style="display:flex;gap:8px;align-items:center;margin:0 0 8px"><input type="checkbox" id="cs-ab"' + (CLX.abaixo ? ' checked' : '') + '> Só abaixo da margem mínima (' + nTxt(CLX.cfg.margem_min_pct, 2) + '%)</label>' : '')
-    + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo serviço</button><button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') + '</div><div class="tw" id="cs-tab"></div></div>';
+    + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo procedimento</button><button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') + '</div><div id="cs-tab"></div></div>';
+  const sit = s => { const mm = CLX.cfg.margem_min_pct; return s.margem == null ? '—' : s.margem * 100 < mm ? 'Valor abaixo da margem' : s.margem_minimo != null && s.margem_minimo * 100 < mm ? 'Mínimo abaixo da margem' : 'Dentro da margem'; };
+  const cols = [{ t: 'Procedimento', v: s => s.nome, h: s => esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') }, { t: 'Especialidade', v: s => s.especialidade || '—' }];
+  if (verV) cols.push({ t: 'Valor', r: 1, v: s => brl(s.valor) }, { t: 'Mínimo', r: 1, v: s => s.minimo == null ? '—' : brl(s.minimo) });
+  if (cust) cols.push({ t: 'Custo', r: 1, v: s => brl(s.custo) }, { t: 'Margem no valor', r: 1, v: s => pctTxt(s.margem) }, { t: 'Margem no mínimo', r: 1, v: s => pctTxt(s.margem_minimo) },
+    { t: 'Preço ideal', r: 1, v: s => s.preco_ideal == null ? '—' : brl(s.preco_ideal) }, { t: 'Situação', v: sit, h: s => clinSit(s) });
   const tab = () => {
-    const l = cat.servicos.filter(s => (!CLX.esp || s.especialidade === CLX.esp) && (!CLX.sq || clNorm(s.nome).includes(clNorm(CLX.sq))) && (!CLX.abaixo || clinAbaixo(s)));
-    $('#cs-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Serviço</th><th>Especialidade</th>' + (verV ? '<th class="n">Valor</th><th class="n">Mínimo</th>' : '') + '' + (cust ? '<th class="n">Custo</th><th class="n">Margem no valor</th><th class="n">Margem no mínimo</th><th class="n">Preço ideal</th><th>Situação</th>' : '') + '<th></th></tr></thead><tbody>'
-      + l.map(s => '<tr' + (s.ativo ? '' : ' style="opacity:.55"') + '><td>' + esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') + '</td><td>' + esc(s.especialidade || '—') + '</td>' + (verV ? '<td class="n">' + brl(s.valor) + '</td><td class="n">' + (s.minimo == null ? '—' : brl(s.minimo)) + '</td>' : '')
-        + (cust ? '<td class="n">' + brl(s.custo) + '</td><td class="n">' + pctTxt(s.margem) + '</td><td class="n">' + pctTxt(s.margem_minimo) + '</td><td class="n">' + (s.preco_ideal == null ? '—' : brl(s.preco_ideal)) + '</td><td>' + clinSit(s) + '</td>' : '')
-        + '<td>' + (edit ? '<button class="btn ghost sm" type="button" data-se="' + s.id + '">Editar</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhum serviço encontrado.</div>';
-    $$('[data-se]', $('#cs-tab')).forEach(x => x.addEventListener('click', () => clinServForm(cat.servicos.find(s => s.id === Number(x.dataset.se)))));
+    const l = cat.servicos.filter(s => (!CLX.sq || clNorm(s.nome).includes(clNorm(CLX.sq))) && (!CLX.abaixo || clinAbaixo(s)));
+    gradeF($('#cs-tab'), { dados: l, f: CLX.gf, vazio: 'Nenhum procedimento encontrado.', maxH: 560, cols, clique: edit ? s => clinServForm(s) : null });
   };
-  $('#cs-esp').addEventListener('change', e => { CLX.esp = e.target.value; tab(); }); $('#cs-q').addEventListener('input', e => { CLX.sq = e.target.value; tab(); }); if (cust) $('#cs-ab').addEventListener('change', e => { CLX.abaixo = e.target.checked; tab(); });
+  $('#cs-q').addEventListener('input', e => { CLX.sq = e.target.value; tab(); }); if (cust) $('#cs-ab').addEventListener('change', e => { CLX.abaixo = e.target.checked; tab(); });
   if (edit) { $('#cs-novo').addEventListener('click', () => clinServForm(null)); $('#cs-imp').addEventListener('click', clinServImportar); }
   tab();
 }
@@ -3925,7 +3925,7 @@ function gradeF(box, cfg){
   relPopFecha(); cfg.f = cfg.f || [];
   if (!cfg.dados.length) { box.innerHTML = '<div class="vazio">' + (cfg.vazio || 'Nada por aqui.') + '</div>'; return; }
   const funil = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
-  box.innerHTML = '<div class="rlg" style="max-height:' + (cfg.maxH || 440) + 'px"><table class="tb rl"><thead><tr>' + cfg.cols.map((c, i) => '<th' + (c.n ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + (cfg.acao ? '<th></th>' : '') + '</tr></thead><tbody></tbody><tfoot><tr></tr></tfoot></table></div>';
+  box.innerHTML = '<div class="rlg" style="max-height:' + (cfg.maxH || 440) + 'px"><table class="tb rl"><thead><tr>' + cfg.cols.map((c, i) => '<th' + (c.n || c.r ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + (cfg.acao ? '<th></th>' : '') + '</tr></thead><tbody></tbody><tfoot><tr></tr></tfoot></table></div>';
   const corpo = () => gradeCorpo(box, cfg, corpo);
   $$('[data-fx]', box).forEach(b => b.addEventListener('click', () => relPop(Number(b.dataset.fx), b, cfg, cfg.cols, corpo)));
   ['wheel', 'touchmove'].forEach(ev => box.querySelector('.rlg').addEventListener(ev, relPopFecha, { passive: true }));
@@ -3933,7 +3933,7 @@ function gradeF(box, cfg){
 }
 function gradeCorpo(box, cfg, corpo){
   const cols = cfg.cols, d = cfg.dados.filter(x => cols.every((c, i) => !cfg.f[i] || cfg.f[i].has(c.v(x)))), nc = cols.length + (cfg.acao ? 1 : 0);
-  box.querySelector('tbody').innerHTML = d.length ? d.map(x => '<tr' + (cfg.clique ? ' class="clk" tabindex="0" data-i="' + cfg.dados.indexOf(x) + '"' : '') + '>' + cols.map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.h ? c.h(x) : esc(c.v(x))) + '</td>').join('') + (cfg.acao ? '<td>' + cfg.acao(x) + '</td>' : '') + '</tr>').join('')
+  box.querySelector('tbody').innerHTML = d.length ? d.map(x => '<tr' + (cfg.clique ? ' class="clk" tabindex="0" data-i="' + cfg.dados.indexOf(x) + '"' : '') + '>' + cols.map(c => '<td' + (c.n || c.r ? ' class="n"' : '') + '>' + (c.h ? c.h(x) : esc(c.v(x))) + '</td>').join('') + (cfg.acao ? '<td>' + cfg.acao(x) + '</td>' : '') + '</tr>').join('')
     : '<tr><td colspan="' + nc + '" class="vazio">Nenhum registro com esses filtros.</td></tr>';
   $$('[data-fx]', box).forEach(b => b.classList.toggle('on', !!cfg.f[Number(b.dataset.fx)]));
   const fi = cols.findIndex(c => c.n), filtrando = cfg.f.some(Boolean), txt = 'Totais · ' + d.length + (d.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + cfg.dados.length : '');
