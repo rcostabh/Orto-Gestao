@@ -342,6 +342,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .com-mapa .dmapa{min-height:420px!important}.com-mapa #dm-svg{flex:1;height:auto;min-height:360px}
 .com-mapa .dkp .dgrid,.com-mapa .dkp.stk .dgrid{grid-template-rows:none!important;grid-auto-rows:auto!important;overflow:visible!important;flex:none!important}
 .com-mapa .dkp.stk .dk,.com-mapa .dkp .dk{overflow:visible!important;min-height:0!important}}
+.cols .sm b{font-size:11.5px;color:var(--mu);font-weight:500}.cols .sm span{font-size:11px}.cols .hl b{font-size:17px}
+@media(min-width:1001px) and (min-height:600px){.dsx:not(.com-mapa) .dk{padding:11px 14px}.dsx:not(.com-mapa) .dk.hero svg{width:72px;height:72px}.dsx:not(.com-mapa) .big{font-size:28px;margin:4px 0}.dsx:not(.com-mapa) .big.or{font-size:26px}.dsx:not(.com-mapa) .cols{height:64px;margin-top:6px}.dsx:not(.com-mapa) .dk .v{margin:6px 0 4px}.dsx:not(.com-mapa) .dk .v b{font-size:22px}.dsx:not(.com-mapa) .cmp div{margin-top:3px;font-size:11px}.dsx:not(.com-mapa) .dgrid{gap:10px}.dsx:not(.com-mapa) .dkh h3{font-size:18px}.dsx:not(.com-mapa) #dm-sx,.dsx #dm-sx{margin-top:10px}}
+@media(min-width:1001px) and (min-height:600px) and (max-height:820px){.dsx:not(.com-mapa) .dnota{display:none}}
+@media(min-width:1001px) and (min-height:600px) and (max-height:740px){.dsx:not(.com-mapa) .dk.hero svg{width:56px;height:56px}.dsx:not(.com-mapa) .cols{height:44px}.dsx:not(.com-mapa) .big{font-size:24px}.dsx:not(.com-mapa) .dk{padding:8px 12px}.dsx:not(.com-mapa) .dkh{margin-bottom:4px}.dk.sx{padding:8px 12px}.dsx:not(.com-mapa) .dk .v{margin:3px 0 2px}.dsx:not(.com-mapa) .cmp div{margin-top:1px}}
 </style>
 </head>
 <body>
@@ -1029,15 +1033,15 @@ function dmKpis(d){
   const ml = k => MES3[Number(d[k].slice(5)) - 1], a = ml('mes_ant'), b = ml('mes_atual'), n = v => Number(v).toLocaleString('pt-BR');
   const chip = (x, y, lb) => { const c = Number(y) > Number(x) ? 'up' : Number(y) < Number(x) ? 'dn' : 'eq'; return '<span class="dl ' + c + '">' + (c === 'up' ? '▲' : c === 'dn' ? '▼' : '•') + ' ' + lb + '</span>'; };
   const bar = (la, x, lb2, y, cor) => { const m = Math.max(Number(x), Number(y), 1); return '<div class="cmp"><div>' + la + '<i><em style="width:' + (Number(x) / m * 100) + '%;background:' + cor + '"></em></i></div><div>' + lb2 + '<i><em style="width:' + (Number(y) / m * 100) + '%;background:rgba(255,255,255,.55)"></em></i></div></div>'; };
-  const kpi = (t, x, y, sub, la, lb2, cor, g) => '<section class="dk"><div class="lb">' + t + '</div><div class="v"><b>' + n(g == null ? x : g) + '</b><span>' + sub + '</span></div>' + chip(x, y, lb2 + ': ' + n(y)) + bar(la, x, lb2, y, cor) + '</section>';
+  const kpi = (t, ant, atual, sub, la, lb2, cor) => '<section class="dk"><div class="lb">' + t + '</div><div class="v"><b>' + n(atual) + '</b><span>' + sub + '</span></div>' + chip(ant, atual, la + ': ' + n(ant)) + bar(la, ant, lb2, atual, cor) + '</section>';
   const tot = Number(d.ativos) + Number(d.inativos) + Number(d.preativos) + Number(d.contencao), pct = tot ? Math.round(Number(d.ativos) / tot * 100) : 0, off = 440 - 440 * pct / 100, m1 = Math.max(Number(d.fat1_ant), Number(d.fat1_atual), 1);
   return '<div class="dgrid">'
     + '<section class="dk hero"><svg width="104" height="104" viewBox="0 0 170 170" aria-hidden="true" style="flex:none"><defs><linearGradient id="dg1" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="85" cy="85" r="70" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/><circle cx="85" cy="85" r="70" fill="none" stroke="url(#dg1)" stroke-width="12" stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="' + off + '" transform="rotate(-90 85 85)" style="filter:drop-shadow(0 0 8px #22d3ee)"/><text x="85" y="94" text-anchor="middle" fill="#fff" font-size="34" font-weight="700">' + pct + '%</text></svg>'
     + '<div><div class="lb">Pacientes ativos</div><div class="big">' + n(d.ativos) + '</div><div class="chips"><span class="dl eq">' + n(d.inativos) + ' inativos</span><span class="dl eq">' + n(d.preativos) + ' pré-ativos</span><span class="dl eq">' + n(d.contencao) + ' contenção</span></div></div></section>'
     + '<section class="dk fat"><div><div class="lb">Faturamento · ' + b + '</div><div class="big or"><small>R$</small> ' + reais(d.fat_atual).replace('R$', '').trim() + '</div>' + chip(d.fat_ant, d.fat_atual, a + ': ' + reais(d.fat_ant)) + bar(a, d.fat_ant, b, d.fat_atual, 'linear-gradient(90deg,#ff7a1a,#ffb347)') + '</div>'
-    + '<div><div class="lb">1ª mensalidade</div><div class="cols"><div><i style="height:' + (Number(d.fat1_ant) / m1 * 100) + '%"></i><span>1/' + a + '</span><b>' + reais(d.fat1_ant) + '</b></div><div><i class="b2" style="height:' + (Number(d.fat1_atual) / m1 * 100) + '%"></i><span>1/' + b + '</span><b>' + reais(d.fat1_atual) + '</b></div></div></div></section>'
-    + kpi('Visitas', d.visitas_ant, d.visitas_atual, 'em ' + a, a, b, '#22d3ee') + kpi('Av. atendidas', d.av_ant, d.av_atual, 'em ' + a, a, b, '#8b5cf6')
-    + kpi('Vendas · dia', d.vd_dia_ant, d.vd_dia_atual, 'hoje', 'Mesmo dia de ' + a, 'Hoje', '#34d399', d.vd_dia_atual) + kpi('Vendas · mês', d.vd_mes_ant, d.vd_mes_atual, 'em ' + a, a, b, '#ff7a1a') + '</div>';
+    + '<div><div class="lb">1ª mensalidade</div><div class="cols"><div class="sm"><i class="b2" style="height:' + (Number(d.fat1_ant) / m1 * 100) + '%"></i><span>1/' + a + '</span><b>' + reais(d.fat1_ant) + '</b></div><div class="hl"><i style="height:' + (Number(d.fat1_atual) / m1 * 100) + '%"></i><span>1/' + b + '</span><b>' + reais(d.fat1_atual) + '</b></div></div></div></section>'
+    + kpi('Visitas', d.visitas_ant, d.visitas_atual, 'em ' + b, a, b, '#22d3ee') + kpi('Av. atendidas', d.av_ant, d.av_atual, 'em ' + b, a, b, '#8b5cf6')
+    + kpi('Vendas · dia', d.vd_dia_ant, d.vd_dia_atual, 'hoje', 'Mesmo dia de ' + a, 'Hoje', '#34d399') + kpi('Vendas · mês', d.vd_mes_ant, d.vd_mes_atual, 'em ' + b, a, b, '#ff7a1a') + '</div>';
 }
 function dmSetores(em){
   const l = em.map(o => o.s).filter(Boolean); if (!l.length) return '';
@@ -3298,6 +3302,7 @@ function clinAbas(){
   const t = [['orc', 'Orçamentos'], ['serv', 'Serviços']];
   if (pode('clinico.catalogo') || pode('clinico.custos')) t.push(['mat', 'Materiais']);
   if (pode('clinico.catalogo')) t.push(['comp', 'Compras']);
+  if (ehGer()) t.push(['proc', 'Procedimentos']);
   if (pode('clinico.custos')) t.push(['cfg', 'Configuração']);
   return t;
 }
@@ -3305,7 +3310,7 @@ function clinTela(){
   $('#area').innerHTML = '<div class="head"><div><h1>Clínico</h1><p class="sub">Tratamentos clínicos (restaurações, próteses, implantes e outros): serviços, materiais, orçamento e financiamento.</p></div></div>'
     + '<div class="tools" id="cl-nav" role="tablist" style="margin-top:4px">' + clinAbas().map(a => '<button class="btn ' + (CLX.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CLX.aba === a[0]) + '" data-cl="' + a[0] + '">' + a[1] + '</button>').join(' ') + '</div><div id="cl-body"></div>';
   $$('#cl-nav [data-cl]').forEach(b => b.addEventListener('click', () => { CLX.aba = b.dataset.cl; clinTela(); }));
-  ({ orc: clinOrcTab, serv: clinServTab, mat: clinMatTab, comp: clinCompTab, cfg: clinCfgTab })[CLX.aba]();
+  ({ orc: clinOrcTab, serv: clinServTab, mat: clinMatTab, comp: clinCompTab, proc: clinProcTab, cfg: clinCfgTab })[CLX.aba]();
 }
 /* ----- Orçamentos ----- */
 function clinOrcTab(){
@@ -3341,6 +3346,24 @@ function clinOrcTab(){
   $('#co-st').addEventListener('change', e => { CLX.st = e.target.value; tab(); });
   $('#co-q').addEventListener('input', e => { CLX.q = e.target.value; tab(); });
   tab();
+}
+/* ----- Procedimentos (tipos de lançamento: venda ou cobrança) ----- */
+const CLP = { f: [], dados: [] };
+async function clinProcTab(){
+  const b = $('#cl-body'), dir = ehDir();
+  b.innerHTML = '<div class="card"><div class="tools" style="align-items:center"><p class="sub" style="margin:0;flex:1;min-width:240px">Cada procedimento é <b>venda</b> (feita pela equipe de vendas da clínica) ou <b>cobrança</b> (recebida pela equipe de cobrança do escritório). Isso alimenta os quadros de venda e cobrança do Início.' + (dir ? ' Clique numa linha para alterar.' : '') + '</p>'
+    + (dir ? '<button class="btn sm" type="button" id="pr-novo">+ Novo procedimento</button>' : '') + '</div><div id="pr-grid" style="margin-top:10px"><p class="sub">Carregando...</p></div></div>';
+  const carrega = async () => {
+    const r = await sb.rpc('tipos_lancamento_listar'); if (!$('#pr-grid')) return;
+    if (r.error) { $('#pr-grid').innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+    CLP.dados = r.data || []; D.tip = CLP.dados;
+    gradeF($('#pr-grid'), { dados: CLP.dados, f: CLP.f, vazio: 'Nenhum procedimento cadastrado.', maxH: 560, clique: dir ? x => { tpForm(x, carrega); } : null, cols: [
+      { t: 'Procedimento', v: x => x.nome },
+      { t: 'Setor', v: x => x.setor === 'venda' ? 'Venda' : 'Cobrança', h: x => '<span class="pill ' + (x.setor === 'venda' ? 'on' : 'wr') + '">' + (x.setor === 'venda' ? 'Venda' : 'Cobrança') + '</span>' },
+      { t: 'Situação', v: x => x.ativo ? 'Ativo' : 'Inativo', h: x => '<span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span>' }] });
+  };
+  if ($('#pr-novo')) $('#pr-novo').addEventListener('click', () => tpForm(null, carrega));
+  carrega();
 }
 /* ----- Serviços ----- */
 const clinAbaixo = s => s.margem != null && (s.margem * 100 < CLX.cfg.margem_min_pct || (s.margem_minimo != null && s.margem_minimo * 100 < CLX.cfg.margem_min_pct));
@@ -4265,7 +4288,7 @@ function prdLista(){
   pinta(); $('#pd-q').addEventListener('input', e => { PD.q = e.target.value; pinta(); }); $('#pd-novo').addEventListener('click', () => prdForm(null));
 }
 const prdSetor = x => { const t = (D.tip || []).find(y => y.id === x.tipo_id); return t ? t.nome + ' · ' + (t.setor === 'venda' ? 'Venda' : 'Cobrança') : 'Venda'; };
-function tpForm(t){
+function tpForm(t, depois){
   const novo = !t;
   abrirJanela(novo ? 'Novo tipo de lançamento' : 'Tipo de lançamento', '<form id="tp-form" novalidate><div class="db">' + fld('tp-nome', 'Nome *', t && t.nome, 'maxlength="60" autocomplete="off"')
     + '<label class="field" for="tp-setor">Setor<select id="tp-setor"><option value="venda"' + (t && t.setor === 'cobranca' ? '' : ' selected') + '>Venda (equipe de vendas da clínica)</option><option value="cobranca"' + (t && t.setor === 'cobranca' ? ' selected' : '') + '>Cobrança (equipe de cobrança do escritório)</option></select></label>'
@@ -4276,7 +4299,7 @@ function tpForm(t){
     e.preventDefault(); const er = $('#tp-err'); er.textContent = ''; const b = $('#tp-ok'); b.disabled = true;
     const r = await sb.rpc('tipo_lancamento_salvar', { p_id: t ? t.id : null, p_nome: $('#tp-nome').value, p_setor: $('#tp-setor').value, p_ativo: $('#tp-ativo').checked });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
-    fecharJanela(); toast('Tipo salvo.'); prdCarregar();
+    fecharJanela(); toast('Procedimento salvo.'); if (depois) depois(); else prdCarregar();
   });
 }
 function prdForm(x){
