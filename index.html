@@ -689,6 +689,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
   ['0.40.0', '2026-11-04', 'Módulo Clínico (etapa 1): catálogo de serviços e materiais importados da planilha, custo e margem por serviço, notas de compra que atualizam estoque e custo, orçamento clínico (o dentista indica, o comercial negocia de valor até o mínimo), desconto abaixo do mínimo só com login e senha de diretor e simulador de financiamento pela tabela price com a regra de liberação do tratamento.'],
   ['0.39.0', '2026-11-04', 'Carta de alta só pelo dentista: o botão Carta de alta (passar para contenção) só aparece para quem é dentista, e o banco recusa a mudança de quem não for. Recepção, cobrança e gerência que não atendem como dentista não dão mais alta.'],
   ['0.38.0', '2026-11-04', 'Ícone do WhatsApp ao lado dos telefones: um toque abre a conversa direto com o paciente (e com funcionários e unidades) no WhatsApp. Aparece nas listas de pacientes e faltas, na ficha do paciente, na Cobrança (régua, sem agendamento e faltas), no caixa e nos cadastros. Quem vê o telefone mascarado não ganha o ícone, para não revelar o número.'],
@@ -3199,12 +3200,13 @@ const waSlug = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 const waDH = s => s ? new Date(s).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
 
 /* ---------- Clínico (etapa 1): catálogo, materiais, compras, orçamento e simulador (tabela price) ---------- */
-const CLX = { aba: 'orc', cat: null, cfg: null, orcs: [], st: 'abertos', q: '', esp: '', sq: '', sim: { entrada: '', modo: 'n', valor: '' }, comp: [] };
+const CLX = { abaixo: false, aba: 'orc', cat: null, cfg: null, orcs: [], st: 'abertos', q: '', esp: '', sq: '', sim: { entrada: '', modo: 'n', valor: '' }, comp: [] };
 const CLST = { rascunho: ['Rascunho', 'nu'], encaminhado: ['Aguardando negociação', 'wr'], salvo: ['Orçamento salvo', 'on'], fechado: ['Fechado', 'on'], perdido: ['Perdido', 'off'] };
 const clNorm = s => String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const numBR = s => { let t = String(s == null ? '' : s).trim().replace(/[^\d,.\-]/g, ''); if (!t) return null; if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); const n = Number(t); return isFinite(n) ? n : null; };
 const nTxt = (n, d) => n == null || n === '' ? '' : Number(n).toLocaleString('pt-BR', { maximumFractionDigits: d == null ? 4 : d });
 const r2 = n => Math.round(n * 100) / 100;
+const pctTxt = f => f == null ? '—' : (f * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
 /* tabela price (juros compostos, parcelas iguais) */
 const pxPMT = (pv, i, n) => i === 0 ? pv / n : pv * i / (1 - Math.pow(1 + i, -n));
 const pxNPER = (pv, i, pmt) => { if (!(pmt > 0)) return null; if (i === 0) return Math.ceil(pv / pmt - 1e-9); if (pmt <= pv * i) return null; return Math.ceil(-Math.log(1 - pv * i / pmt) / Math.log(1 + i) - 1e-9); };
@@ -3232,6 +3234,12 @@ function pxSim(avista, entrada, taxaPct, modo, valor){
 function clinCustoJs(insumos, preco, c){
   const ins = insumos.reduce((s, x) => s + x.qtd * x.custo_unit, 0), prot = insumos.reduce((s, x) => s + (x.protetico ? x.qtd * x.custo_unit : 0), 0);
   return r2(ins + preco * (c.imposto_pct + c.cartao_pct) / 100 + Math.max(preco - prot, 0) * (c.venda_pct + c.avaliacao_pct + c.execucao_pct) / 100);
+}
+/* preço ideal: menor valor inteiro cuja margem atinge a margem mínima (mesma conta do banco) */
+function clinIdealJs(insumos, c){
+  const ins = insumos.reduce((s, x) => s + x.qtd * x.custo_unit, 0), prot = insumos.reduce((s, x) => s + (x.protetico ? x.qtd * x.custo_unit : 0), 0);
+  const A = (c.imposto_pct + c.cartao_pct) / 100, B = (c.venda_pct + c.avaliacao_pct + c.execucao_pct) / 100, den = 1 - A - B - c.margem_min_pct / 100;
+  return den <= 0.0001 ? null : Math.ceil((ins - prot * B) / den - 1e-9);
 }
 async function clinGarante(){
   if (CLX.cat && CLX.cfg) return null;
@@ -3281,21 +3289,30 @@ function clinOrcTab(){
   tab();
 }
 /* ----- Serviços ----- */
+const clinAbaixo = s => s.margem != null && (s.margem * 100 < CLX.cfg.margem_min_pct || (s.margem_minimo != null && s.margem_minimo * 100 < CLX.cfg.margem_min_pct));
+function clinSit(s){
+  const mm = CLX.cfg.margem_min_pct;
+  if (s.margem == null) return '—';
+  if (s.margem * 100 < mm) return '<span class="pill off">Valor abaixo da margem</span>' + (s.preco_ideal == null ? '' : '<br><small class="sub">ajustar para ' + brl(s.preco_ideal) + '</small>');
+  if (s.margem_minimo != null && s.margem_minimo * 100 < mm) return '<span class="pill wr">Mínimo abaixo da margem</span>';
+  return '<span class="pill on">Dentro da margem</span>';
+}
 function clinServTab(){
   const b = $('#cl-body'), cat = CLX.cat, cust = pode('clinico.custos'), edit = pode('clinico.catalogo');
   const esps = [...new Set(cat.servicos.map(s => s.especialidade).filter(Boolean))].sort();
   b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cs-esp" style="margin:0">Especialidade<select id="cs-esp"><option value="">Todas</option>' + esps.map(e => '<option' + (CLX.esp === e ? ' selected' : '') + '>' + esc(e) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="cs-q" style="margin:0;min-width:200px">Serviço<input id="cs-q" type="search" placeholder="Buscar" value="' + esc(CLX.sq) + '"></label>'
+    + (cust ? '<label style="display:flex;gap:8px;align-items:center;margin:0 0 8px"><input type="checkbox" id="cs-ab"' + (CLX.abaixo ? ' checked' : '') + '> Só abaixo da margem mínima (' + nTxt(CLX.cfg.margem_min_pct, 2) + '%)</label>' : '')
     + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo serviço</button><button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') + '</div><div class="tw" id="cs-tab"></div></div>';
   const tab = () => {
-    const l = cat.servicos.filter(s => (!CLX.esp || s.especialidade === CLX.esp) && (!CLX.sq || clNorm(s.nome).includes(clNorm(CLX.sq))));
-    $('#cs-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Serviço</th><th>Especialidade</th><th class="n">Valor</th><th class="n">Mínimo</th>' + (cust ? '<th class="n">Custo</th><th class="n">Margem</th>' : '') + '<th></th></tr></thead><tbody>'
+    const l = cat.servicos.filter(s => (!CLX.esp || s.especialidade === CLX.esp) && (!CLX.sq || clNorm(s.nome).includes(clNorm(CLX.sq))) && (!CLX.abaixo || clinAbaixo(s)));
+    $('#cs-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Serviço</th><th>Especialidade</th><th class="n">Valor</th><th class="n">Mínimo</th>' + (cust ? '<th class="n">Custo</th><th class="n">Margem no valor</th><th class="n">Margem no mínimo</th><th class="n">Preço ideal</th><th>Situação</th>' : '') + '<th></th></tr></thead><tbody>'
       + l.map(s => '<tr' + (s.ativo ? '' : ' style="opacity:.55"') + '><td>' + esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') + '</td><td>' + esc(s.especialidade || '—') + '</td><td class="n">' + brl(s.valor) + '</td><td class="n">' + (s.minimo == null ? '—' : brl(s.minimo)) + '</td>'
-        + (cust ? '<td class="n">' + brl(s.custo) + '</td><td class="n">' + (s.valor > 0 ? nTxt((s.valor - s.custo) / s.valor * 100, 1) + '%' : '—') + '</td>' : '')
+        + (cust ? '<td class="n">' + brl(s.custo) + '</td><td class="n">' + pctTxt(s.margem) + '</td><td class="n">' + pctTxt(s.margem_minimo) + '</td><td class="n">' + (s.preco_ideal == null ? '—' : brl(s.preco_ideal)) + '</td><td>' + clinSit(s) + '</td>' : '')
         + '<td>' + (edit ? '<button class="btn ghost sm" type="button" data-se="' + s.id + '">Editar</button>' : '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhum serviço encontrado.</div>';
     $$('[data-se]', $('#cs-tab')).forEach(x => x.addEventListener('click', () => clinServForm(cat.servicos.find(s => s.id === Number(x.dataset.se)))));
   };
-  $('#cs-esp').addEventListener('change', e => { CLX.esp = e.target.value; tab(); }); $('#cs-q').addEventListener('input', e => { CLX.sq = e.target.value; tab(); });
+  $('#cs-esp').addEventListener('change', e => { CLX.esp = e.target.value; tab(); }); $('#cs-q').addEventListener('input', e => { CLX.sq = e.target.value; tab(); }); if (cust) $('#cs-ab').addEventListener('change', e => { CLX.abaixo = e.target.checked; tab(); });
   if (edit) { $('#cs-novo').addEventListener('click', () => clinServForm(null)); $('#cs-imp').addEventListener('click', clinServImportar); }
   tab();
 }
@@ -3315,7 +3332,11 @@ function clinServForm(s){
     if (!cust) return; const v = moedaNum($('#sf-v').value) || 0, m = moedaNum($('#sf-m').value) || 0;
     const ins = ler().filter(x => x.qtd > 0).map(x => { const mt = mats.find(y => y.id === x.material_id) || { custo_unit: 0 }; return { qtd: x.qtd, custo_unit: mt.custo_unit, protetico: !!mt.protetico }; });
     const c1 = clinCustoJs(ins, v, cfg), c2 = clinCustoJs(ins, m, cfg);
-    $('#sf-cm').innerHTML = '<div class="kv"><span>Custo no valor cheio</span><b>' + brl(c1) + '</b><span>Margem no valor cheio</span><b>' + (v > 0 ? nTxt((v - c1) / v * 100, 1) + '%' : '—') + '</b><span>Custo no mínimo</span><b>' + brl(c2) + '</b><span>Margem no mínimo</span><b>' + (m > 0 ? nTxt((m - c2) / m * 100, 1) + '%' : '—') + '</b></div>';
+    const id = clinIdealJs(ins, cfg), mg = x => x > 0 ? pctTxt((x - clinCustoJs(ins, x, cfg)) / x) : '—';
+    $('#sf-cm').innerHTML = '<div class="kv"><span>Custo no valor cheio</span><b>' + brl(c1) + '</b><span>Margem no valor cheio</span><b>' + mg(v) + '</b><span>Custo no mínimo</span><b>' + brl(c2) + '</b><span>Margem no mínimo</span><b>' + mg(m) + '</b>'
+      + '<span>Margem mínima desejada</span><b>' + nTxt(cfg.margem_min_pct, 2) + '%</b><span>Preço ideal</span><b>' + (id == null ? 'impossível com esses percentuais' : brl(id)) + '</b></div>'
+      + (id == null ? '' : '<div class="tools" style="margin:10px 0 0"><button class="btn ghost sm" type="button" id="sf-ideal">Usar o preço ideal como valor do serviço</button></div>');
+    const bi = $('#sf-ideal'); if (bi) bi.addEventListener('click', () => { $('#sf-v').value = moedaTxt(id); if (moedaNum($('#sf-m').value) > id) $('#sf-m').value = moedaTxt(id); calc(); });
   };
   const lig = r => { $('[data-ix]', r).addEventListener('click', () => { r.remove(); calc(); }); $('[data-im]', r).addEventListener('change', calc); $('[data-iq]', r).addEventListener('input', calc); };
   $$('#sf-ins [data-ir]').forEach(lig);
@@ -3426,15 +3447,18 @@ function clinCompraForm(){
 /* ----- Configuração ----- */
 function clinCfgTab(){
   const c = CLX.cfg, campo = (id, rot, v) => '<label class="field" for="' + id + '" style="margin:0">' + rot + '<input id="' + id + '" inputmode="decimal" value="' + esc(nTxt(v, 3)) + '"></label>';
-  $('#cl-body').innerHTML = '<form class="card" id="cf-form" novalidate><div class="sec">Financiamento próprio</div>' + campo('cf-j', 'Juros ao mês (%)', c.juros_mensal)
-    + '<div class="sec" style="margin-top:14px">Percentuais usados no custo e na margem de cada serviço</div><div class="tools" style="margin:0">' + campo('cf-i', 'Impostos (%)', c.imposto_pct) + campo('cf-c', 'Taxa do cartão (%)', c.cartao_pct) + campo('cf-v', 'Comissão de venda (%)', c.venda_pct) + campo('cf-a', 'Avaliação (%)', c.avaliacao_pct) + campo('cf-e', 'Execução (%)', c.execucao_pct) + '</div>'
-    + '<p class="sub" style="margin:8px 0 0">Impostos e cartão incidem sobre o valor do serviço; venda, avaliação e execução incidem sobre o valor menos o custo do protético (igual à aba "Cálculo preço" da planilha).</p><div class="err" id="cf-err" role="alert"></div><div class="tools" style="margin-top:12px"><button class="btn" type="submit" id="cf-ok">Salvar</button></div></form>';
-  $('#cf-form').addEventListener('submit', async e => {
-    e.preventDefault(); const er = $('#cf-err'); er.textContent = '';
-    const p = { juros_mensal: numBR($('#cf-j').value), imposto_pct: numBR($('#cf-i').value), cartao_pct: numBR($('#cf-c').value), venda_pct: numBR($('#cf-v').value), avaliacao_pct: numBR($('#cf-a').value), execucao_pct: numBR($('#cf-e').value) };
+  $('#cl-body').innerHTML = '<form class="card" id="clc-form" novalidate><div class="sec">Composição de preço</div><p class="sub" style="margin:4px 0 10px">O sistema soma o custo dos materiais e do protético, as comissões e os impostos e calcula o <b>preço ideal</b> de cada serviço: o menor valor que garante a margem mínima. Serviços abaixo dela aparecem em vermelho em Serviços.</p>'
+    + '<div class="tools" style="margin:0">' + campo('clc-mm', 'Margem mínima desejada (%)', c.margem_min_pct) + campo('clc-i', 'Impostos (%)', c.imposto_pct) + campo('clc-c', 'Taxa do cartão (%)', c.cartao_pct) + campo('clc-v', 'Comissão de vendas (%)', c.venda_pct) + campo('clc-e', 'Comissão do dentista: execução (%)', c.execucao_pct) + campo('clc-a', 'Comissão do dentista: avaliação (%)', c.avaliacao_pct) + '</div>'
+    + '<p class="sub" style="margin:8px 0 0">Impostos e cartão incidem sobre o valor do serviço; as comissões incidem sobre o valor menos o custo do protético (mesma regra da aba "Cálculo preço" da planilha). A margem é (valor − custos) ÷ valor.</p>'
+    + '<div class="sec" style="margin-top:14px">Financiamento próprio</div>' + campo('clc-j', 'Juros ao mês (%)', c.juros_mensal)
+    + '<div class="err" id="clc-err" role="alert"></div><div class="tools" style="margin-top:12px"><button class="btn" type="submit" id="clc-ok">Salvar</button></div></form>';
+  $('#clc-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#clc-err'); er.textContent = '';
+    const p = { margem_min_pct: numBR($('#clc-mm').value), juros_mensal: numBR($('#clc-j').value), imposto_pct: numBR($('#clc-i').value), cartao_pct: numBR($('#clc-c').value), venda_pct: numBR($('#clc-v').value), avaliacao_pct: numBR($('#clc-a').value), execucao_pct: numBR($('#clc-e').value) };
     if (Object.values(p).some(x => x == null || x < 0 || x > 100)) { er.textContent = 'Use valores de 0 a 100.'; return; }
     if (p.juros_mensal > 30) { er.textContent = 'Juros ao mês: no máximo 30%.'; return; }
-    const b = $('#cf-ok'); b.disabled = true; const r = await sb.rpc('clin_config_salvar', { p: p }); b.disabled = false;
+    if (p.margem_min_pct >= 90) { er.textContent = 'A margem mínima deve ficar abaixo de 90%.'; return; }
+    const b = $('#clc-ok'); b.disabled = true; const r = await sb.rpc('clin_config_salvar', { p: p }); b.disabled = false;
     if (r.error) { er.textContent = erroTxt(r.error); return; } toast('Configuração salva.'); CLX.cfg = null; CLX.cat = null; clinCarregar();
   });
 }
@@ -3458,7 +3482,7 @@ function clinOrcDesenha(){
   abrirJanela('Orçamento clínico — ' + o.paciente, '<div class="db" id="oc-box">'
     + '<div class="tools" style="margin:0;align-items:center"><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span><span class="sub">Criado por ' + esc(o.criado_por || '—') + ' em ' + dBR(String(o.criado_em).slice(0, 10)) + '</span></div>'
     + (o.itens.length ? '<div class="tw"><table class="tb"><thead><tr><th>Serviço</th><th>Dente/região</th><th class="n">Qtd</th><th class="n">Tabela</th>' + (neg ? '<th class="n">Valor negociado</th>' : '') + '<th class="n">Subtotal</th><th></th></tr></thead><tbody>'
-      + o.itens.map(i => '<tr data-it="' + i.id + '"><td>' + esc(i.servico) + (i.piso_autorizado != null ? '<br><small class="sub">Desconto autorizado por diretor' + (i.motivo ? ': ' + esc(i.motivo) : '') + '</small>' : '') + '</td><td>' + (ind && edit ? '<input data-dn aria-label="Dente ou região" maxlength="40" style="width:90px" value="' + esc(i.dente || '') + '">' : esc(i.dente || '—')) + '</td>'
+      + o.itens.map(i => '<tr data-it="' + i.id + '"><td>' + esc(i.servico) + (i.margem_ok === false ? '<br><small style="color:var(--red)">' + (i.margem != null ? 'Margem de ' + pctTxt(i.margem) + ', abaixo do mínimo de ' + nTxt(o.margem_min_pct, 2) + '%' + (i.preco_ideal != null ? '. Preço ideal: ' + brl(i.preco_ideal) : '') : 'Abaixo da margem mínima da clínica') + '</small>' : '') + (i.piso_autorizado != null ? '<br><small class="sub">Desconto autorizado por diretor' + (i.motivo ? ': ' + esc(i.motivo) : '') + '</small>' : '') + '</td><td>' + (ind && edit ? '<input data-dn aria-label="Dente ou região" maxlength="40" style="width:90px" value="' + esc(i.dente || '') + '">' : esc(i.dente || '—')) + '</td>'
         + '<td class="n">' + (ind && edit ? '<input data-qt aria-label="Quantidade" inputmode="numeric" style="width:56px;text-align:right" value="' + i.qtd + '">' : i.qtd) + '</td><td class="n">' + brl(i.valor_tabela) + '</td>'
         + (neg ? '<td class="n">' + (edit ? '<input data-vl aria-label="Valor negociado" inputmode="numeric" style="width:104px;text-align:right" value="' + esc(moedaTxt(i.valor_unit)) + '"><br><small class="sub">mín. ' + brl(i.valor_minimo) + '</small>' : brl(i.valor_unit)) + '</td>' : '')
         + '<td class="n">' + brl(r2(i.valor_unit * i.qtd)) + '</td><td>' + (ind && edit ? '<button class="btn ghost sm" type="button" data-rm="' + i.id + '" aria-label="Remover serviço">×</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>'
