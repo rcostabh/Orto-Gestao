@@ -727,6 +727,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.45.0', '2026-11-05', 'Lista de Pacientes paginada no servidor: a busca (nome sem acento, CPF, código, telefone), os filtros e a contagem rodam no banco e a tela carrega 100 por vez (role ou use Carregar mais), sem cortar cadastros em silêncio. Índices novos para clínicas com milhares de pacientes.'],
   ['0.44.0', '2026-11-05', 'Prospect é cadastrado na clínica atual e, no canal Promotor, escolhe-se o promotor da clínica. Orçamento clínico: fechamento com financiamento próprio (entrada, parcelas e dia do vencimento), linha do tempo de execução (cada serviço é liberado quando o total pago cobre o valor, limpezas primeiro, gerente/diretor movem antes ou depois) e aporte mensal (valor presente do saldo, baixar parcela ou prazo, entra no caixa como mensalidade antecipada de clínico). A linha do tempo é uma linha com bolinhas que se arrastam. Financeiro ganhou Financiamento próprio (lista de pacientes, plano, recebimento, aporte e cancelar/finalizar pelo Diretor) e Previsão de recebimento. Documentação: importar só pede tipo e momento e aceita arrastar, colar e procurar arquivos.'],
   ['0.43.0', '2026-11-05', 'Procedimentos clínicos: o valor mínimo é calculado pelo sistema (materiais, impostos, cartão, comissões e margem desejada) e só o diretor altera o valor de venda, nunca abaixo do mínimo.'],
   ['0.42.0', '2026-11-05', 'Clínico virou grupo no menu lateral (Orçamentos, Procedimentos clínicos, Materiais, Compras, Configuração). Venda e cobrança valem só para a ortodontia. Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
@@ -2027,58 +2028,66 @@ async function finPrevCarregar(){
   $('#pv-de').addEventListener('change', muda); $('#pv-ate').addEventListener('change', muda);
 }
 /* ---------- PACIENTES: prospects ---------- */
-const PAC = { q: '', canal: '', st: '', de: '', ate: '' }, CANAIS = ['Promotor', 'Tele', 'Indicação', 'Espontâneo', 'Lead Internet'];
+const PAC = { q: '', canal: '', st: '', de: '', ate: '', dados: [], total: 0 }, CANAIS = ['Promotor', 'Tele', 'Indicação', 'Espontâneo', 'Lead Internet'];
 const dtHora = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' + d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }); };
 const ST_AV = { aguardando: 'Aguardando dentista', em_atendimento: 'Em atendimento', concluida: 'Concluída', cancelada: 'Cancelada' };
 async function pacCarregar(){
   await sb.rpc('financeiro_atualizar');
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
-  const rs = await Promise.all([sb.from('pacientes').select('*').order('id', { ascending: false }), sb.from('avaliacoes').select('*').in('status', ['aguardando', 'em_atendimento']), sb.from('unidades').select('*').order('sigla')]);
-  const er = rs.map(r => r.error).find(Boolean);
-  if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
-  D.unidades = rs[2].data; defUn(D.unidades);
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  D.unidades = ru.data; defUn(D.unidades);
   if (!UN) { $('#area').innerHTML = semUn('Prospects'); return; }
-  D.pac = rs[0].data.filter(p => p.unidade_id === UN); D.avAb = rs[1].data.filter(a => a.unidade_id === UN);
   $('#area').innerHTML = '<div class="head"><div><h1>Pacientes e prospects</h1><p class="sub">Prospects são quem ainda não iniciou o tratamento. Cadastre, inicie a avaliação com o dentista do dia ou agende na Agenda.</p></div>' + (pode('pacientes.criar') ? '<button class="btn" type="button" id="pc-novo">+ Novo prospect</button>' : '') + '</div>'
     + '<div class="card"><div class="tools"><input id="pc-q" type="search" placeholder="Buscar por nome, CPF, código ou telefone" aria-label="Buscar" value="' + esc(PAC.q) + '"><select id="pc-st" aria-label="Situação"><option value="">Todas as situações</option>' + ['Prospecção', 'Pré-Ativo', 'Ativo', 'Inativo', 'Contenção'].map(c => '<option' + (PAC.st === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select><select id="pc-canal" aria-label="Canal de vendas"><option value="">Todos os canais</option>' + CANAIS.map(c => '<option' + (PAC.canal === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
     + '<label class="dtf">Cadastro de <input type="date" id="pc-de" value="' + PAC.de + '" aria-label="Cadastrados a partir de"></label><label class="dtf">até <input type="date" id="pc-ate" value="' + PAC.ate + '" aria-label="Cadastrados até"></label><button class="btn ghost sm" type="button" id="pc-limpa-dt">Limpar datas</button></div><small id="pc-dica" style="display:block;color:var(--muted);margin:2px 2px 8px;min-height:16px"></small><div class="lista" id="pc-lista"></div></div>';
-  pacLista();
-  $('#pc-q').addEventListener('input', e => { PAC.q = e.target.value; pacLista(); });
-  $('#pc-canal').addEventListener('change', e => { PAC.canal = e.target.value; pacLista(); });
-  $('#pc-st').addEventListener('change', e => { PAC.st = e.target.value; pacLista(); });
-  $('#pc-de').addEventListener('change', e => { PAC.de = e.target.value; pacLista(); });
-  $('#pc-ate').addEventListener('change', e => { PAC.ate = e.target.value; pacLista(); });
-  $('#pc-limpa-dt').addEventListener('click', () => { PAC.de = PAC.ate = ''; $('#pc-de').value = $('#pc-ate').value = ''; pacLista(); });
+  PAC.cfg = null; pacLista(true);
+  let tq = 0;
+  $('#pc-q').addEventListener('input', e => { PAC.q = e.target.value; clearTimeout(tq); tq = setTimeout(() => pacLista(true), 250); });
+  $('#pc-canal').addEventListener('change', e => { PAC.canal = e.target.value; pacLista(true); });
+  $('#pc-st').addEventListener('change', e => { PAC.st = e.target.value; pacLista(true); });
+  $('#pc-de').addEventListener('change', e => { PAC.de = e.target.value; pacLista(true); });
+  $('#pc-ate').addEventListener('change', e => { PAC.ate = e.target.value; pacLista(true); });
+  $('#pc-limpa-dt').addEventListener('click', () => { PAC.de = PAC.ate = ''; $('#pc-de').value = $('#pc-ate').value = ''; pacLista(true); });
   const n = $('#pc-novo'); if (n) n.addEventListener('click', () => pacForm(null));
 }
-/* busca única: entende sozinha se foi digitado nome, CPF, código (8 dígitos), telefone ou só o começo de um número */
-function pacBusca(txt){
-  const t = (txt || '').trim(); if (!t) return null;
-  const d = dig(t), nome = x => relNorm((x.nome || '') + ' ' + (x.nome_social || '')), tel = x => dig(x.telefone || '');
-  if (/[a-zA-ZÀ-ÿ]/.test(t) || !d) { const n = relNorm(t); return { rot: 'Nome', teste: x => nome(x).includes(n) }; }
-  if (/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(t) || (d.length === 11 && cpfOk(d))) return { rot: 'CPF ' + mCPF(d), teste: x => (x.cpf || '') === d };
-  if (/^[(+]/.test(t) || d.length === 10 || d.length === 11 || d.length === 9) { const q = d.replace(/^55(?=\d{10,11}$)/, ''); return { rot: 'telefone ' + mTel(q.length > 11 ? q.slice(0, 11) : q), teste: x => tel(x).includes(q) }; }
-  if (d.length === 8) return { rot: 'código ' + d, teste: x => String(x.codigo) === d };
-  return { rot: 'código, CPF ou telefone que começam com ' + d, teste: x => String(x.codigo).startsWith(d) || (x.cpf || '').startsWith(d) || tel(x).includes(d) };
-}
-function pacLista(){
-  const bq = pacBusca(PAC.q), dica = $('#pc-dica');
-  const l = D.pac.filter(p => (!PAC.canal || p.canal_venda === PAC.canal) && (!PAC.st || p.status === PAC.st) && (!PAC.de || p.data_cadastro >= PAC.de) && (!PAC.ate || p.data_cadastro <= PAC.ate) && (!bq || bq.teste(p)));
-  if (dica) dica.textContent = [bq ? 'Buscando por ' + (bq.rot === 'Nome' ? 'nome' : bq.rot) : '', PAC.de || PAC.ate ? 'Cadastrados ' + (PAC.de ? 'de ' + dBR(PAC.de) + ' ' : '') + (PAC.ate ? 'até ' + dBR(PAC.ate) : '') : '', (bq || PAC.de || PAC.ate || PAC.st || PAC.canal) ? l.length + (l.length === 1 ? ' resultado' : ' resultados') : ''].filter(Boolean).join(' · ');
-  const av = p => D.avAb.find(a => a.paciente_id === p.id), avT = p => { const a = av(p); return a ? (a.status === 'aguardando' ? 'Aguardando avaliação' : 'Em avaliação') : ''; };
+const PAC_COL = { 2: 'situacao', 3: 'avaliacao', 6: 'canal', 7: 'cadastro' }, PAC_TAM = 100;
+/* a busca, os filtros e a contagem são feitos no servidor; a tela recebe só uma página por vez */
+async function pacLista(reinicia){
   PAC.f = PAC.f || [];
-  gradeF($('#pc-lista'), { dados: l, f: PAC.f, vazio: D.pac.length ? 'Nenhum cadastro encontrado.' : 'Nenhum prospect cadastrado ainda.', maxH: 520, clique: abrirPaciente,
-    cols: [
-      { t: 'Código', v: p => String(p.codigo) },
-      { t: 'Paciente', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') },
-      { t: 'Situação', v: p => p.status || 'Prospecção', h: p => '<span class="pill ' + (PILL_ST[p.status || 'Prospecção'] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' },
-      { t: 'Avaliação', v: p => avT(p) || '—', h: p => avT(p) ? '<span class="pill wr">' + avT(p) + '</span>' : '<span style="color:var(--muted)">—</span>' },
-      { t: 'CPF', v: p => p.cpf ? (ehGer() ? mCPF(p.cpf) : maskCPF(p.cpf)) : 'sem CPF' },
-      { t: 'Telefone', v: p => p.telefone ? (ehGer() ? mTel(p.telefone) : maskTel(p.telefone)) : '—', h: p => p.telefone ? (ehGer() ? esc(mTel(p.telefone)) + waIc(p.telefone, p.nome) : esc(maskTel(p.telefone))) : '—' },
-      { t: 'Canal', v: p => p.canal_venda || '—' },
-      { t: 'Cadastro', v: p => dBR(p.data_cadastro) }
-    ] });
+  const col = {}; Object.keys(PAC_COL).forEach(i => { if (PAC.f[i] && PAC.f[i].size) col[PAC_COL[i]] = [...PAC.f[i]]; });
+  const meu = PAC.tk = (PAC.tk || 0) + 1, off = reinicia ? 0 : (PAC.dados || []).length;
+  const r = await sb.rpc('pacientes_pagina', { p_unidade: UN, p_q: PAC.q || '', p_canal: PAC.canal || '', p_st: PAC.st || '', p_de: PAC.de || null, p_ate: PAC.ate || null, p_f: col, p_limit: PAC_TAM, p_offset: off });
+  if (meu !== PAC.tk) return;
+  if (r.error) { const b = $('#pc-lista'); if (b) b.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+  PAC.total = Number(r.data.total); PAC.modo = r.data.modo; PAC.dados = reinicia ? r.data.linhas : (PAC.dados || []).concat(r.data.linhas);
+  const dica = $('#pc-dica'), filtrando = !!(PAC.q || PAC.de || PAC.ate || PAC.st || PAC.canal || PAC.f.some(Boolean));
+  const dq = (PAC.q || '').trim(), dd = dig(dq), rotM = { nome: 'nome', cpf: 'CPF ' + mCPF(dd), tel: 'telefone ' + mTel(dd.replace(/^55(?=\d{10,11}$)/, '').slice(0, 11)), codigo: 'código ' + dd, inicio: 'código, CPF ou telefone que começam com ' + dd }[PAC.modo];
+  if (dica) dica.textContent = [dq && rotM ? 'Buscando por ' + rotM : '', PAC.de || PAC.ate ? 'Cadastrados ' + (PAC.de ? 'de ' + dBR(PAC.de) + ' ' : '') + (PAC.ate ? 'até ' + dBR(PAC.ate) : '') : '', filtrando ? PAC.total + (PAC.total === 1 ? ' resultado' : ' resultados') : ''].filter(Boolean).join(' · ');
+  if (!PAC.cfg || !$('#pc-lista table')) {
+    PAC.cfg = { dados: PAC.dados, f: PAC.f, maxH: 520, clique: abrirPaciente,
+      remoto: { recarrega: () => pacLista(true), valores: async i => { const v = await sb.rpc('pacientes_valores', { p_unidade: UN, p_coluna: PAC_COL[i] }); return v.error ? [] : (v.data || []); },
+        rodape: () => 'Mostrando ' + PAC.dados.length + ' de ' + PAC.total + (PAC.dados.length < PAC.total ? ' · role a lista ou use "Carregar mais"' : '') },
+      cols: [
+        { t: 'Código', v: p => String(p.codigo) },
+        { t: 'Paciente', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' + (p.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(p.nome_social) + ')</small>' : '') },
+        { t: 'Situação', rv: 1, v: p => p.status || 'Prospecção', h: p => '<span class="pill ' + (PILL_ST[p.status || 'Prospecção'] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' },
+        { t: 'Avaliação', rv: 1, v: p => p.av || '—', h: p => p.av && p.av !== '—' ? '<span class="pill wr">' + esc(p.av) + '</span>' : '<span style="color:var(--muted)">—</span>' },
+        { t: 'CPF', v: p => p.cpf ? (ehGer() ? mCPF(p.cpf) : maskCPF(p.cpf)) : 'sem CPF' },
+        { t: 'Telefone', v: p => p.telefone ? (ehGer() ? mTel(p.telefone) : maskTel(p.telefone)) : '—', h: p => p.telefone ? (ehGer() ? esc(mTel(p.telefone)) + waIc(p.telefone, p.nome) : esc(maskTel(p.telefone))) : '—' },
+        { t: 'Canal', rv: 1, v: p => p.canal_venda || '—' },
+        { t: 'Cadastro', rv: 1, v: p => dBR(p.data_cadastro) }
+      ] };
+    gradeF($('#pc-lista'), PAC.cfg);
+    const rg = $('#pc-lista .rlg'); if (rg) rg.addEventListener('scroll', () => { if (rg.scrollTop + rg.clientHeight >= rg.scrollHeight - 60 && PAC.dados.length < PAC.total && !PAC.busy) pacMais(); });
+  }
+  PAC.cfg.dados = PAC.dados; PAC.cfg.vazio = filtrando ? 'Nenhum cadastro encontrado.' : 'Nenhum prospect cadastrado ainda.';
+  gradeCorpo($('#pc-lista'), PAC.cfg, () => pacLista(true));
+  let m = $('#pc-mais'); if (!m) { m = document.createElement('div'); m.id = 'pc-mais'; m.style.cssText = 'text-align:center;margin-top:10px'; $('#pc-lista').appendChild(m); }
+  m.innerHTML = PAC.dados.length < PAC.total ? '<button class="btn ghost" type="button" id="pc-maisb">Carregar mais</button>' : '';
+  if ($('#pc-maisb')) $('#pc-maisb').addEventListener('click', pacMais);
 }
+async function pacMais(){ if (PAC.busy) return; PAC.busy = true; try { await pacLista(false); } finally { PAC.busy = false; } }
 const abrirPaciente = p => irPara('paciente', { chave: 'paciente:' + p.id, titulo: (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '), id: p.id });
 
 /* ---------- cadastro completo do paciente: contato, endereço e responsável ---------- */
@@ -3004,7 +3013,7 @@ function finLista(){
   const soma = l => l.reduce((t, x) => t + Number(x.saldo), 0);
   const abas = [['todos', 'Todos', dd.length], ['abertas', 'Em aberto', ab.length], ['vencidas', 'Vencidas', venc.length], ['avencer', 'A vencer', avenc.length], ['pagas', 'Pagas e isentas', pagas.length]];
   $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento (últimos 11 meses e próximos 2). Paga até o vencimento: com desconto. Depois: valor cheio, sem juros. Use o funil de cada coluna para filtrar.</p></div></div>' + finVis()
-    + '<div class="card"><p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
+    + '<div class="card">' + (dd.length >= 1000 ? '<div class="err" style="margin:0 0 10px" role="alert">Esta lista tem ' + dd.length + ' parcelas e pode estar cortada pelo limite do servidor (o padrão é 1.000 linhas). Os totais abaixo podem estar incompletos: aumente o limite “Max rows” em Settings › API do Supabase ou use o relatório por período.</div>' : '') + '<p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
     + '<div class="tools"><div id="fn-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (FN.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
     + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div></div><div id="fn-lista"></div>';
   const pinta = () => {
@@ -4112,7 +4121,7 @@ function relPopTecla(e){ if (e.key === 'Escape') relPopFecha(); }
 function relPop(i, btn, R, cols, corpo){
   R = R || RG(); cols = cols || relCols(); corpo = corpo || relCorpo;
   const c = cols[i], jaAberto = $('#rl-pop') && $('#rl-pop').dataset.i === String(i); relPopFecha(); if (jaAberto) return;
-  const vistos = new Map(); relBase(R).forEach(x => { const v = c.v(x); if (!vistos.has(v)) vistos.set(v, c.k ? c.k(x) : v); });
+  const vistos = new Map(); if (R._vals) { R._vals.forEach(v => vistos.set(v, v)); R._vals = null; } else relBase(R).forEach(x => { const v = c.v(x); if (!vistos.has(v)) vistos.set(v, c.k ? c.k(x) : v); });
   const valores = [...vistos.keys()].sort((a, b) => { const ka = vistos.get(a), kb = vistos.get(b); return typeof ka === 'number' && typeof kb === 'number' ? ka - kb : String(ka).localeCompare(String(kb), 'pt', { numeric: true }); });
   const sel = new Set(R.f[i] || []), MAX = 800;
   const o = document.createElement('div'); o.id = 'rl-pop'; o.className = 'rl-pop'; o.dataset.i = String(i); o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Filtrar ' + c.t);
@@ -4178,20 +4187,20 @@ const gradeCad = (box, key, dados, cols, onClick, vazio) => gradeF(box, { dados,
 /* grid genérico com funil de filtro por coluna e totalizador (usado na ficha do paciente) */
 function gradeF(box, cfg){
   relPopFecha(); cfg.f = cfg.f || [];
-  if (!cfg.dados.length) { box.innerHTML = '<div class="vazio">' + (cfg.vazio || 'Nada por aqui.') + '</div>'; return; }
+  if (!cfg.dados.length && !cfg.remoto) { box.innerHTML = '<div class="vazio">' + (cfg.vazio || 'Nada por aqui.') + '</div>'; return; }
   const funil = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
-  box.innerHTML = '<div class="rlg" style="max-height:' + (cfg.maxH || 440) + 'px"><table class="tb rl"><thead><tr>' + cfg.cols.map((c, i) => '<th' + (c.n || c.r ? ' class="n"' : '') + '><span class="th">' + c.t + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button></span></th>').join('') + (cfg.acao ? '<th></th>' : '') + '</tr></thead><tbody></tbody><tfoot><tr></tr></tfoot></table></div>';
-  const corpo = () => gradeCorpo(box, cfg, corpo);
-  $$('[data-fx]', box).forEach(b => b.addEventListener('click', () => relPop(Number(b.dataset.fx), b, cfg, cfg.cols, corpo)));
+  box.innerHTML = '<div class="rlg" style="max-height:' + (cfg.maxH || 440) + 'px"><table class="tb rl"><thead><tr>' + cfg.cols.map((c, i) => '<th' + (c.n || c.r ? ' class="n"' : '') + '><span class="th">' + c.t + (cfg.remoto && !c.rv ? '' : '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(c.t) + '" aria-haspopup="dialog">' + funil + '</button>') + '</span></th>').join('') + (cfg.acao ? '<th></th>' : '') + '</tr></thead><tbody></tbody><tfoot><tr></tr></tfoot></table></div>';
+  const corpo = () => cfg.remoto ? cfg.remoto.recarrega() : gradeCorpo(box, cfg, corpo);
+  $$('[data-fx]', box).forEach(b => b.addEventListener('click', async () => { const i = Number(b.dataset.fx); if (cfg.remoto) { cfg._vals = await cfg.remoto.valores(i); } relPop(i, b, cfg, cfg.cols, corpo); }));
   ['wheel', 'touchmove'].forEach(ev => box.querySelector('.rlg').addEventListener(ev, relPopFecha, { passive: true }));
-  corpo();
+  cfg.remoto ? gradeCorpo(box, cfg, corpo) : corpo();
 }
 function gradeCorpo(box, cfg, corpo){
-  const cols = cfg.cols, d = cfg.dados.filter(x => cols.every((c, i) => !cfg.f[i] || cfg.f[i].has(c.v(x)))), nc = cols.length + (cfg.acao ? 1 : 0);
+  const cols = cfg.cols, d = cfg.remoto ? cfg.dados : cfg.dados.filter(x => cols.every((c, i) => !cfg.f[i] || cfg.f[i].has(c.v(x)))), nc = cols.length + (cfg.acao ? 1 : 0);
   box.querySelector('tbody').innerHTML = d.length ? d.map(x => '<tr' + (cfg.clique ? ' class="clk" tabindex="0" data-i="' + cfg.dados.indexOf(x) + '"' : '') + '>' + cols.map(c => '<td' + (c.n || c.r ? ' class="n"' : '') + '>' + (c.h ? c.h(x) : esc(c.v(x))) + '</td>').join('') + (cfg.acao ? '<td>' + cfg.acao(x) + '</td>' : '') + '</tr>').join('')
-    : '<tr><td colspan="' + nc + '" class="vazio">Nenhum registro com esses filtros.</td></tr>';
+    : '<tr><td colspan="' + nc + '" class="vazio">' + (cfg.remoto ? esc(cfg.vazio || 'Nenhum registro com esses filtros.') : 'Nenhum registro com esses filtros.') + '</td></tr>';
   $$('[data-fx]', box).forEach(b => b.classList.toggle('on', !!cfg.f[Number(b.dataset.fx)]));
-  const fi = cols.findIndex(c => c.n), filtrando = cfg.f.some(Boolean), txt = 'Totais · ' + d.length + (d.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + cfg.dados.length : '');
+  const fi = cols.findIndex(c => c.n), filtrando = cfg.f.some(Boolean), txt = cfg.remoto ? cfg.remoto.rodape() : 'Totais · ' + d.length + (d.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + cfg.dados.length : '');
   box.querySelector('tfoot tr').innerHTML = fi < 0 ? '<td colspan="' + nc + '">' + txt + '</td>'
     : '<td colspan="' + fi + '">' + txt + '</td>' + cols.slice(fi).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(Math.round(d.reduce((t, x) => t + Number(c.soma(x)), 0) * 100) / 100) : '') + '</td>').join('') + (cfg.acao ? '<td></td>' : '');
   if (cfg.clique) $$('tbody tr[data-i]', box).forEach(tr => { const go = () => cfg.clique(cfg.dados[Number(tr.dataset.i)]); tr.addEventListener('click', e => { if (!e.target.closest('button,a')) go(); }); tr.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }); });
