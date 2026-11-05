@@ -730,6 +730,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.47.0', '2026-11-05', 'Clínico: o orçamento (feito pelo dentista) ficou só com os serviços, sem simulador nem valores, e é encaminhado para negociação. A negociação (divulgadora, gerente ou diretor) tem os valores negociados e a forma de pagamento: Pix, Débito, Dinheiro, Cartão de crédito (com o número de parcelas) ou Financiamento próprio (entrada, parcelas e vencimento). Ao confirmar a negociação nascem as parcelas no financeiro do paciente e a linha do tempo de execução, e o contrato clínico é emitido pelo botão Contrato.'],
   ['0.46.0', '2026-11-05', 'Cada paciente pertence a uma única unidade: só ela pesquisa, vê, lança serviços e atende. Para mudar de unidade, a unidade atual solicita a transferência (ficha › Mais ações) e a gerência ou diretoria da unidade de destino aceita ou recusa, na nova tela Pacientes › Transferências; ninguém troca o paciente de unidade sem isso. CPF já cadastrado em outra unidade avisa qual é. Cards do Início: Faturamento e 1ª mensalidade sem gráfico, com os valores e o número de parcelas pagas do mês atual e do mês anterior.'],
   ['0.45.0', '2026-11-05', 'Lista de Pacientes paginada no servidor: a busca (nome sem acento, CPF, código, telefone), os filtros e a contagem rodam no banco e a tela carrega 100 por vez (role ou use Carregar mais), sem cortar cadastros em silêncio. Índices novos para clínicas com milhares de pacientes.'],
   ['0.44.0', '2026-11-05', 'Prospect é cadastrado na clínica atual e, no canal Promotor, escolhe-se o promotor da clínica. Orçamento clínico: fechamento com financiamento próprio (entrada, parcelas e dia do vencimento), linha do tempo de execução (cada serviço é liberado quando o total pago cobre o valor, limpezas primeiro, gerente/diretor movem antes ou depois) e aporte mensal (valor presente do saldo, baixar parcela ou prazo, entra no caixa como mensalidade antecipada de clínico). A linha do tempo é uma linha com bolinhas que se arrastam. Financeiro ganhou Financiamento próprio (lista de pacientes, plano, recebimento, aporte e cancelar/finalizar pelo Diretor) e Previsão de recebimento. Documentação: importar só pede tipo e momento e aceita arrastar, colar e procurar arquivos.'],
@@ -3516,7 +3517,7 @@ function clinOrcTab(){
     + '<div id="co-tab"></div></div>';
   const tab = () => {
     const l = f();
-    gradeF($('#co-tab'), { dados: l, f: CLX.gfo = CLX.gfo || [], vazio: 'Nenhum orçamento nesta situação.', maxH: 520, clique: o => clinOrcAbrir(o.id), cols: [
+    gradeF($('#co-tab'), { dados: l, f: CLX.gfo = CLX.gfo || [], vazio: 'Nenhum orçamento nesta situação.', maxH: 520, clique: o => clinOrcAbrir(o.id, neg && ['encaminhado', 'salvo'].includes(o.status) ? 'neg' : 'orc'), cols: [
       { t: 'Paciente', v: o => o.paciente }, { t: 'Unidade', v: o => o.unidade }, { t: 'Serviços', r: 1, v: o => String(o.itens) }]
       .concat(neg ? [{ t: 'Total', r: 1, v: o => brl(o.total) }] : [])
       .concat([{ t: 'Situação', v: o => CLST[o.status][0], h: o => '<span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span>' }, { t: 'Atualizado', v: o => dBR(String(o.atualizado_em).slice(0, 10)) }]) });
@@ -3720,16 +3721,16 @@ function clinCfgTab(){
   });
 }
 /* ----- Orçamento (diálogo) ----- */
-const CLO = { o: null };
+const CLO = { o: null, modo: 'orc' };
 async function clinOrcDoPaciente(pid){
   const er0 = await clinGarante(); if (er0) { toast(erroTxt(er0)); return; }
   const r = await sb.rpc('clin_orc_criar', { p_paciente: pid }); if (r.error) { toast(erroTxt(r.error)); return; }
   clinOrcAbrir(r.data);
 }
-async function clinOrcAbrir(id){
+async function clinOrcAbrir(id, modo){
   const er0 = await clinGarante(); if (er0) { toast(erroTxt(er0)); return; }
   const r = await sb.rpc('clin_orc_obter', { p_id: id }); if (r.error) { toast(erroTxt(r.error)); return; }
-  CLO.o = r.data; CLX.sim = { entrada: '', modo: 'n', valor: '' }; await clinPlanoCarrega(); clinOrcDesenha();
+  CLO.o = r.data; CLO.modo = modo === 'neg' ? 'neg' : 'orc'; CLX.sim = { entrada: '', modo: 'n', valor: '' }; CLX.forma = ''; CLX.cartao = '1'; await clinPlanoCarrega(); clinOrcDesenha();
 }
 async function clinPlanoCarrega(){
   CLO.plano = null;
@@ -3856,12 +3857,64 @@ function clinAporteDialogo(o, pl, voltaFn){
     toast('Aporte lançado no caixa como mensalidade antecipada de clínico.'); volta();
   });
 }
+const FORMAS_NEG = [['pix', 'Pix'], ['debito', 'Débito'], ['dinheiro', 'Dinheiro'], ['credito', 'Cartão de crédito'], ['financiamento', 'Financiamento próprio']];
+const FORMA_TXT = { pix: 'Pix', debito: 'cartão de débito', dinheiro: 'dinheiro', credito: 'cartão de crédito', financiamento: 'financiamento próprio da clínica' };
+function clinCartaoTxt(){ const el = $('#fp-nt'); if (!el) return; const n = Number(CLX.cartao) || 1, t = clTotal(CLO.o); el.textContent = n + 'x de ' + brl(r2(t / n)) + ' no cartão (total ' + brl(t) + ')'; }
+function clinPagtoHtml(o){
+  return '<div class="card" style="margin:0"><div class="sec">Forma de pagamento</div><div class="tools" role="radiogroup" aria-label="Forma de pagamento" id="fp-g" style="margin:8px 0">'
+    + FORMAS_NEG.map(f => '<label style="display:inline-flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="fp" value="' + f[0] + '"' + (CLX.forma === f[0] ? ' checked' : '') + '> ' + f[1] + '</label>').join('') + '</div>'
+    + '<div id="fp-avista" hidden><p class="sub" style="margin:0">Pagamento à vista de <b>' + brl(clTotal(o)) + '</b>. O valor fica em aberto no financeiro do paciente e é recebido no caixa; os serviços são liberados ao receber.</p></div>'
+    + '<div id="fp-cartao" hidden><div class="tools" style="margin:0;align-items:end"><label class="field" for="fp-n" style="margin:0">Parcelas no cartão<select id="fp-n">' + Array.from({ length: 12 }, (_, k) => '<option value="' + (k + 1) + '"' + (String(k + 1) === String(CLX.cartao) ? ' selected' : '') + '>' + (k + 1) + 'x</option>').join('') + '</select></label><span class="sub" id="fp-nt"></span></div></div>'
+    + '<div id="fp-fin" hidden><p class="sub" style="margin:4px 0 10px">Juros de ' + nTxt(o.juros_mensal, 3) + '% ao mês. O tratamento é liberado aos poucos, conforme o total pago cobre o valor de cada serviço.</p>'
+    + '<div class="tools" style="margin:0;align-items:end"><label class="field" for="sm-e" style="margin:0">Entrada (R$)<input id="sm-e" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.entrada) + '" placeholder="0,00"></label>'
+    + '<label class="field" for="sm-m" style="margin:0">Simular por<select id="sm-m"><option value="n"' + (CLX.sim.modo === 'n' ? ' selected' : '') + '>Número de parcelas</option><option value="v"' + (CLX.sim.modo === 'v' ? ' selected' : '') + '>Valor da parcela</option></select></label>'
+    + '<label class="field" for="sm-v" style="margin:0"><span id="sm-vl">' + (CLX.sim.modo === 'n' ? 'Parcelas' : 'Parcela (R$)') + '</span><input id="sm-v" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.valor) + '"></label>'
+    + '<label class="field" for="sm-d" style="margin:0">Dia do vencimento<select id="sm-d">' + Array.from({ length: 28 }, (_, k) => '<option' + (k + 1 === 10 ? ' selected' : '') + '>' + (k + 1) + '</option>').join('') + '</select></label></div><div id="sm-out" style="margin-top:12px"></div></div></div>';
+}
+async function clinContratoAbrir(o, pl){
+  const w = window.open('', '_blank'); if (!w) { toast('O navegador bloqueou a janela. Libere pop-ups para este site e tente de novo.'); return; }
+  w.document.write('<p style="font:15px sans-serif;margin:32px">Gerando o contrato...</p>');
+  const [rp, ru] = await Promise.all([sb.from('pacientes').select('*').eq('id', o.paciente_id).single(), sb.from('unidades').select('*').eq('id', o.unidade_id).single()]);
+  if (rp.error || ru.error) { w.close(); toast(erroTxt(rp.error || ru.error)); return; }
+  if (!ru.data.cnpj) toast('Atenção: esta unidade ainda não tem CNPJ cadastrado. Preencha em Configurações › Unidades.');
+  w.document.open(); w.document.write(clinContratoHtml({ o: o, pl: pl, p: rp.data, u: ru.data })); w.document.close();
+}
+function clinContratoHtml(d){
+  const ORD = ['Primeira', 'Segunda', 'Terceira', 'Quarta', 'Quinta', 'Sexta'];
+  const o = d.o, pl = d.pl || {}, p = d.p, u = d.u, forma = pl.forma || 'financiamento', total = r2(o.itens.reduce((t, i) => t + i.valor_unit * i.qtd, 0));
+  const nome = esc(p.nome) + (p.nome_social ? ' (nome social: ' + esc(p.nome_social) + ')' : '');
+  const resp = p.resp_nome ? ', representado(a) por seu responsável legal <b>' + esc(p.resp_nome) + '</b>' + (p.resp_cpf ? ', CPF ' + mCpfTxt(p.resp_cpf) : '') : '';
+  const par = (pl.parcelas || []).filter(x => !x.aporte), ent = par.find(x => x.numero === 0), reg = par.filter(x => x.numero !== 0);
+  const itens = '<table class="it"><thead><tr><th>Serviço</th><th>Dente/região</th><th class="n">Qtd</th><th class="n">Valor unit.</th><th class="n">Subtotal</th></tr></thead><tbody>' + o.itens.map(i => '<tr><td>' + esc(i.servico) + '</td><td>' + esc(i.dente || '—') + '</td><td class="n">' + i.qtd + '</td><td class="n">' + brl(i.valor_unit) + '</td><td class="n">' + brl(r2(i.valor_unit * i.qtd)) + '</td></tr>').join('') + '<tr><td colspan="4"><b>Total</b></td><td class="n"><b>' + brl(total) + '</b></td></tr></tbody></table>';
+  let pg;
+  if (forma === 'financiamento') pg = ['O pagamento é feito por <b>financiamento próprio da CONTRATADA</b>' + (ent ? ', com entrada de <b>' + brl(ent.valor) + '</b> e' : ',') + ' <b>' + reg.length + ' parcela(s) mensais</b>' + (reg.length ? ' de <b>' + brl(reg[0].valor) + '</b>' + (reg.length > 1 && reg[reg.length - 1].valor !== reg[0].valor ? ' (a última de ' + brl(reg[reg.length - 1].valor) + ')' : '') : '') + ', com juros de ' + nTxt(pl.juros_mensal || 0, 3) + '% ao mês, vencendo todo dia <b>' + (pl.dia_venc || '') + '</b>.',
+    'Cada serviço é liberado para execução quando o total pago pelo CONTRATANTE alcançar o valor desse serviço, sem contar os juros, começando pelas limpezas. O cronograma de execução é informado pela CONTRATADA e pode ser reordenado por ela, mantida a regra de liberação.',
+    'A falta de pagamento de uma parcela suspende a liberação dos serviços ainda não executados até a regularização. Parcelas pagas após o vencimento sofrem multa de 2% (dois por cento) e juros de mora de 1% (um por cento) ao mês.',
+    'O CONTRATANTE pode antecipar valores (aporte) além da parcela do mês; o saldo é recalculado a valor presente e a CONTRATADA oferece a redução do valor da parcela ou do número de parcelas restantes.'];
+  else pg = ['O pagamento é feito <b>à vista</b>, no valor de <b>' + brl(total) + '</b>, por <b>' + FORMA_TXT[forma] + '</b>' + (forma === 'credito' ? ', em <b>' + pl.n_cartao + 'x</b> de ' + brl(r2(total / pl.n_cartao)) + ' no cartão' : '') + ', no ato da contratação.', 'Os serviços são liberados para execução após a confirmação do pagamento, conforme agendamento.'];
+  const cl = [['Objeto', ['O presente contrato tem por objeto a prestação de serviços odontológicos clínicos pela CONTRATADA, por meio de profissionais legalmente habilitados' + (o.dentista ? ' (dentista responsável: <b>' + esc(o.dentista) + '</b>)' : '') + ', conforme o plano de tratamento e o orçamento abaixo, aceito pelo CONTRATANTE.', itens, 'Os serviços são obrigação de meio e não de resultado: a evolução depende também da colaboração do CONTRATANTE, dos cuidados indicados e do comparecimento às consultas.']],
+    ['Valor e forma de pagamento', pg],
+    ['Execução e desistência', ['Os procedimentos são realizados na sede da CONTRATADA, em horário por ela divulgado e mediante prévio agendamento; faltas sem aviso podem exigir novo agendamento.', 'Em caso de desistência, o CONTRATANTE paga pelos serviços já executados e a CONTRATADA devolve, quando houver, o valor pago pelos serviços não executados, descontadas as despesas comprovadas.', 'O CONTRATANTE preenche e mantém atualizada a Ficha do Paciente (anamnese) e autoriza o tratamento dos seus dados pessoais para a prestação dos serviços, nos termos da LGPD.']]];
+  const corpo = cl.map((c, i) => '<h3>Cláusula ' + ORD[i] + ' — ' + c[0] + '</h3>' + (() => { let k = 0; return c[1].map(t => t.startsWith('<table') ? t : '<p><span class="nm">' + (i + 1) + '.' + (++k) + '</span> ' + t + '</p>').join(''); })()).join('');
+  const css = 'body{font:14px/1.55 Georgia,"Times New Roman",serif;color:#111;margin:0;background:#eee}.pg{max-width:800px;margin:0 auto;background:#fff;padding:40px 52px}.bar{max-width:800px;margin:0 auto;padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;font-family:sans-serif}.bar button{font:600 14px sans-serif;padding:9px 16px;border-radius:8px;border:0;background:#0b6b6b;color:#fff;cursor:pointer}'
+    + 'h1{font-size:19px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em}.sub{text-align:center;color:#555;margin:0 0 22px;font-size:13px}h3{font-size:14px;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.04em}p{margin:0 0 8px;text-align:justify}.nm{font-weight:700;margin-right:4px}.par{border:1px solid #bbb;border-radius:6px;padding:10px 14px;margin:0 0 10px}'
+    + '.it{width:100%;border-collapse:collapse;margin:4px 0 10px;font-size:13px}.it th,.it td{border:1px solid #bbb;padding:5px 8px;text-align:left}.it .n{text-align:right}.ass{display:grid;grid-template-columns:1fr 1fr;gap:34px 36px;margin-top:46px;page-break-inside:avoid}.ass div{border-top:1px solid #111;padding-top:6px;font-size:13px;text-align:center}.loc{margin-top:26px;text-align:center}@media print{body{background:#fff}.bar{display:none}.pg{padding:0}}';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contrato — ' + esc(p.nome) + '</title><style>' + css + '</style></head><body>'
+    + '<div class="bar"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><div class="pg">'
+    + '<h1>Contrato de prestação de serviços odontológicos</h1><p class="sub">Tratamento clínico · Orçamento nº ' + esc(o.id) + '</p>'
+    + '<div class="par"><b>CONTRATADA:</b> ' + esc(u.razao_social) + ', inscrita no CNPJ sob o nº <b>' + (u.cnpj ? mCnpj(u.cnpj) : '__.___.___/____-__') + '</b>, com sede em ' + esc(endTxt(u) || '—') + '.</div>'
+    + '<div class="par"><b>CONTRATANTE:</b> ' + nome + ', CPF ' + (p.cpf ? mCpfTxt(p.cpf) : '___.___.___-__') + (p.rg ? ', RG ' + esc(p.rg) : '') + (p.data_nascimento ? ', nascido(a) em ' + dBR(p.data_nascimento) : '') + ', residente em ' + esc(endTxt(p) || '—') + (p.telefone ? ', telefone ' + mTel(p.telefone) : '') + (p.email ? ', e-mail ' + esc(p.email) : '') + resp + '.</div>'
+    + '<p>As partes acima identificadas têm entre si justo e contratado o que segue, de acordo com as cláusulas abaixo.</p>' + corpo
+    + '<p class="loc">' + esc(u.cidade || '') + ', ' + dExt(pl.criado_em || hoje()) + '.</p>'
+    + '<div class="ass"><div>' + esc(p.nome) + '<br>CONTRATANTE' + (p.resp_nome ? '<br><small>Responsável: ' + esc(p.resp_nome) + '</small>' : '') + '</div><div>' + esc(u.razao_social) + '<br>CONTRATADA' + (u.cnpj ? '<br><small>CNPJ ' + mCnpj(u.cnpj) + '</small>' : '') + '</div>'
+    + '<div>Testemunha 1<br><small>Nome e CPF</small></div><div>Testemunha 2<br><small>Nome e CPF</small></div></div></div></body></html>';
+}
 const clTotal = o => r2(o.itens.reduce((s, i) => s + i.valor_unit * i.qtd, 0));
 function clinOrcDesenha(){
-  const o = CLO.o, neg = pode('clinico.negociar'), ind = pode('clinico.indicar') || neg, vv = neg && o.ver_valores !== false, edit = !['fechado', 'perdido'].includes(o.status), cust = pode('clinico.custos');
+  const o = CLO.o, negP = pode('clinico.negociar'), edit = !['fechado', 'perdido'].includes(o.status), mod = negP && CLO.modo === 'neg' && edit, neg = mod, ind = pode('clinico.indicar') || negP, vv = negP && o.ver_valores !== false && (mod || o.status === 'fechado'), cust = pode('clinico.custos');
   const servs = (CLX.cat.servicos || []).filter(s => s.ativo), esps = [...new Set(servs.map(s => s.especialidade || 'Outros'))].sort();
   const tot = vv ? clTotal(o) : 0, totTab = vv ? r2(o.itens.reduce((s, i) => s + i.valor_tabela * i.qtd, 0)) : 0;
-  abrirJanela('Orçamento clínico — ' + o.paciente, '<div class="db" id="oc-box">'
+  abrirJanela((mod ? 'Negociação — ' : 'Orçamento clínico — ') + o.paciente, '<div class="db" id="oc-box">'
     + '<div class="tools" style="margin:0;align-items:center"><span class="pill ' + CLST[o.status][1] + '">' + CLST[o.status][0] + '</span><span class="sub">' + (o.dentista ? 'Dentista: <b>' + esc(o.dentista) + '</b> · ' : '') + 'Criado por ' + esc(o.criado_por || '—') + ' em ' + dBR(String(o.criado_em).slice(0, 10)) + '</span></div>'
     + (o.itens.length ? '<div class="tw"><table class="tb"><thead><tr><th>Serviço</th><th>Dente/região</th><th class="n">Qtd</th>' + (vv ? '<th class="n">Tabela</th><th class="n">Valor negociado</th><th class="n">Subtotal</th>' : '') + '<th></th></tr></thead><tbody>'
       + o.itens.map(i => '<tr data-it="' + i.id + '"><td>' + esc(i.servico) + (vv && i.margem_ok === false ? '<br><small style="color:var(--red)">' + (i.margem != null ? 'Margem de ' + pctTxt(i.margem) + ', abaixo do mínimo de ' + nTxt(o.margem_min_pct, 2) + '%' + (i.preco_ideal != null ? '. Preço ideal: ' + brl(i.preco_ideal) : '') : 'Abaixo da margem mínima da clínica') + '</small>' : '') + (i.piso_autorizado != null ? '<br><small class="sub">Desconto autorizado por diretor' + (i.motivo ? ': ' + esc(i.motivo) : '') + '</small>' : '') + '</td><td>' + (ind && edit ? '<input data-dn aria-label="Dente ou região" maxlength="40" style="width:90px" value="' + esc(i.dente || '') + '">' : esc(i.dente || '—')) + '</td>'
@@ -3874,18 +3927,17 @@ function clinOrcDesenha(){
       + '<label class="field" for="oc-d" style="margin:0">Dente/região<input id="oc-d" maxlength="40" style="width:110px" placeholder="ex.: 16, 24"></label><label class="field" for="oc-q" style="margin:0">Qtd<input id="oc-q" inputmode="numeric" style="width:60px" value="1"></label><button class="btn sm" type="button" id="oc-add">Adicionar</button></div>' : '')
     + (!vv ? '' : '<div class="card" style="margin:0"><div class="kv"><span>Total de tabela</span><b>' + brl(totTab) + '</b><span>Total do orçamento</span><b>' + brl(tot) + '</b>' + (tot < totTab ? '<span>Desconto</span><b>' + brl(r2(totTab - tot)) + ' (' + nTxt((totTab - tot) / totTab * 100, 1) + '%)</b>' : '')
       + (cust && o.itens.length && o.itens.every(i => i.custo != null) ? '<span>Margem estimada</span><b>' + (tot > 0 ? nTxt((tot - o.itens.reduce((s, i) => s + i.custo * i.qtd, 0)) / tot * 100, 1) + '%' : '—') + '</b>' : '') + '</div></div>')
-    + (o.itens.length && vv ? '<div class="card" style="margin:0"><div class="sec">Simulador de financiamento</div><p class="sub" style="margin:4px 0 10px">Juros de ' + nTxt(o.juros_mensal, 3) + '% ao mês.</p>'
-      + '<div class="tools" style="margin:0;align-items:end"><label class="field" for="sm-e" style="margin:0">Entrada (R$)<input id="sm-e" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.entrada) + '" placeholder="0,00"></label>'
-      + '<label class="field" for="sm-m" style="margin:0">Simular por<select id="sm-m"><option value="n"' + (CLX.sim.modo === 'n' ? ' selected' : '') + '>Número de parcelas</option><option value="v"' + (CLX.sim.modo === 'v' ? ' selected' : '') + '>Valor da parcela</option></select></label>'
-      + '<label class="field" for="sm-v" style="margin:0"><span id="sm-vl">' + (CLX.sim.modo === 'n' ? 'Parcelas' : 'Parcela (R$)') + '</span><input id="sm-v" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.valor) + '"></label></div><div id="sm-out" style="margin-top:12px"></div>'
-      + (o.status === 'salvo' && neg ? '<div class="tools" style="margin:12px 0 0;align-items:end" id="sm-fx"><label class="field" for="sm-d" style="margin:0">Dia do vencimento<select id="sm-d">' + Array.from({ length: 28 }, (_, k) => '<option' + (k + 1 === 10 ? ' selected' : '') + '>' + (k + 1) + '</option>').join('') + '</select></label><button class="btn" type="button" id="oc-fechar">Fechar com financiamento próprio</button></div>' : '') + '</div>' : '')
+    + (o.itens.length && mod ? clinPagtoHtml(o) : '')
     + (o.status === 'fechado' && CLO.plano ? clinPlanoHtml(CLO.plano, ehGer()) : '')
     + '<div class="err" id="oc-err" role="alert"></div></div><div class="df" id="oc-df"></div>');
   const botoes = [];
-  if (edit && o.status === 'rascunho' && ind) botoes.push('<button class="btn" type="button" id="oc-enc">Encaminhar ao comercial</button>');
-  if (edit && neg && o.itens.length) botoes.push('<button class="btn" type="button" id="oc-salvar">Salvar orçamento</button>');
-  if (edit && neg) botoes.push('<button class="btn ghost" type="button" id="oc-perd">Paciente não fechou</button>');
+  if (edit && o.status === 'rascunho' && ind && !mod) botoes.push('<button class="btn" type="button" id="oc-enc">Encaminhar para negociação</button>');
+  if (edit && negP && !mod && o.itens.length) botoes.push('<button class="btn' + (o.status === 'rascunho' ? ' ghost' : '') + '" type="button" id="oc-neg">Negociar</button>');
+  if (mod && o.itens.length) botoes.push('<button class="btn" type="button" id="oc-conf">Confirmar negociação</button>');
+  if (mod) botoes.push('<button class="btn ghost" type="button" id="oc-voltar">Voltar ao orçamento</button>');
+  if (edit && negP) botoes.push('<button class="btn ghost" type="button" id="oc-perd">Paciente não fechou</button>');
   if (o.status === 'perdido' && ind) botoes.push('<button class="btn ghost" type="button" id="oc-reab">Reabrir</button>');
+  if (o.status === 'fechado' && negP) botoes.push('<button class="btn" type="button" id="oc-ctr">Contrato</button>');
   $('#oc-df').innerHTML = '<button class="btn ghost" type="button" id="oc-x">Fechar</button>' + botoes.join('');
   const er = t => { $('#oc-err').textContent = t || ''; };
   const rec = async () => { const r = await sb.rpc('clin_orc_obter', { p_id: o.id }); if (r.error) { er(erroTxt(r.error)); return; } CLO.o = r.data; await clinPlanoCarrega(); clinOrcDesenha(); };
@@ -3897,17 +3949,27 @@ function clinOrcDesenha(){
   $$('[data-qt]').forEach(i => i.addEventListener('change', async () => { if (await chama('clin_orc_item_set', { p_item: Number(i.closest('tr').dataset.it), p_qtd: Number(i.value) || 1 })) rec(); }));
   $$('[data-vl]').forEach(i => { i.addEventListener('input', e => e.target.value = mMoeda(e.target.value)); i.addEventListener('change', () => clinValor(i)); });
   if ($('#oc-enc')) $('#oc-enc').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'encaminhado' }, 'Orçamento encaminhado ao comercial.')) { fecharJanela(); if (ROTA === 'clinico') clinCarregar(); } });
-  if ($('#oc-salvar')) $('#oc-salvar').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'salvo' }, 'Orçamento salvo.')) { fecharJanela(); if (ROTA === 'clinico') clinCarregar(); } });
   if ($('#oc-perd')) $('#oc-perd').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'perdido' }, 'Orçamento marcado como não fechado.')) { fecharJanela(); if (ROTA === 'clinico') clinCarregar(); } });
   if ($('#oc-reab')) $('#oc-reab').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'rascunho' }, 'Orçamento reaberto.')) rec(); });
-  if ($('#oc-fechar')) $('#oc-fechar').addEventListener('click', async () => {
-    const sm = CLX.sim, ent = moedaNum(sm.entrada) || 0, val = sm.modo === 'n' ? numBR(sm.valor) : moedaNum(sm.valor);
-    if (val == null || !(val > 0)) { er('Informe o número de parcelas ou o valor da parcela no simulador.'); return; }
-    $('#oc-fechar').disabled = true;
-    const ok = await chama('clin_orc_fechar', { p_orc: o.id, p_entrada: ent, p_modo: sm.modo, p_valor: val, p_dia: Number($('#sm-d').value) }, 'Orçamento fechado. As parcelas foram lançadas no financeiro do paciente.');
-    if ($('#oc-fechar')) $('#oc-fechar').disabled = false;
-    if (ok) rec();
+  if ($('#oc-neg')) $('#oc-neg').addEventListener('click', () => { CLO.modo = 'neg'; clinOrcDesenha(); });
+  if ($('#oc-voltar')) $('#oc-voltar').addEventListener('click', () => { CLO.modo = 'orc'; clinOrcDesenha(); });
+  if ($('#oc-ctr')) $('#oc-ctr').addEventListener('click', () => clinContratoAbrir(CLO.o, CLO.plano));
+  if ($('#oc-conf')) $('#oc-conf').addEventListener('click', async () => {
+    const forma = CLX.forma; if (!forma) { er('Escolha a forma de pagamento.'); return; }
+    const args = { p_orc: o.id, p_forma: forma };
+    if (forma === 'credito') args.p_cartao = Number($('#fp-n').value) || 1;
+    if (forma === 'financiamento') {
+      const sm = CLX.sim, ent = moedaNum(sm.entrada) || 0, val = sm.modo === 'n' ? numBR(sm.valor) : moedaNum(sm.valor);
+      if (val == null || !(val > 0)) { er('Informe o número de parcelas ou o valor da parcela do financiamento.'); return; }
+      Object.assign(args, { p_entrada: ent, p_modo: sm.modo, p_valor: val, p_dia: Number($('#sm-d').value) });
+    }
+    $('#oc-conf').disabled = true;
+    const ok = await chama('clin_neg_confirmar', args, 'Negociação confirmada. O valor foi lançado no financeiro do paciente. Use o botão Contrato para imprimir.');
+    if ($('#oc-conf')) $('#oc-conf').disabled = false;
+    if (ok) { CLO.modo = 'orc'; rec(); }
   });
+  if ($('#fp-g')) { const mostra = () => { CLX.forma = ($('#fp-g input:checked') || {}).value || ''; $('#fp-cartao').hidden = CLX.forma !== 'credito'; $('#fp-fin').hidden = CLX.forma !== 'financiamento'; $('#fp-avista').hidden = !['pix', 'debito', 'dinheiro'].includes(CLX.forma); clinCartaoTxt(); };
+    $$('#fp-g input').forEach(x => x.addEventListener('change', mostra)); $('#fp-n').addEventListener('change', e => { CLX.cartao = e.target.value; clinCartaoTxt(); }); mostra(); clinCartaoTxt(); }
   if (CLO.plano && o.status === 'fechado') planoLiga(CLO.plano, { o: o, chama: chama, rec: rec, volta: () => clinOrcAbrir(o.id) });
   if ($('#sm-e')) {
     const sim = () => {
