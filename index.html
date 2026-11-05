@@ -346,10 +346,15 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 @media(min-width:1001px) and (min-height:600px){.dsx:not(.com-mapa) .dk{padding:11px 14px}.dsx:not(.com-mapa) .dk.hero svg{width:72px;height:72px}.dsx:not(.com-mapa) .big{font-size:28px;margin:4px 0}.dsx:not(.com-mapa) .big.or{font-size:26px}.dsx:not(.com-mapa) .cols{height:64px;margin-top:6px}.dsx:not(.com-mapa) .dk .v{margin:6px 0 4px}.dsx:not(.com-mapa) .dk .v b{font-size:22px}.dsx:not(.com-mapa) .cmp div{margin-top:3px;font-size:11px}.dsx:not(.com-mapa) .dgrid{gap:10px}.dsx:not(.com-mapa) .dkh h3{font-size:18px}.dsx:not(.com-mapa) #dm-sx,.dsx #dm-sx{margin-top:10px}}
 @media(min-width:1001px) and (min-height:600px) and (max-height:820px){.dsx:not(.com-mapa) .dnota{display:none}}
 @media(min-width:1001px) and (min-height:600px) and (max-height:740px){.dsx:not(.com-mapa) .dk.hero svg{width:56px;height:56px}.dsx:not(.com-mapa) .cols{height:44px}.dsx:not(.com-mapa) .big{font-size:24px}.dsx:not(.com-mapa) .dk{padding:8px 12px}.dsx:not(.com-mapa) .dkh{margin-bottom:4px}.dk.sx{padding:8px 12px}.dsx:not(.com-mapa) .dk .v{margin:3px 0 2px}.dsx:not(.com-mapa) .cmp div{margin-top:1px}}
-.tl{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px}.tl-g{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;min-width:150px;max-width:210px}
-.tl-h{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.tl-c{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}
-.tl-c.lib{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.tl-c.ok{opacity:.65}.tl-c small{color:var(--muted)}.tl-b{display:flex;gap:4px;flex-wrap:wrap}
+.tl2{overflow-x:auto;padding:6px 0 10px}.tl2-in{position:relative;height:250px}
+.tl2-l{position:absolute;left:0;top:124px;height:4px;width:100%;border-radius:2px;background:var(--line)}.tl2-l.on{background:linear-gradient(90deg,var(--accent),#2fd6c4);box-shadow:0 0 10px var(--accent)}
+.tl2-p{position:absolute;top:0;height:250px;touch-action:none}.tl2-d{position:absolute;left:50%;top:116px;width:20px;height:20px;margin-left:-10px;border-radius:50%;border:3px solid var(--accent);background:var(--surface);padding:0;cursor:default;z-index:2}
+.tl2-d[data-drag]{cursor:grab}.tl2-d.lib{background:var(--accent);box-shadow:0 0 0 5px var(--accent-soft),0 0 12px var(--accent)}.tl2-d.ok{background:#2fb344;border-color:#2fb344}.tl2-d.esp{border-color:var(--muted)}
+.tl2-p.arr{z-index:5}.tl2-p.arr .tl2-d{cursor:grabbing;transform:scale(1.25)}.tl2-d:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.tl2-t{position:absolute;left:4px;right:4px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;font-size:12px;line-height:1.25}.tl2-t small{color:var(--muted)}
+.tl2-p.c .tl2-t{bottom:140px;justify-content:flex-end}.tl2-p.b .tl2-t{top:142px}
+.tl2-p::before{content:"";position:absolute;left:50%;width:1px;background:var(--line)}.tl2-p.c::before{top:100px;height:16px}.tl2-p.b::before{top:136px;height:16px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:22px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;cursor:pointer;color:var(--muted)}.drop b{color:var(--ink)}.drop:hover,.drop.sobre,.drop:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
 </style>
 </head>
 <body>
@@ -622,13 +627,15 @@ const MENU = [
   { g: 'Financeiro', ic: 'financeiro', itens: [
     { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] },
     { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
+    { r: 'fin-prop', t: 'Financiamento próprio', p: 'financeiro.ver' },
+    { r: 'fin-prev', t: 'Previsão de recebimento', p: 'financeiro.ver' },
     { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] } ] },
   { g: 'Pacientes', ic: 'prospects', itens: [
     { r: 'documentacao', t: 'Documentação', p: 'documentacao.ver' },
     { r: 'prospects', t: 'Pacientes e prospects', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -720,7 +727,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
-  ['0.44.0', '2026-11-05', 'Prospect é cadastrado na clínica atual e, no canal Promotor, escolhe-se o promotor da clínica. Orçamento clínico: fechamento com financiamento próprio (entrada, parcelas e dia do vencimento), linha do tempo de execução (cada serviço é liberado quando o total pago cobre o valor, limpezas primeiro, gerente/diretor movem antes ou depois) e aporte mensal (valor presente do saldo, baixar parcela ou prazo, entra no caixa como mensalidade antecipada de clínico).'],
+  ['0.44.0', '2026-11-05', 'Prospect é cadastrado na clínica atual e, no canal Promotor, escolhe-se o promotor da clínica. Orçamento clínico: fechamento com financiamento próprio (entrada, parcelas e dia do vencimento), linha do tempo de execução (cada serviço é liberado quando o total pago cobre o valor, limpezas primeiro, gerente/diretor movem antes ou depois) e aporte mensal (valor presente do saldo, baixar parcela ou prazo, entra no caixa como mensalidade antecipada de clínico). A linha do tempo é uma linha com bolinhas que se arrastam. Financeiro ganhou Financiamento próprio (lista de pacientes, plano, recebimento, aporte e cancelar/finalizar pelo Diretor) e Previsão de recebimento. Documentação: importar só pede tipo e momento e aceita arrastar, colar e procurar arquivos.'],
   ['0.43.0', '2026-11-05', 'Procedimentos clínicos: o valor mínimo é calculado pelo sistema (materiais, impostos, cartão, comissões e margem desejada) e só o diretor altera o valor de venda, nunca abaixo do mínimo.'],
   ['0.42.0', '2026-11-05', 'Clínico virou grupo no menu lateral (Orçamentos, Procedimentos clínicos, Materiais, Compras, Configuração). Venda e cobrança valem só para a ortodontia. Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
   ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
@@ -828,7 +835,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'fin-prop', 'fin-prev', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -848,6 +855,8 @@ function abrirRota(r, o){
   if (r === 'vendas') return vdCarregar();
   if (r === 'financeiro') return finCarregar();
   if (r === 'cobranca') return cobCarregar();
+  if (r === 'fin-prop') return finPropCarregar();
+  if (r === 'fin-prev') return finPrevCarregar();
   if (r === 'comunicacao') return waCarregar();
   if (r === 'clinico' || r.startsWith('clin-')) return clinCarregar(r);
   if (r === 'caixa') return caixaCarregar();
@@ -1949,6 +1958,74 @@ function denForm(d){
 }
 
 
+/* ---------- FINANCEIRO: gestão do financiamento próprio (clínico) ---------- */
+const FP = { f: [], q: '', fp: [], st: '', de: '', ate: '' };
+async function finPropCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Financiamento próprio'); return; }
+  const r = await sb.rpc('clin_planos_listar', { p_unidade: UN });
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  D.planos = r.data || [];
+  const tot = D.planos.filter(x => x.status === 'ativo');
+  $('#area').innerHTML = '<div class="head"><div><h1>Financiamento próprio</h1><p class="sub">Pacientes que financiam o tratamento clínico com a clínica. Clique para ver o plano de pagamento e execução, receber parcelas e registrar aportes.</p></div></div>'
+    + '<div class="card"><div class="tools"><b>' + tot.length + '</b> plano(s) ativo(s) · a receber <b>' + brl(r2(tot.reduce((s, x) => s + x.a_receber, 0))) + '</b> · em atraso <b>' + tot.filter(x => x.atrasadas > 0).length + '</b> paciente(s)</div><div id="fp-lista"></div></div>';
+  gradeF($('#fp-lista'), { dados: D.planos, f: FP.f, vazio: 'Nenhum paciente com financiamento próprio ainda. O financiamento nasce ao fechar um orçamento clínico.', maxH: 560, clique: x => finPropAbre(x), cols: [
+    { t: 'Paciente', v: x => x.paciente },
+    { t: 'Situação', v: x => ({ ativo: 'Ativo', quitado: 'Finalizado', cancelado: 'Cancelado' })[x.status], h: x => '<span class="pill ' + (x.status === 'ativo' ? (x.atrasadas ? 'off' : 'on') : 'wr') + '">' + ({ ativo: x.atrasadas ? 'Em atraso' : 'Ativo', quitado: 'Finalizado', cancelado: 'Cancelado' })[x.status] + '</span>' },
+    { t: 'Fechado em', v: x => dBR(String(x.criado_em).slice(0, 10)) },
+    { t: 'Total', n: 1, v: x => brl(x.total), k: x => x.total, soma: x => x.total },
+    { t: 'Pago', n: 1, v: x => brl(x.pago), k: x => x.pago, soma: x => x.pago },
+    { t: 'A receber', n: 1, v: x => brl(x.a_receber), k: x => x.a_receber, soma: x => x.a_receber },
+    { t: 'Parcelas abertas', r: 1, v: x => String(x.abertas) },
+    { t: 'Próximo vencimento', v: x => x.proximo ? dBR(String(x.proximo)) : '—' },
+    { t: 'Serviços feitos', r: 1, v: x => x.feitos + ' de ' + x.servicos }] });
+}
+async function finPropAbre(x){
+  const carrega = async () => {
+    const r = await sb.rpc('clin_plano_obter', { p_orc: x.orcamento_id }); if (r.error) { toast(erroTxt(r.error)); return; }
+    const pl = r.data, o = { id: x.orcamento_id, paciente: x.paciente };
+    abrirJanela('Financiamento próprio — ' + x.paciente, '<div class="db" id="oc-box">' + clinPlanoHtml(pl, ehGer(), { baixa: pode('financeiro.baixar'), enc: true }) + '<div class="err" id="oc-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="oc-x">Fechar</button></div>');
+    $('#oc-x').addEventListener('click', () => { fecharJanela(); finPropCarregar(); });
+    const er = t => { $('#oc-err').textContent = t || ''; };
+    const chama = async (fn, args, ok) => { er(''); const rr = await sb.rpc(fn, args); if (rr.error) { er(erroTxt(rr.error)); await carrega(); return false; } if (ok) toast(ok); return true; };
+    planoLiga(pl, { o: o, chama: chama, rec: carrega, volta: carrega });
+  };
+  await carrega();
+}
+/* ---------- FINANCEIRO: previsão de recebimento do financiamento próprio ---------- */
+async function finPrevCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Previsão de recebimento'); return; }
+  const h = hoje(), ini = h.slice(0, 7), de = FP.de || iso(new Date(Number(h.slice(0, 4)), Number(h.slice(5, 7)) - 4, 1)).slice(0, 7), ate = FP.ate || iso(new Date(Number(h.slice(0, 4)), Number(h.slice(5, 7)) + 11, 1)).slice(0, 7);
+  FP.de = de; FP.ate = ate;
+  const r = await sb.rpc('clin_previsao', { p_unidade: UN, p_de: de + '-01', p_ate: ate + '-01' });
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  D.prev = (r.data && r.data.parcelas) || [];
+  const meses = {}; D.prev.forEach(x => { const m = String(x.vencimento).slice(0, 7); const o = meses[m] = meses[m] || { mes: m, previsto: 0, recebido: 0, aberto: 0, atraso: 0 };
+    o.previsto += x.valor; o.recebido += x.pago; o.aberto += x.status === 'aberta' ? r2(x.valor - x.pago) : 0; o.atraso += x.atraso ? r2(x.valor - x.pago) : 0; });
+  const ml = Object.values(meses).sort((a, b) => a.mes < b.mes ? -1 : 1), som = k => r2(ml.reduce((s, m) => s + m[k], 0));
+  const mesTxt = m => MES_ABR[Number(m.slice(5, 7)) - 1] + '/' + m.slice(0, 4);
+  $('#area').innerHTML = '<div class="head"><div><h1>Previsão de recebimento</h1><p class="sub">Parcelas do financiamento próprio por mês de vencimento: o que estava previsto, o que já foi recebido e o que falta. A cobrança da ortodontia fica na tela Cobrança.</p></div></div>'
+    + '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="pv-de" style="margin:0">De<input id="pv-de" type="month" value="' + de + '"></label><label class="field" for="pv-ate" style="margin:0">Até<input id="pv-ate" type="month" value="' + ate + '"></label></div>'
+    + '<div class="kv" style="margin-top:10px"><span>Previsto no período</span><b>' + brl(som('previsto')) + '</b><span>Recebido</span><b>' + brl(som('recebido')) + '</b><span>A receber</span><b>' + brl(som('aberto')) + '</b><span>Em atraso</span><b>' + brl(som('atraso')) + '</b></div></div>'
+    + '<div class="card"><div class="sec">Por mês</div><div id="pv-meses"></div></div><div class="card"><div class="sec">Parcelas</div><div id="pv-par"></div></div>';
+  gradeF($('#pv-meses'), { dados: ml, f: FP.fm = FP.fm || [], vazio: 'Nenhuma parcela de financiamento próprio neste período.', maxH: 340, cols: [
+    { t: 'Mês', v: m => mesTxt(m.mes) }, { t: 'Previsto', n: 1, v: m => brl(m.previsto), k: m => m.previsto, soma: m => m.previsto }, { t: 'Recebido', n: 1, v: m => brl(m.recebido), k: m => m.recebido, soma: m => m.recebido },
+    { t: 'A receber', n: 1, v: m => brl(m.aberto), k: m => m.aberto, soma: m => m.aberto }, { t: 'Em atraso', n: 1, v: m => brl(m.atraso), k: m => m.atraso, soma: m => m.atraso }] });
+  const stx = x => x.status === 'paga' ? 'Paga' : x.atraso ? 'Em atraso' : x.pago > 0 ? 'Parcial' : 'A vencer';
+  gradeF($('#pv-par'), { dados: D.prev, f: FP.fp = FP.fp || [], vazio: 'Nenhuma parcela neste período.', maxH: 520, cols: [
+    { t: 'Vencimento', v: x => dBR(String(x.vencimento)) }, { t: 'Paciente', v: x => x.paciente }, { t: 'Parcela', v: x => x.descricao },
+    { t: 'Valor', n: 1, v: x => brl(x.valor), k: x => x.valor, soma: x => x.valor }, { t: 'Recebido', n: 1, v: x => brl(x.pago), k: x => x.pago, soma: x => x.pago },
+    { t: 'Situação', v: stx, h: x => '<span class="pill ' + (x.status === 'paga' ? 'on' : x.atraso ? 'off' : 'wr') + '">' + stx(x) + '</span>' }] });
+  const muda = () => { FP.de = $('#pv-de').value || de; FP.ate = $('#pv-ate').value || ate; FP.fm = []; FP.fp = []; finPrevCarregar(); };
+  $('#pv-de').addEventListener('change', muda); $('#pv-ate').addEventListener('change', muda);
+}
 /* ---------- PACIENTES: prospects ---------- */
 const PAC = { q: '', canal: '', st: '', de: '', ate: '' }, CANAIS = ['Promotor', 'Tele', 'Indicação', 'Espontâneo', 'Lead Internet'];
 const dtHora = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' + d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }); };
@@ -2480,22 +2557,36 @@ async function docPaciente(box, p){
   grade();
   $('#dc-fil').addEventListener('change', e => { fil = e.target.value; grade(); });
   const imp = $('#dc-imp'); if (imp) imp.addEventListener('click', () => {
-    const tiposHtml = c => DOC_TIPOS[c].map(t => '<option value="' + t[0] + '">' + t[1] + '</option>').join('');
+    const TIPO_GEN = { extra: 'livre', intra: 'livre', raiox: 'rx_outro', outro: 'livre' };
+    let fs = [];
     abrirJanela('Importar arquivos', '<form id="di-form" novalidate><div class="db"><div class="g2"><label class="field" for="di-cat">Tipo de documento<select id="di-cat">' + Object.keys(DOC_CAT).map(c => '<option value="' + c + '">' + DOC_CAT[c] + '</option>').join('') + '</select></label>'
-      + '<label class="field" for="di-tipo">Posição<select id="di-tipo">' + tiposHtml('extra') + '</select></label></div>'
-      + '<div class="g2"><label class="field" for="di-mom">Momento do tratamento<select id="di-mom">' + Object.keys(DOC_MOM).map(k => '<option value="' + k + '">' + DOC_MOM[k] + '</option>').join('') + '</select></label>'
-      + '<label class="field" for="di-arq">Arquivos<input id="di-arq" type="file" multiple accept="image/*,application/pdf"></label></div>'
-      + '<p class="sub" style="margin:0">Fotos grandes são reduzidas automaticamente. Até 15 MB por arquivo (JPG, PNG, WEBP ou PDF). Para fotografar com o celular, use o app de fotos.</p><div class="err" id="di-err" role="alert"></div><p class="sub" id="di-prog" role="status"></p></div>'
+      + '<label class="field" for="di-mom">Momento do tratamento<select id="di-mom">' + Object.keys(DOC_MOM).map(k => '<option value="' + k + '">' + DOC_MOM[k] + '</option>').join('') + '</select></label></div>'
+      + '<div id="di-drop" class="drop" tabindex="0" role="button" aria-label="Arraste os arquivos, cole ou clique para procurar"><b>Arraste os arquivos até aqui</b><span>ou cole (Ctrl+V) uma imagem · ou <u>procure no computador</u></span></div>'
+      + '<input id="di-arq" type="file" multiple accept="image/*,application/pdf" hidden><div id="di-lista" class="sub"></div>'
+      + '<p class="sub" style="margin:0">Fotos grandes são reduzidas automaticamente. Até 15 MB por arquivo (JPG, PNG, WEBP ou PDF).</p><div class="err" id="di-err" role="alert"></div><p class="sub" id="di-prog" role="status"></p></div>'
       + '<div class="df"><button class="btn ghost" type="button" id="di-x">Cancelar</button><button class="btn" type="submit" id="di-ok">Enviar</button></div></form>');
-    $('#di-x').addEventListener('click', fecharJanela);
-    $('#di-cat').addEventListener('change', e => { $('#di-tipo').innerHTML = tiposHtml(e.target.value); });
+    const lista = () => { $('#di-lista').innerHTML = fs.length ? fs.map((f, i) => '<span class="pill on" style="margin:2px 4px 2px 0">' + esc(f.name || 'imagem colada') + ' <button type="button" data-rf="' + i + '" aria-label="Remover" style="all:unset;cursor:pointer">×</button></span>').join('') : '';
+      $$('#di-lista [data-rf]').forEach(x => x.addEventListener('click', () => { fs.splice(Number(x.dataset.rf), 1); lista(); })); };
+    const add = l => { Array.from(l || []).forEach(f => { if (/^image\//.test(f.type) || f.type === 'application/pdf' || /\.(heic|heif|pdf)$/i.test(f.name || '')) fs.push(f); }); lista(); };
+    const drop = $('#di-drop');
+    drop.addEventListener('click', () => $('#di-arq').click());
+    drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#di-arq').click(); } });
+    $('#di-arq').addEventListener('change', e => { add(e.target.files); e.target.value = ''; });
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('sobre'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('sobre'); }));
+    drop.addEventListener('drop', e => add(e.dataTransfer && e.dataTransfer.files));
+    const cola = e => { const it = Array.from((e.clipboardData && e.clipboardData.files) || []); if (it.length) { e.preventDefault(); add(it); } };
+    $('#di-form').addEventListener('paste', cola); document.addEventListener('paste', cola);
+    const sai = () => document.removeEventListener('paste', cola);
+    $('#dlg').addEventListener('close', sai, { once: true });
+    $('#di-x').addEventListener('click', () => { sai(); fecharJanela(); });
     $('#di-form').addEventListener('submit', async e => {
-      e.preventDefault(); const er = $('#di-err'); er.textContent = ''; const fs = Array.from($('#di-arq').files || []);
+      e.preventDefault(); const er = $('#di-err'); er.textContent = '';
       if (!fs.length) { er.textContent = 'Escolha ao menos um arquivo.'; return; }
       const b = $('#di-ok'); b.disabled = true;
-      const x = await docEnviar(p, fs, { categoria: $('#di-cat').value, tipo: $('#di-tipo').value, momento: $('#di-mom').value }, (n, t) => { $('#di-prog').textContent = 'Enviando ' + n + ' de ' + t + '…'; });
+      const x = await docEnviar(p, fs.slice(), { categoria: $('#di-cat').value, tipo: TIPO_GEN[$('#di-cat').value], momento: $('#di-mom').value }, (n, t) => { $('#di-prog').textContent = 'Enviando ' + n + ' de ' + t + '…'; });
       b.disabled = false; if (x.erros.length) { er.textContent = x.erros[0] + (x.ok ? ' (' + x.ok + ' enviado(s) com sucesso)' : ''); if (x.ok) docPaciente(box, p); return; }
-      fecharJanela(); toast(x.ok + ' arquivo(s) enviado(s).'); docPaciente(box, p);
+      sai(); fecharJanela(); toast(x.ok + ' arquivo(s) enviado(s).'); docPaciente(box, p);
     });
   });
 }
@@ -3569,35 +3660,91 @@ async function clinPlanoCarrega(){
 }
 const MES_ABR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const mesAbr = iso => MES_ABR[Number(String(iso).slice(5, 7)) - 1] + '/' + String(iso).slice(0, 4);
-/* linha do tempo de execução: serviços na ordem do plano, agrupados por quando ficam liberados */
-function clinLinhaTempo(pl, pode_mover, pode_marcar){
-  const its = pl.itens || [], grupos = [];
-  its.forEach((i, ix) => {
-    const rot = i.executado_em ? 'Executado' : i.liberado ? 'Liberado agora' : i.previsto ? 'Previsto ' + mesAbr(i.previsto) : 'Aguardando pagamento';
-    let g = grupos[grupos.length - 1];
-    if (!g || g.rot !== rot) { g = { rot: rot, l: [] }; grupos.push(g); }
-    g.l.push([i, ix]);
-  });
-  return '<div class="tl" id="tl-box">' + grupos.map(g => '<div class="tl-g"><div class="tl-h">' + esc(g.rot) + '</div>' + g.l.map(([i, ix]) =>
-    '<div class="tl-c ' + (i.executado_em ? 'ok' : i.liberado ? 'lib' : '') + '" data-ex="' + i.id + '"><b>' + esc(i.nome) + '</b>' + (i.dente ? '<small>' + esc(i.dente) + '</small>' : '')
-    + (i.executado_em ? '<small>Feito em ' + dBR(String(i.executado_em).slice(0, 10)) + (i.executado_por ? ' · ' + esc(i.executado_por) : '') + '</small>' : '')
-    + '<span class="tl-b">' + (pode_mover && !i.executado_em ? '<button class="btn ghost sm" type="button" data-mv="-1" aria-label="Antecipar">◀</button><button class="btn ghost sm" type="button" data-mv="1" aria-label="Adiar">▶</button>' : '')
-    + (pode_marcar && i.liberado && !i.executado_em ? '<button class="btn sm" type="button" data-feito="1">Marcar feito</button>' : '') + '</span></div>').join('') + '</div>').join('') + '</div>';
+/* linha do tempo de execução: uma linha com bolinhas (uma por serviço) que o gestor arrasta para antecipar ou adiar */
+const TL_W = 132;
+function clinLinhaTempo(pl, mover, marcar){
+  const its = pl.itens || [], n = its.length, ult = its.reduce((m, i, ix) => (i.liberado || i.executado_em) ? ix : m, -1);
+  const w = Math.max(n * TL_W, 320), ate = ult < 0 ? 0 : (ult + .5) * TL_W;
+  return '<div class="tl2" id="tl-box"><div class="tl2-in" style="width:' + w + 'px"><div class="tl2-l"></div><div class="tl2-l on" style="width:' + ate + 'px"></div>'
+    + its.map((i, ix) => {
+      const st = i.executado_em ? 'ok' : i.liberado ? 'lib' : 'esp', cima = ix % 2 === 0;
+      const rot = i.executado_em ? 'Feito em ' + dBR(String(i.executado_em).slice(0, 10)) : i.liberado ? 'Liberado agora' : i.previsto ? 'Previsto ' + mesAbr(i.previsto) : 'Aguardando pagamento';
+      return '<div class="tl2-p ' + (cima ? 'c' : 'b') + '" style="left:' + (ix * TL_W) + 'px;width:' + TL_W + 'px" data-ex="' + i.id + '" data-ix="' + ix + '">'
+        + '<div class="tl2-t"><b>' + esc(i.nome) + '</b>' + (i.dente ? '<small>' + esc(i.dente) + '</small>' : '') + '<small>' + esc(rot) + (i.executado_por ? ' · ' + esc(i.executado_por) : '') + '</small>'
+        + (marcar && i.liberado && !i.executado_em ? '<button class="btn sm" type="button" data-feito="1">Marcar feito</button>' : '') + '</div>'
+        + '<button type="button" class="tl2-d ' + st + '"' + (mover && !i.executado_em ? ' data-drag="1" aria-label="Mover ' + esc(i.nome) + ' (arraste ou use as setas)"' : ' aria-label="' + esc(i.nome) + '"') + '></button></div>';
+    }).join('') + '</div></div>';
 }
-function clinPlanoHtml(pl, ger){
-  const par = (pl.parcelas || []).filter(x => !x.aporte), ap = (pl.parcelas || []).filter(x => x.aporte), ab = par.filter(x => x.status === 'aberta');
-  const val = pl.total != null;
+/* arrastar as bolinhas: ao soltar, o servidor reposiciona o serviço */
+function clinTlArrasta(box, aoMover){
+  box.querySelectorAll('[data-drag]').forEach(d => {
+    const el = d.closest('[data-ex]'), ix = Number(el.dataset.ix), n = box.querySelectorAll('[data-ex]').length;
+    let x0 = null, dx = 0;
+    const alvo = () => Math.max(0, Math.min(n - 1, Math.round(ix + dx / TL_W)));
+    d.addEventListener('pointerdown', e => { x0 = e.clientX; dx = 0; d.setPointerCapture(e.pointerId); el.classList.add('arr'); e.preventDefault(); });
+    d.addEventListener('pointermove', e => { if (x0 == null) return; dx = e.clientX - x0; el.style.transform = 'translateX(' + dx + 'px)'; });
+    const fim = e => { if (x0 == null) return; const t = alvo(); x0 = null; el.classList.remove('arr'); el.style.transform = ''; if (t !== ix) aoMover(Number(el.dataset.ex), t + 1); };
+    d.addEventListener('pointerup', fim); d.addEventListener('pointercancel', () => { x0 = null; el.classList.remove('arr'); el.style.transform = ''; });
+    d.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); const t = ix + (e.key === 'ArrowLeft' ? -1 : 1); if (t >= 0 && t < n) aoMover(Number(el.dataset.ex), t + 1); } });
+  });
+}
+function clinPlanoHtml(pl, ger, ops){
+  ops = ops || {};
+  const par = (pl.parcelas || []).filter(x => !x.aporte), ab = par.filter(x => x.status === 'aberta');
+  const val = pl.total != null, dir = ehDir();
+  const sit = { ativo: 'Ativo', quitado: 'Finalizado', cancelado: 'Cancelado' }[pl.status] || pl.status;
   return '<div class="card" style="margin:0" id="oc-plano"><div class="sec">Plano de pagamento e execução</div>'
-    + (val ? '<div class="kv"><span>Valor do tratamento</span><b>' + brl(pl.total) + '</b><span>Entrada</span><b>' + brl(pl.entrada) + '</b><span>Total já pago</span><b>' + brl(pl.pago) + '</b><span>Parcelas em aberto</span><b>' + ab.length + (ab.length ? ' · próxima em ' + dBR(String(ab[0].vencimento)) : '') + '</b>'
-      + (pl.status === 'quitado' ? '<span>Situação</span><b>Quitado</b>' : '') + '</div>' : '<p class="sub" style="margin:4px 0">Pagamento do paciente: ' + (pl.status === 'quitado' ? 'quitado' : 'em andamento') + '.</p>')
-    + '<p class="sub" style="margin:10px 0 6px">Cada serviço é liberado quando o total pago cobre o valor dele. As limpezas vêm primeiro.' + (ger ? ' Use as setas para antecipar ou adiar um serviço.' : '') + '</p>'
-    + clinLinhaTempo(pl, ger && pl.status !== 'cancelado', true)
-    + (ger && pl.status === 'ativo' ? '<div class="tools" style="margin:12px 0 0"><button class="btn" type="button" id="pl-aporte">Registrar aporte</button><span class="sub">Pagamento extra além da mensalidade: abate o saldo e refaz as parcelas.</span></div>' : '')
-    + (val ? '<details style="margin-top:10px"><summary>Parcelas do plano</summary><div class="tw" style="max-height:240px;margin-top:8px"><table class="tb"><thead><tr><th>Descrição</th><th>Vencimento</th><th class="n">Valor</th><th>Situação</th></tr></thead><tbody>'
-      + (pl.parcelas || []).map(x => '<tr><td>' + esc(x.descricao) + '</td><td>' + dBR(String(x.vencimento)) + '</td><td class="n">' + brl(x.valor) + '</td><td>' + (x.status === 'paga' ? 'Paga' : x.pago > 0 ? 'Parcial' : 'Em aberto') + '</td></tr>').join('') + '</tbody></table></div></details>' : '')
+    + (val ? '<div class="kv"><span>Situação</span><b>' + sit + '</b><span>Valor do tratamento</span><b>' + brl(pl.total) + '</b><span>Entrada</span><b>' + brl(pl.entrada) + '</b><span>Total já pago</span><b>' + brl(pl.pago) + '</b><span>Parcelas em aberto</span><b>' + ab.length + (ab.length ? ' · próxima em ' + dBR(String(ab[0].vencimento)) : '') + '</b></div>'
+      : '<p class="sub" style="margin:4px 0">Pagamento do paciente: ' + sit.toLowerCase() + '.</p>')
+    + '<p class="sub" style="margin:10px 0 6px">Cada serviço é liberado quando o total pago cobre o valor dele. As limpezas vêm primeiro.' + (ger && pl.status === 'ativo' ? ' Arraste uma bolinha para antecipar ou adiar o serviço.' : '') + '</p>'
+    + clinLinhaTempo(pl, ger && pl.status === 'ativo', pl.status !== 'cancelado')
+    + '<div class="tools" style="margin:12px 0 0">' + (ger && pl.status === 'ativo' ? '<button class="btn" type="button" id="pl-aporte">Registrar aporte</button>' : '') + (ops.enc && dir && pl.status === 'ativo' ? '<button class="btn ghost" type="button" id="pl-enc">Cancelar ou finalizar…</button>' : '') + '</div>'
+    + (val ? '<details style="margin-top:10px"' + (ops.baixa ? ' open' : '') + '><summary>Parcelas do plano</summary><div class="tw" style="max-height:260px;margin-top:8px"><table class="tb" id="pl-par"><thead><tr><th>Descrição</th><th>Vencimento</th><th class="n">Valor</th><th class="n">Pago</th><th>Situação</th><th></th></tr></thead><tbody>'
+      + (pl.parcelas || []).map(x => '<tr data-pc="' + x.id + '"><td>' + esc(x.descricao) + '</td><td>' + dBR(String(x.vencimento)) + '</td><td class="n">' + brl(x.valor) + '</td><td class="n">' + brl(x.pago) + '</td><td>' + (x.status === 'paga' ? 'Paga' : x.pago > 0 ? 'Parcial' : 'Em aberto') + '</td>'
+        + '<td>' + (ops.baixa && x.status === 'aberta' && pl.status === 'ativo' ? '<button class="btn sm" type="button" data-receber="' + x.id + '">Receber</button>' : '') + '</td></tr>').join('') + '</tbody></table></div></details>' : '')
     + '</div>';
 }
-function clinAporteDialogo(o, pl){
+/* liga os botões do plano (linha do tempo, aporte, receber, cancelar/finalizar) — usado no orçamento e na gestão do financiamento */
+function planoLiga(pl, c){
+  const box = $('#oc-plano'); if (!box) return;
+  clinTlArrasta($('#tl-box'), async (id, pos) => { if (await c.chama('clin_exec_posicionar', { p_exec: id, p_pos: pos })) c.rec(); });
+  $$('#tl-box [data-feito]').forEach(b => b.addEventListener('click', async () => { if (await c.chama('clin_exec_marcar', { p_exec: Number(b.closest('[data-ex]').dataset.ex), p_feito: true }, 'Serviço marcado como executado.')) c.rec(); }));
+  if ($('#pl-aporte')) $('#pl-aporte').addEventListener('click', () => clinAporteDialogo(c.o, pl, c.volta));
+  $$('#pl-par [data-receber]').forEach(b => b.addEventListener('click', () => planoReceber(c.o, pl, (pl.parcelas || []).find(x => x.id === Number(b.dataset.receber)), c.volta)));
+  if ($('#pl-enc')) $('#pl-enc').addEventListener('click', () => planoEncerrar(c.o, pl, c.volta));
+}
+function planoReceber(o, pl, x, volta){
+  const saldo = r2(x.valor - x.pago);
+  abrirJanela('Receber parcela — ' + o.paciente, '<form id="rc-form" novalidate><div class="db"><p class="sub" style="margin:0">' + esc(x.descricao) + ' · vence em ' + dBR(String(x.vencimento)) + ' · saldo ' + brl(saldo) + '. O recebimento entra no seu caixa aberto.</p>'
+    + '<div class="g2"><label class="field" for="rc-v">Valor recebido (R$) *<input id="rc-v" inputmode="numeric" value="' + esc(moedaTxt(saldo)) + '"></label>'
+    + '<label class="field" for="rc-f">Forma de pagamento *<select id="rc-f">' + REL_FORMAS.map(f => '<option value="' + esc(f[0]) + '">' + esc(f[0]) + '</option>').join('') + '</select></label></div>'
+    + '<label class="field" for="rc-s" id="rc-sw" hidden>O restante será pago até *<input id="rc-s" type="date"></label>'
+    + '<div class="err" id="rc-err" role="alert"></div></div><div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="rc-x">Cancelar</button><button class="btn" type="submit" id="rc-ok">Registrar recebimento</button></div></form>');
+  const parcial = () => { const v = moedaNum($('#rc-v').value) || 0; $('#rc-sw').hidden = !(v > 0 && v < saldo - 0.004); };
+  $('#rc-v').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); parcial(); });
+  $('#rc-x').addEventListener('click', volta);
+  $('#rc-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#rc-err'); er.textContent = ''; const v = moedaNum($('#rc-v').value);
+    if (!(v > 0)) { er.textContent = 'Informe o valor recebido.'; return; }
+    $('#rc-ok').disabled = true;
+    const r = await sb.rpc('baixar_parcela', { p_id: x.id, p_forma: $('#rc-f').value, p_valor: v, p_venc_saldo: $('#rc-sw').hidden ? null : ($('#rc-s').value || null) });
+    $('#rc-ok').disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    toast('Recebimento registrado no caixa.'); volta();
+  });
+}
+function planoEncerrar(o, pl, volta){
+  abrirJanela('Cancelar ou finalizar — ' + o.paciente, '<form id="en-form" novalidate><div class="db"><p class="sub" style="margin:0">As parcelas em aberto sem pagamento deixam de existir. O que já foi recebido continua registrado.</p>'
+    + '<div class="chks"><label class="chk"><input type="radio" name="en-a" value="finalizar" checked> Finalizar (o tratamento foi concluído / acordo encerrado)</label><label class="chk"><input type="radio" name="en-a" value="cancelar"> Cancelar o financiamento</label></div>'
+    + '<label class="field" for="en-m">Motivo *<textarea id="en-m" rows="3" maxlength="300"></textarea></label><div class="err" id="en-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="en-x">Voltar</button><button class="btn danger" type="submit" id="en-ok">Confirmar</button></div></form>');
+  $('#en-x').addEventListener('click', volta);
+  $('#en-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#en-err'); er.textContent = ''; const m = $('#en-m').value.trim(); if (!m) { er.textContent = 'Informe o motivo.'; return; }
+    $('#en-ok').disabled = true; const r = await sb.rpc('clin_plano_encerrar', { p_plano: pl.id, p_acao: $('#en-form [name=en-a]:checked').value, p_motivo: m }); $('#en-ok').disabled = false;
+    if (r.error) { er.textContent = erroTxt(r.error); return; } toast('Financiamento encerrado.'); volta();
+  });
+}
+function clinAporteDialogo(o, pl, voltaFn){
   abrirJanela('Aporte mensal — ' + o.paciente, '<form id="ap-form" novalidate><div class="db">'
     + '<p class="sub" style="margin:0">O aporte é um pagamento extra, além da mensalidade do mês. O saldo das parcelas futuras é trazido a valor presente (juros do plano: ' + nTxt(pl.juros_mensal, 3) + '% ao mês), o aporte abate esse saldo e as parcelas são refeitas.</p>'
     + '<div class="g2"><label class="field" for="ap-v">Valor do aporte (R$) *<input id="ap-v" inputmode="numeric" placeholder="0,00" autocomplete="off"></label>'
@@ -3620,7 +3767,7 @@ function clinAporteDialogo(o, pl){
   };
   $('#ap-v').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); sim(); });
   $$('#ap-form [name=ap-m]').forEach(x => x.addEventListener('change', sim));
-  const volta = () => clinOrcAbrir(o.id);
+  const volta = voltaFn || (() => clinOrcAbrir(o.id));
   $('#ap-x').addEventListener('click', volta);
   $('#ap-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#ap-err'); er.textContent = '';
@@ -3684,9 +3831,7 @@ function clinOrcDesenha(){
     if ($('#oc-fechar')) $('#oc-fechar').disabled = false;
     if (ok) rec();
   });
-  if ($('#pl-aporte')) $('#pl-aporte').addEventListener('click', () => clinAporteDialogo(o, CLO.plano));
-  $$('#tl-box [data-mv]').forEach(b => b.addEventListener('click', async () => { if (await chama('clin_exec_mover', { p_exec: Number(b.closest('[data-ex]').dataset.ex), p_dir: Number(b.dataset.mv) })) rec(); }));
-  $$('#tl-box [data-feito]').forEach(b => b.addEventListener('click', async () => { if (await chama('clin_exec_marcar', { p_exec: Number(b.closest('[data-ex]').dataset.ex), p_feito: true }, 'Serviço marcado como executado.')) rec(); }));
+  if (CLO.plano && o.status === 'fechado') planoLiga(CLO.plano, { o: o, chama: chama, rec: rec, volta: () => clinOrcAbrir(o.id) });
   if ($('#sm-e')) {
     const sim = () => {
       const s = CLX.sim; s.entrada = $('#sm-e').value; s.modo = $('#sm-m').value; s.valor = $('#sm-v').value;
