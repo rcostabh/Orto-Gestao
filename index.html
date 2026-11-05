@@ -328,15 +328,20 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}.cp-off{opacity:.65}
 .tools .chk input[type=checkbox]{flex:none;min-height:0;width:18px;height:18px;padding:0;border:0}
 .cbres{margin-top:3px;font:400 12.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 6px;max-width:150px}
-/* início: os quadros nunca se sobrepõem; a altura acompanha o conteúdo */
+/* início compacto: cabeçalho pela metade e quadros que cabem na tela sem rolar */
+.in-head{margin-bottom:8px;gap:4px 12px;align-items:center}.in-head h1{font-size:18px;line-height:1.15;margin:0}.in-head .sub{font-size:12px;margin:0}.in-head .btn{padding:6px 12px;font-size:12.5px;border-radius:9px}
+.dnota{margin:6px 4px 0;font-size:10.5px;line-height:1.3}
+#dm-sx{margin-top:12px}
+.dk.sx{display:flex;flex-direction:column;padding:10px 14px;min-height:0}.dk.sx .lb{font-size:11px;min-height:0}
+.dk.sx .v{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin:6px 0 4px}.dk.sx .v b{font-size:22px;white-space:nowrap}.dk.sx .v span{font-size:11.5px;line-height:1.25}
+.dk.sx .dl{font-size:10.5px;padding:2px 8px;margin-top:auto;align-self:flex-start;opacity:.9}
+@media(min-width:1001px) and (min-height:600px){.dsx{padding:12px;border-radius:18px}.com-mapa .dwrap{height:calc(100vh - 405px)!important;min-height:300px!important;max-height:none!important}}
+@media(min-width:1001px) and (min-height:600px) and (max-height:800px){.dsx .dnota{display:none}.com-mapa .dwrap{height:calc(100vh - 378px)!important;min-height:290px!important}.dk.sx .dl{font-size:10px}}
+@media(max-width:1000px),(max-height:599px){
 .com-mapa .dwrap{height:auto!important;max-height:none!important;min-height:0!important;align-items:start}
-.com-mapa .dmapa{min-height:480px!important}.com-mapa #dm-svg{flex:1;height:auto;min-height:400px}
+.com-mapa .dmapa{min-height:420px!important}.com-mapa #dm-svg{flex:1;height:auto;min-height:360px}
 .com-mapa .dkp .dgrid,.com-mapa .dkp.stk .dgrid{grid-template-rows:none!important;grid-auto-rows:auto!important;overflow:visible!important;flex:none!important}
-.com-mapa .dkp.stk .dk,.com-mapa .dkp .dk{overflow:visible!important;min-height:0!important;padding:15px!important}
-#dm-sx{margin-top:28px!important}
-.dk.sx{padding:18px!important;min-height:190px}.dk.sx .lb{font-size:12.5px;min-height:2.6em}
-.dk.sx .v b{font-size:28px!important}.dk.sx .v span{font-size:14px}
-.dk.sx{display:flex;flex-direction:column}.dk.sx .dl{font-size:11px;padding:3px 9px;margin-top:auto;align-self:flex-start;opacity:.9}.dk.sx .v{margin-bottom:12px}
+.com-mapa .dkp.stk .dk,.com-mapa .dkp .dk{overflow:visible!important;min-height:0!important}}
 </style>
 </head>
 <body>
@@ -896,7 +901,7 @@ function telaInicio(){
   const primeiro = (EU.nome || '').split(' ')[0];
   const sem = !EU.acesso_total && !EU.permissoes.length;
   const dir = ehGer(), recep = !dir && pode('agenda.ver') && pode('agendamentos.recepcao'), cxr = !dir && pode('financeiro.baixar'), cxg = pode('caixa.abrir');
-  $('#area').innerHTML = '<div class="head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
+  $('#area').innerHTML = '<div class="head in-head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
     + (pode('agenda.ver') ? '<button class="btn" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
     + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
@@ -1042,8 +1047,8 @@ function dmSetores(em){
   const card = (t, v, sub, x, y, lb) => '<section class="dk sx"><div class="lb">' + t + '</div><div class="v"><b>' + reais(v) + '</b><span>' + sub + '</span></div>' + chip(x, y, lb + ': ' + reais(y)) + '</section>';
   const tr = mx('uteis_trab'), re = mx('uteis_rest');
   return '<div class="dgrid" id="dm-set">'
-    + card('Vendas · mês até hoje', som('venda'), 'recebido', som('venda'), som('venda_ant'), ma + ' até o mesmo dia')
-    + card('Cobrança · mês até hoje', som('cobranca'), 'recebido', som('cobranca'), som('cobranca_ant'), ma + ' até o mesmo dia')
+    + card('Vendas · mês até hoje', som('venda'), 'recebido', som('venda'), som('venda_ant'), ma + ' mesmo dia')
+    + card('Cobrança · mês até hoje', som('cobranca'), 'recebido', som('cobranca'), som('cobranca_ant'), ma + ' mesmo dia')
     + card('Média diária de venda', som('media_dia'), 'por dia útil', som('media_dia'), som('media_dia_ant'), ma)
     + card('Projeção de vendas do mês', som('projecao'), n(tr) + ' dias úteis trabalhados · ' + n(re) + ' a trabalhar', som('projecao'), som('venda_ant_total'), ma + ' fechou')
     + '</div><p class="dnota">Venda e cobrança seguem o tipo de cada lançamento (Produtos e serviços › Tipos). Dias úteis = todos os dias, menos domingos e feriados cadastrados (sábado conta); hoje conta como dia trabalhado. Projeção = vendas do mês + média diária × dias úteis restantes.</p>';
