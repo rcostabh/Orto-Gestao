@@ -346,6 +346,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 @media(min-width:1001px) and (min-height:600px){.dsx:not(.com-mapa) .dk{padding:11px 14px}.dsx:not(.com-mapa) .dk.hero svg{width:72px;height:72px}.dsx:not(.com-mapa) .big{font-size:28px;margin:4px 0}.dsx:not(.com-mapa) .big.or{font-size:26px}.dsx:not(.com-mapa) .cols{height:64px;margin-top:6px}.dsx:not(.com-mapa) .dk .v{margin:6px 0 4px}.dsx:not(.com-mapa) .dk .v b{font-size:22px}.dsx:not(.com-mapa) .cmp div{margin-top:3px;font-size:11px}.dsx:not(.com-mapa) .dgrid{gap:10px}.dsx:not(.com-mapa) .dkh h3{font-size:18px}.dsx:not(.com-mapa) #dm-sx,.dsx #dm-sx{margin-top:10px}}
 @media(min-width:1001px) and (min-height:600px) and (max-height:820px){.dsx:not(.com-mapa) .dnota{display:none}}
 @media(min-width:1001px) and (min-height:600px) and (max-height:740px){.dsx:not(.com-mapa) .dk.hero svg{width:56px;height:56px}.dsx:not(.com-mapa) .cols{height:44px}.dsx:not(.com-mapa) .big{font-size:24px}.dsx:not(.com-mapa) .dk{padding:8px 12px}.dsx:not(.com-mapa) .dkh{margin-bottom:4px}.dk.sx{padding:8px 12px}.dsx:not(.com-mapa) .dk .v{margin:3px 0 2px}.dsx:not(.com-mapa) .cmp div{margin-top:1px}}
+.tl{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px}.tl-g{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;min-width:150px;max-width:210px}
+.tl-h{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tl-c{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}
+.tl-c.lib{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.tl-c.ok{opacity:.65}.tl-c small{color:var(--muted)}.tl-b{display:flex;gap:4px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -716,6 +720,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.44.0', '2026-11-05', 'Prospect é cadastrado na clínica atual e, no canal Promotor, escolhe-se o promotor da clínica. Orçamento clínico: fechamento com financiamento próprio (entrada, parcelas e dia do vencimento), linha do tempo de execução (cada serviço é liberado quando o total pago cobre o valor, limpezas primeiro, gerente/diretor movem antes ou depois) e aporte mensal (valor presente do saldo, baixar parcela ou prazo, entra no caixa como mensalidade antecipada de clínico).'],
   ['0.43.0', '2026-11-05', 'Procedimentos clínicos: o valor mínimo é calculado pelo sistema (materiais, impostos, cartão, comissões e margem desejada) e só o diretor altera o valor de venda, nunca abaixo do mínimo.'],
   ['0.42.0', '2026-11-05', 'Clínico virou grupo no menu lateral (Orçamentos, Procedimentos clínicos, Materiais, Compras, Configuração). Venda e cobrança valem só para a ortodontia. Ficha do prospect: Editar cadastro dentro de Mais ações. Orçamento clínico: mostra o dentista e esconde valores de quem não negocia (só divulgação e diretoria veem). Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
   ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
@@ -2027,7 +2032,6 @@ function cadEndErro(c){
 }
 function pacForm(p, aoSalvar){
   const novo = !p, edita = novo ? pode('pacientes.criar') : pode('pacientes.editar'), ro = edita ? '' : ' disabled';
-  const unid = MINHAS.slice();
   const un0 = p ? p.unidade_id : UN;
   abrirJanela(novo ? 'Novo prospect' : 'Editar cadastro',
     '<form id="pc-form" novalidate><div class="db">'
@@ -2035,7 +2039,7 @@ function pacForm(p, aoSalvar){
     + '<div class="g2">' + fld('pc-social', 'Nome social', p && p.nome_social, 'maxlength="120" autocomplete="off"' + ro) + fld('pc-cpf', 'CPF', p && p.cpf ? mCPF(p.cpf) : '', 'inputmode="numeric" maxlength="14" autocomplete="off"' + ro) + '</div>'
     + '<div class="g3">' + fld('pc-rg', 'RG', p && p.rg, 'maxlength="20" autocomplete="off"' + ro) + '<label class="field" for="pc-nasc">Data de nascimento<input id="pc-nasc" type="date" value="' + esc(p && p.data_nascimento) + '" max="' + hoje() + '"' + ro + '></label>' + fld('pc-tel', 'Telefone', p && p.telefone ? mTel(p.telefone) : '', 'inputmode="tel" maxlength="15" autocomplete="off"' + ro) + '</div>'
     + '<div class="g3"><label class="field" for="pc-canalv">Canal de vendas *<select id="pc-canalv"' + ro + '><option value="">Escolha...</option>' + CANAIS.map(c => '<option' + (p && p.canal_venda === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label>'
-    + '<label class="field" for="pc-un">Unidade *<select id="pc-un"' + ro + '>' + unid.map(u => '<option value="' + u.id + '"' + (u.id === un0 ? ' selected' : '') + '>' + esc(u.sigla) + ' — ' + esc(u.razao_social) + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="pc-prom" id="pc-promw" hidden>Promotor *<select id="pc-prom"' + ro + '><option value="">Carregando...</option></select></label>'
     + '<label class="field" for="pc-data">Data do cadastro<input id="pc-data" value="' + dBR(p ? p.data_cadastro : hoje()) + '" readonly></label></div>'
     + '<div class="g2"><label class="field" for="pc-cod">Código<input id="pc-cod" value="' + (p ? p.codigo : 'gerado ao salvar (8 dígitos)') + '" readonly></label>'
     + (novo ? '<label class="field" for="pc-sit">Situação atual<select id="pc-sit"' + ro + '><option value="Prospecção">Prospecção (ainda não iniciou o tratamento)</option><option value="Contenção">Contenção (terminou o tratamento e volta para manutenção)</option></select></label>' : '<label class="field" for="pc-sit">Situação atual<input id="pc-sit" value="' + esc(p.status || 'Prospecção') + '" readonly></label>') + '</div>'
@@ -2047,6 +2051,15 @@ function pacForm(p, aoSalvar){
   $('#pc-cpf').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
   $('#pc-tel').addEventListener('input', e => { e.target.value = mTel(e.target.value); });
   $('#pc-cancel').addEventListener('click', fecharJanela);
+  // promotor: só aparece no canal Promotor e lista os promotores cadastrados na clínica
+  (async () => {
+    const sel = $('#pc-prom'), w = $('#pc-promw'), cv = $('#pc-canalv');
+    const r = await sb.rpc('promotores_da_unidade', { p_unidade: un0 });
+    const l = r.error ? [] : (r.data || []);
+    sel.innerHTML = '<option value="">' + (l.length ? 'Escolha o promotor...' : 'Nenhum promotor cadastrado nesta clínica') + '</option>' + l.map(x => '<option value="' + x.id + '"' + (p && p.promotor_id === x.id ? ' selected' : '') + '>' + esc(x.nome) + '</option>').join('');
+    const mostra = () => { w.hidden = cv.value !== 'Promotor'; };
+    cv.addEventListener('change', mostra); mostra();
+  })();
   if (!novo) cadEndLigar('pc');
   let quer = false;
   $$('#pc-form button[type=submit]').forEach(b => b.addEventListener('click', () => { quer = b.dataset.av === '1'; }));
@@ -2059,7 +2072,8 @@ function pacForm(p, aoSalvar){
     if (nasc && nasc > hoje()) { er.textContent = 'A data de nascimento não pode ser no futuro.'; return; }
     if (tel && tel.length < 10) { er.textContent = 'Telefone incompleto.'; return; }
     if (!canal) { er.textContent = 'Escolha o canal de vendas.'; return; }
-    const reg = { nome, nome_social: $('#pc-social').value.trim() || null, cpf: cpf || null, rg: $('#pc-rg').value.trim() || null, data_nascimento: nasc || null, telefone: tel || null, canal_venda: canal, unidade_id: Number($('#pc-un').value), observacao: $('#pc-obs').value.trim() || null };
+    if (canal === 'Promotor' && !$('#pc-prom').value) { er.textContent = 'Escolha o promotor que fez o apontamento.'; return; }
+    const reg = { nome, nome_social: $('#pc-social').value.trim() || null, cpf: cpf || null, rg: $('#pc-rg').value.trim() || null, data_nascimento: nasc || null, telefone: tel || null, canal_venda: canal, unidade_id: un0, promotor_id: canal === 'Promotor' ? (Number($('#pc-prom').value) || null) : null, observacao: $('#pc-obs').value.trim() || null };
     if (novo && $('#pc-sit').value === 'Contenção') reg.status = 'Contenção';
     if (!novo) { const ce = cadEndLer('pc'), me = cadEndErro(ce); if (me) { er.textContent = me; return; } Object.assign(reg, ce); }
     $$('#pc-form button[type=submit]').forEach(b => b.disabled = true);
@@ -3547,7 +3561,76 @@ async function clinOrcDoPaciente(pid){
 async function clinOrcAbrir(id){
   const er0 = await clinGarante(); if (er0) { toast(erroTxt(er0)); return; }
   const r = await sb.rpc('clin_orc_obter', { p_id: id }); if (r.error) { toast(erroTxt(r.error)); return; }
-  CLO.o = r.data; CLX.sim = { entrada: '', modo: 'n', valor: '' }; clinOrcDesenha();
+  CLO.o = r.data; CLX.sim = { entrada: '', modo: 'n', valor: '' }; await clinPlanoCarrega(); clinOrcDesenha();
+}
+async function clinPlanoCarrega(){
+  CLO.plano = null;
+  if (CLO.o && CLO.o.status === 'fechado') { const r = await sb.rpc('clin_plano_obter', { p_orc: CLO.o.id }); if (!r.error) CLO.plano = r.data; }
+}
+const MES_ABR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const mesAbr = iso => MES_ABR[Number(String(iso).slice(5, 7)) - 1] + '/' + String(iso).slice(0, 4);
+/* linha do tempo de execução: serviços na ordem do plano, agrupados por quando ficam liberados */
+function clinLinhaTempo(pl, pode_mover, pode_marcar){
+  const its = pl.itens || [], grupos = [];
+  its.forEach((i, ix) => {
+    const rot = i.executado_em ? 'Executado' : i.liberado ? 'Liberado agora' : i.previsto ? 'Previsto ' + mesAbr(i.previsto) : 'Aguardando pagamento';
+    let g = grupos[grupos.length - 1];
+    if (!g || g.rot !== rot) { g = { rot: rot, l: [] }; grupos.push(g); }
+    g.l.push([i, ix]);
+  });
+  return '<div class="tl" id="tl-box">' + grupos.map(g => '<div class="tl-g"><div class="tl-h">' + esc(g.rot) + '</div>' + g.l.map(([i, ix]) =>
+    '<div class="tl-c ' + (i.executado_em ? 'ok' : i.liberado ? 'lib' : '') + '" data-ex="' + i.id + '"><b>' + esc(i.nome) + '</b>' + (i.dente ? '<small>' + esc(i.dente) + '</small>' : '')
+    + (i.executado_em ? '<small>Feito em ' + dBR(String(i.executado_em).slice(0, 10)) + (i.executado_por ? ' · ' + esc(i.executado_por) : '') + '</small>' : '')
+    + '<span class="tl-b">' + (pode_mover && !i.executado_em ? '<button class="btn ghost sm" type="button" data-mv="-1" aria-label="Antecipar">◀</button><button class="btn ghost sm" type="button" data-mv="1" aria-label="Adiar">▶</button>' : '')
+    + (pode_marcar && i.liberado && !i.executado_em ? '<button class="btn sm" type="button" data-feito="1">Marcar feito</button>' : '') + '</span></div>').join('') + '</div>').join('') + '</div>';
+}
+function clinPlanoHtml(pl, ger){
+  const par = (pl.parcelas || []).filter(x => !x.aporte), ap = (pl.parcelas || []).filter(x => x.aporte), ab = par.filter(x => x.status === 'aberta');
+  const val = pl.total != null;
+  return '<div class="card" style="margin:0" id="oc-plano"><div class="sec">Plano de pagamento e execução</div>'
+    + (val ? '<div class="kv"><span>Valor do tratamento</span><b>' + brl(pl.total) + '</b><span>Entrada</span><b>' + brl(pl.entrada) + '</b><span>Total já pago</span><b>' + brl(pl.pago) + '</b><span>Parcelas em aberto</span><b>' + ab.length + (ab.length ? ' · próxima em ' + dBR(String(ab[0].vencimento)) : '') + '</b>'
+      + (pl.status === 'quitado' ? '<span>Situação</span><b>Quitado</b>' : '') + '</div>' : '<p class="sub" style="margin:4px 0">Pagamento do paciente: ' + (pl.status === 'quitado' ? 'quitado' : 'em andamento') + '.</p>')
+    + '<p class="sub" style="margin:10px 0 6px">Cada serviço é liberado quando o total pago cobre o valor dele. As limpezas vêm primeiro.' + (ger ? ' Use as setas para antecipar ou adiar um serviço.' : '') + '</p>'
+    + clinLinhaTempo(pl, ger && pl.status !== 'cancelado', true)
+    + (ger && pl.status === 'ativo' ? '<div class="tools" style="margin:12px 0 0"><button class="btn" type="button" id="pl-aporte">Registrar aporte</button><span class="sub">Pagamento extra além da mensalidade: abate o saldo e refaz as parcelas.</span></div>' : '')
+    + (val ? '<details style="margin-top:10px"><summary>Parcelas do plano</summary><div class="tw" style="max-height:240px;margin-top:8px"><table class="tb"><thead><tr><th>Descrição</th><th>Vencimento</th><th class="n">Valor</th><th>Situação</th></tr></thead><tbody>'
+      + (pl.parcelas || []).map(x => '<tr><td>' + esc(x.descricao) + '</td><td>' + dBR(String(x.vencimento)) + '</td><td class="n">' + brl(x.valor) + '</td><td>' + (x.status === 'paga' ? 'Paga' : x.pago > 0 ? 'Parcial' : 'Em aberto') + '</td></tr>').join('') + '</tbody></table></div></details>' : '')
+    + '</div>';
+}
+function clinAporteDialogo(o, pl){
+  abrirJanela('Aporte mensal — ' + o.paciente, '<form id="ap-form" novalidate><div class="db">'
+    + '<p class="sub" style="margin:0">O aporte é um pagamento extra, além da mensalidade do mês. O saldo das parcelas futuras é trazido a valor presente (juros do plano: ' + nTxt(pl.juros_mensal, 3) + '% ao mês), o aporte abate esse saldo e as parcelas são refeitas.</p>'
+    + '<div class="g2"><label class="field" for="ap-v">Valor do aporte (R$) *<input id="ap-v" inputmode="numeric" placeholder="0,00" autocomplete="off"></label>'
+    + '<label class="field" for="ap-f">Forma de pagamento *<select id="ap-f">' + REL_FORMAS.map(f => '<option value="' + esc(f[0]) + '">' + esc(f[0]) + '</option>').join('') + '</select></label></div>'
+    + '<div class="chks"><label class="chk"><input type="radio" name="ap-m" value="parcela" checked> Baixar o valor da parcela</label><label class="chk"><input type="radio" name="ap-m" value="prazo"> Baixar a quantidade de parcelas</label></div>'
+    + '<div id="ap-out" class="card" style="margin:0"><p class="sub" style="margin:0">Informe o valor para ver como ficam as parcelas.</p></div>'
+    + '<div class="err" id="ap-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="ap-x">Cancelar</button><button class="btn" type="submit" id="ap-ok">Lançar no caixa e refazer parcelas</button></div></form>');
+  const modo = () => ($('#ap-form [name=ap-m]:checked') || {}).value;
+  let tk = 0;
+  const sim = async () => {
+    const v = moedaNum($('#ap-v').value), out = $('#ap-out'), er = $('#ap-err'); er.textContent = '';
+    if (!(v > 0)) { out.innerHTML = '<p class="sub" style="margin:0">Informe o valor para ver como ficam as parcelas.</p>'; return null; }
+    const my = ++tk, r = await sb.rpc('clin_aporte_simular', { p_plano: pl.id, p_valor: v, p_modo: modo() }); if (my !== tk) return null;
+    if (r.error) { out.innerHTML = ''; er.textContent = erroTxt(r.error); return null; }
+    const c = r.data;
+    out.innerHTML = '<div class="kv"><span>Saldo das parcelas futuras (valor presente)</span><b>' + brl(c.pv) + '</b><span>Aporte</span><b>' + brl(c.aporte) + '</b><span>Saldo restante</span><b>' + brl(c.residual) + '</b>'
+      + (c.quita ? '<span>Resultado</span><b>Quita o plano: as parcelas futuras deixam de existir</b>' : '<span>Antes</span><b>' + c.n_atual + ' parcelas de ' + brl(c.parcela_atual) + '</b><span>Depois</span><b id="ap-dep">' + c.n + ' parcelas de ' + brl(c.parcela) + (c.ultima !== c.parcela ? ' (a última de ' + brl(c.ultima) + ')' : '') + '</b>') + '</div>';
+    return c;
+  };
+  $('#ap-v').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); sim(); });
+  $$('#ap-form [name=ap-m]').forEach(x => x.addEventListener('change', sim));
+  const volta = () => clinOrcAbrir(o.id);
+  $('#ap-x').addEventListener('click', volta);
+  $('#ap-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#ap-err'); er.textContent = '';
+    const v = moedaNum($('#ap-v').value); if (!(v > 0)) { er.textContent = 'Informe o valor do aporte.'; return; }
+    $('#ap-ok').disabled = true;
+    const r = await sb.rpc('clin_aporte_registrar', { p_plano: pl.id, p_valor: v, p_modo: modo(), p_forma: $('#ap-f').value });
+    $('#ap-ok').disabled = false;
+    if (r.error) { er.textContent = erroTxt(r.error); return; }
+    toast('Aporte lançado no caixa como mensalidade antecipada de clínico.'); volta();
+  });
 }
 const clTotal = o => r2(o.itens.reduce((s, i) => s + i.valor_unit * i.qtd, 0));
 function clinOrcDesenha(){
@@ -3570,7 +3653,9 @@ function clinOrcDesenha(){
     + (o.itens.length && vv ? '<div class="card" style="margin:0"><div class="sec">Simulador de financiamento</div><p class="sub" style="margin:4px 0 10px">Juros de ' + nTxt(o.juros_mensal, 3) + '% ao mês.</p>'
       + '<div class="tools" style="margin:0;align-items:end"><label class="field" for="sm-e" style="margin:0">Entrada (R$)<input id="sm-e" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.entrada) + '" placeholder="0,00"></label>'
       + '<label class="field" for="sm-m" style="margin:0">Simular por<select id="sm-m"><option value="n"' + (CLX.sim.modo === 'n' ? ' selected' : '') + '>Número de parcelas</option><option value="v"' + (CLX.sim.modo === 'v' ? ' selected' : '') + '>Valor da parcela</option></select></label>'
-      + '<label class="field" for="sm-v" style="margin:0"><span id="sm-vl">' + (CLX.sim.modo === 'n' ? 'Parcelas' : 'Parcela (R$)') + '</span><input id="sm-v" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.valor) + '"></label></div><div id="sm-out" style="margin-top:12px"></div></div>' : '')
+      + '<label class="field" for="sm-v" style="margin:0"><span id="sm-vl">' + (CLX.sim.modo === 'n' ? 'Parcelas' : 'Parcela (R$)') + '</span><input id="sm-v" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.valor) + '"></label></div><div id="sm-out" style="margin-top:12px"></div>'
+      + (o.status === 'salvo' && neg ? '<div class="tools" style="margin:12px 0 0;align-items:end" id="sm-fx"><label class="field" for="sm-d" style="margin:0">Dia do vencimento<select id="sm-d">' + Array.from({ length: 28 }, (_, k) => '<option' + (k + 1 === 10 ? ' selected' : '') + '>' + (k + 1) + '</option>').join('') + '</select></label><button class="btn" type="button" id="oc-fechar">Fechar com financiamento próprio</button></div>' : '') + '</div>' : '')
+    + (o.status === 'fechado' && CLO.plano ? clinPlanoHtml(CLO.plano, ehGer()) : '')
     + '<div class="err" id="oc-err" role="alert"></div></div><div class="df" id="oc-df"></div>');
   const botoes = [];
   if (edit && o.status === 'rascunho' && ind) botoes.push('<button class="btn" type="button" id="oc-enc">Encaminhar ao comercial</button>');
@@ -3579,7 +3664,7 @@ function clinOrcDesenha(){
   if (o.status === 'perdido' && ind) botoes.push('<button class="btn ghost" type="button" id="oc-reab">Reabrir</button>');
   $('#oc-df').innerHTML = '<button class="btn ghost" type="button" id="oc-x">Fechar</button>' + botoes.join('');
   const er = t => { $('#oc-err').textContent = t || ''; };
-  const rec = async () => { const r = await sb.rpc('clin_orc_obter', { p_id: o.id }); if (r.error) { er(erroTxt(r.error)); return; } CLO.o = r.data; clinOrcDesenha(); };
+  const rec = async () => { const r = await sb.rpc('clin_orc_obter', { p_id: o.id }); if (r.error) { er(erroTxt(r.error)); return; } CLO.o = r.data; await clinPlanoCarrega(); clinOrcDesenha(); };
   const chama = async (fn, args, ok) => { er(''); const r = await sb.rpc(fn, args); if (r.error) { er(erroTxt(r.error)); await rec(); return false; } if (ok) toast(ok); return true; };
   $('#oc-x').addEventListener('click', fecharJanela);
   if ($('#oc-add')) $('#oc-add').addEventListener('click', async () => { const s = $('#oc-s').value; if (!s) { er('Escolha o serviço.'); return; } if (await chama('clin_orc_item_add', { p_orc: o.id, p_servico: Number(s), p_dente: $('#oc-d').value || null, p_qtd: Number($('#oc-q').value) || 1 })) rec(); });
@@ -3591,6 +3676,17 @@ function clinOrcDesenha(){
   if ($('#oc-salvar')) $('#oc-salvar').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'salvo' }, 'Orçamento salvo.')) { fecharJanela(); if (ROTA === 'clinico') clinCarregar(); } });
   if ($('#oc-perd')) $('#oc-perd').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'perdido' }, 'Orçamento marcado como não fechado.')) { fecharJanela(); if (ROTA === 'clinico') clinCarregar(); } });
   if ($('#oc-reab')) $('#oc-reab').addEventListener('click', async () => { if (await chama('clin_orc_status', { p_orc: o.id, p_status: 'rascunho' }, 'Orçamento reaberto.')) rec(); });
+  if ($('#oc-fechar')) $('#oc-fechar').addEventListener('click', async () => {
+    const sm = CLX.sim, ent = moedaNum(sm.entrada) || 0, val = sm.modo === 'n' ? numBR(sm.valor) : moedaNum(sm.valor);
+    if (val == null || !(val > 0)) { er('Informe o número de parcelas ou o valor da parcela no simulador.'); return; }
+    $('#oc-fechar').disabled = true;
+    const ok = await chama('clin_orc_fechar', { p_orc: o.id, p_entrada: ent, p_modo: sm.modo, p_valor: val, p_dia: Number($('#sm-d').value) }, 'Orçamento fechado. As parcelas foram lançadas no financeiro do paciente.');
+    if ($('#oc-fechar')) $('#oc-fechar').disabled = false;
+    if (ok) rec();
+  });
+  if ($('#pl-aporte')) $('#pl-aporte').addEventListener('click', () => clinAporteDialogo(o, CLO.plano));
+  $$('#tl-box [data-mv]').forEach(b => b.addEventListener('click', async () => { if (await chama('clin_exec_mover', { p_exec: Number(b.closest('[data-ex]').dataset.ex), p_dir: Number(b.dataset.mv) })) rec(); }));
+  $$('#tl-box [data-feito]').forEach(b => b.addEventListener('click', async () => { if (await chama('clin_exec_marcar', { p_exec: Number(b.closest('[data-ex]').dataset.ex), p_feito: true }, 'Serviço marcado como executado.')) rec(); }));
   if ($('#sm-e')) {
     const sim = () => {
       const s = CLX.sim; s.entrada = $('#sm-e').value; s.modo = $('#sm-m').value; s.valor = $('#sm-v').value;
