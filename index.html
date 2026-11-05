@@ -689,6 +689,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.42.0', '2026-11-05', 'Início do gerente e do diretor: vendas e cobrança do mês até hoje, comparação com o mesmo período do mês anterior, média diária de venda e projeção do mês pelos dias úteis. Tipos de lançamento classificados como venda ou cobrança. Dentista: especialidade, "também faz clínico" e comissão própria. Clínico: busca de paciente para iniciar orçamento.'],
   ['0.41.0', '2026-11-04', 'Composição de preço no módulo Clínico: o sistema calcula o preço ideal de cada serviço a partir dos materiais, do protético, das comissões de vendas e do dentista, dos impostos e da margem mínima desejada (padrão 23%, configurável), mostra em vermelho os serviços abaixo da margem e avisa no orçamento quando o valor negociado fica abaixo dela.'],
   ['0.40.0', '2026-11-04', 'Módulo Clínico (etapa 1): catálogo de serviços e materiais importados da planilha, custo e margem por serviço, notas de compra que atualizam estoque e custo, orçamento clínico (o dentista indica, o comercial negocia de valor até o mínimo), desconto abaixo do mínimo só com login e senha de diretor e simulador de financiamento pela tabela price com a regra de liberação do tratamento.'],
   ['0.39.0', '2026-11-04', 'Carta de alta só pelo dentista: o botão Carta de alta (passar para contenção) só aparece para quem é dentista, e o banco recusa a mudança de quem não for. Recepção, cobrança e gerência que não atendem como dentista não dão mais alta.'],
@@ -962,10 +963,10 @@ async function inicioDashCarrega(){
   box.innerHTML = '<div class="dsx"><p class="dnota">Carregando indicadores...</p></div>';
   const multi = us.length > 1;
   const geoP = multi ? Promise.all([mgContorno(), mgMunicipios()]).catch(e => { DM.geoErro = (e && e.message) || 'erro'; return null; }) : Promise.resolve(null);
-  const [rs, geo] = await Promise.all([Promise.all(us.map(u => sb.rpc('dashboard_diretor', { p_unidade: u.id }))), geoP]);
+  const [rs, geo, rss] = await Promise.all([Promise.all(us.map(u => sb.rpc('dashboard_diretor', { p_unidade: u.id }))), geoP, Promise.all(us.map(u => sb.rpc('dashboard_setores', { p_unidade: u.id })))]);
   if (tk !== DM.tk || !$('#in-dash')) return;
   const er = rs.find(r => r.error); if (er) { box.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er.error)) + '</div></div>'; return; }
-  DM.us = us.map((u, i) => ({ u, d: rs[i].data, x: null, y: null, reg: '', lng: null, lat: null })); DM.filtro = null; DM.proj = null; DM.regs = []; DM.multi = multi; DM.geo = geo;
+  DM.us = us.map((u, i) => ({ u, d: rs[i].data, s: rss[i] && !rss[i].error ? rss[i].data : null, x: null, y: null, reg: '', lng: null, lat: null })); DM.filtro = null; DM.proj = null; DM.regs = []; DM.multi = multi; DM.geo = geo;
   if (multi && geo) {
     const muns = geo[1], achar = u => muns.find(m => normTxt(m.nome) === normTxt(u.cidade) && (!u.uf || u.uf === 'MG'));
     await Promise.all(DM.us.map(async o => { const m = achar(o.u); if (!m) return; o.rid = m.rid; try { const c = await mgCentro(m.id); o.lng = c[0]; o.lat = c[1]; } catch (e) {} }));
@@ -1005,7 +1006,7 @@ function dmValores(){
   const sub = !f ? (multi ? em.length + ' unidades' : 'Unidade') : (f.tipo === 'regiao' ? 'Região em foco' : em.length === 1 ? 'Unidade em foco' : 'Unidades selecionadas');
   const cab = '<div class="dkh"><div><span class="lb">' + esc(sub) + '</span><h3>' + esc(titulo) + '</h3></div>' + (f ? '<button type="button" class="dbtn" id="dm-limpa">Ver todas</button>' : '') + '</div>'
     + (multi ? '<div class="dchips">' + DM.us.map(o => '<button type="button" data-u="' + o.u.id + '" class="' + (f && f.ids.has(o.u.id) ? 'on' : '') + '">' + esc(o.u.sigla) + '</button>').join('') + '</div>' : '');
-  el.innerHTML = cab + dmKpis(d);
+  el.innerHTML = cab + dmKpis(d) + dmSetores(em);
   const l = $('#dm-limpa'); if (l) l.addEventListener('click', () => dmFiltrar(null));
   $$('#dm-kp [data-u]').forEach(b => b.addEventListener('click', () => { const o = DM.us.find(x => String(x.u.id) === b.dataset.u); dmFiltrar({ tipo: 'sel', ids: new Set([o.u.id]), rotulo: o.u.sigla + ' · ' + o.u.razao_social }); }));
 }
@@ -1022,6 +1023,20 @@ function dmKpis(d){
     + '<div><div class="lb">1ª mensalidade</div><div class="cols"><div><i style="height:' + (Number(d.fat1_ant) / m1 * 100) + '%"></i><span>1/' + a + '</span><b>' + reais(d.fat1_ant) + '</b></div><div><i class="b2" style="height:' + (Number(d.fat1_atual) / m1 * 100) + '%"></i><span>1/' + b + '</span><b>' + reais(d.fat1_atual) + '</b></div></div></div></section>'
     + kpi('Visitas', d.visitas_ant, d.visitas_atual, 'em ' + a, a, b, '#22d3ee') + kpi('Av. atendidas', d.av_ant, d.av_atual, 'em ' + a, a, b, '#8b5cf6')
     + kpi('Vendas · dia', d.vd_dia_ant, d.vd_dia_atual, 'hoje', 'Mesmo dia de ' + a, 'Hoje', '#34d399', d.vd_dia_atual) + kpi('Vendas · mês', d.vd_mes_ant, d.vd_mes_atual, 'em ' + a, a, b, '#ff7a1a') + '</div>';
+}
+function dmSetores(em){
+  const l = em.map(o => o.s).filter(Boolean); if (!l.length) return '';
+  const som = k => r2(l.reduce((a, x) => a + Number(x[k] || 0), 0)), mx = k => Math.max(...l.map(x => Number(x[k] || 0))), n = v => Number(v).toLocaleString('pt-BR');
+  const ma = MES3[Number(l[0].mes_ant.slice(5)) - 1];
+  const chip = (x, y, lb) => { const c = Number(x) > Number(y) ? 'up' : Number(x) < Number(y) ? 'dn' : 'eq'; return '<span class="dl ' + c + '">' + (c === 'up' ? '▲' : c === 'dn' ? '▼' : '•') + ' ' + lb + '</span>'; };
+  const card = (t, v, sub, x, y, lb) => '<section class="dk"><div class="lb">' + t + '</div><div class="v"><b>' + reais(v) + '</b><span>' + sub + '</span></div>' + chip(x, y, lb + ': ' + reais(y)) + '</section>';
+  const tr = mx('uteis_trab'), re = mx('uteis_rest');
+  return '<div class="dgrid" id="dm-set">'
+    + card('Vendas · mês até hoje', som('venda'), 'recebido', som('venda'), som('venda_ant'), ma + ' até o mesmo dia')
+    + card('Cobrança · mês até hoje', som('cobranca'), 'recebido', som('cobranca'), som('cobranca_ant'), ma + ' até o mesmo dia')
+    + card('Média diária de venda', som('media_dia'), 'por dia útil', som('media_dia'), som('media_dia_ant'), ma)
+    + card('Projeção de vendas do mês', som('projecao'), n(tr) + ' dias úteis trabalhados · ' + n(re) + ' a trabalhar', som('projecao'), som('venda_ant_total'), ma + ' fechou')
+    + '</div><p class="dnota">Venda e cobrança seguem o tipo de cada lançamento (Produtos e serviços › Tipos). Dias úteis = segunda a sexta, sem os feriados cadastrados; hoje conta como dia trabalhado. Projeção = vendas do mês + média diária × dias úteis restantes.</p>';
 }
 function dmDesenhar(){
   const svg = $('#dm-svg'); if (!svg) return;
@@ -1775,6 +1790,7 @@ const mMoeda = s => { const d = dig(s).replace(/^0+/, ''); if (!d) return dig(s)
 const moedaNum = s => dig(s) ? Number(dig(s)) / 100 : null;
 const moedaTxt = n => n == null || n === '' ? '' : mMoeda(String(Math.round(Number(n) * 100)));
 const brl = n => n == null ? '—' : Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const ESPEC_DENT = ['Ortodontia', 'Clínico geral', 'Implantodontia', 'Endodontia', 'Periodontia', 'Odontopediatria', 'Prótese', 'Cirurgia', 'Harmonização', 'Outra'];
 async function denCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.from('dentistas').select('*').order('nome'), sb.from('dentista_unidades').select('*'), sb.from('unidades').select('*').order('sigla'), sb.from('funcionarios').select('*').order('nome'), sb.from('dentista_dias').select('*')]);
@@ -1816,6 +1832,9 @@ function denForm(d){
     + '<div class="g3">' + sel('d-civil', 'Estado civil', CIVIL, d && d.estado_civil) + sel('d-nac', 'Nacionalidade', NACION, d ? d.nacionalidade : 'Brasileiro(a)') + '<label class="field" for="d-valor">Valor do atendimento<span class="pw"><input id="d-valor" inputmode="numeric" style="padding-left:40px" value="' + esc(moedaTxt(d && d.valor_atendimento)) + '"' + ro + '><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label></div>'
     + '<label class="chk"><input type="checkbox" id="d-outros"' + (!d || d.atende_outros ? ' checked' : '') + ro + '> Permitir atendimento de pacientes de outros doutores</label>'
     + '<label class="chk"><input type="checkbox" id="d-orto"' + (d && d.ortodontista ? ' checked' : '') + ro + '> Ortodontista <small style="color:var(--muted)">(só ortodontistas podem ser responsáveis por uma agenda)</small></label>'
+    + '<div class="g2"><label class="field" for="d-esp">Especialidade<select id="d-esp"' + ro + '><option value="">Não informada</option>' + ESPEC_DENT.map(x => '<option' + (d && d.especialidade === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label>'
+    + (pode('clinico.custos') ? '<label class="field" for="d-com">Comissão do dentista (%)<input id="d-com" inputmode="decimal" placeholder="padrão do Clínico" value="' + esc(d && d.comissao_pct != null ? nTxt(d.comissao_pct, 2) : '') + '"' + ro + '><small style="color:var(--muted)">Vazio = usa a comissão de execução da configuração do Clínico.</small></label>' : '') + '</div>'
+    + '<label class="chk" id="d-clin-w"' + (d && d.especialidade === 'Ortodontia' ? '' : ' hidden') + '><input type="checkbox" id="d-clin"' + (d && d.faz_clinico ? ' checked' : '') + ro + '> Também faz clínico (atendimentos fora da ortodontia)</label>'
     + '<div class="field"><span>Unidades e dias em que atua</span><p class="sub" style="margin:0">Marque a unidade e, dentro dela, os dias da semana. As agendas deste dentista só existem nesses dias. Só aparecem os dias em que a unidade funciona.</p><div class="uns" id="d-uns">' + (D.unidades.filter(u => u.ativa || minhas.includes(u.id)).map(u => {
         const dias = (D.dd || []).filter(x => d && x.dentista_id === d.id && x.unidade_id === u.id).map(x => x.dia_semana), on = minhas.includes(u.id);
         return '<div class="un"><label class="chk"><input type="checkbox" class="un-on" value="' + u.id + '"' + (on ? ' checked' : '') + ro + '> <b>' + esc(u.sigla) + '</b></label><div class="un-dias" data-u="' + u.id + '"' + (on ? '' : ' hidden') + '>'
@@ -1857,6 +1876,7 @@ function denForm(d){
     fecharJanela(); toast(d.ativo ? 'Dentista inativado.' : 'Dentista reativado.'); denCarregar();
   });
   let idSalvo = d && d.id;
+  $('#d-esp').addEventListener('change', e => { const o = e.target.value === 'Ortodontia'; $('#d-clin-w').hidden = !o; if (o) $('#d-orto').checked = true; });
   $('#d-form').addEventListener('submit', async e => {
     e.preventDefault(); if (!edita) return;
     const er = $('#d-err'); er.textContent = '';
@@ -1871,8 +1891,9 @@ function denForm(d){
     if (!$$('.un-on:checked').length) { er.textContent = 'Marque ao menos uma unidade em que o dentista atua.'; return; }
     const reg = { nome: v('d-nome'), nome_social: v('d-social') || null, cpf, cro, email: v('d-email') || null, celular: dig(v('d-cel')), telefone_residencial: dig(v('d-res')) || null,
       data_ativacao: v('d-ativ'), rg: v('d-rg') || null, data_nascimento: v('d-nasc') || null, estado_civil: v('d-civil') || null, nacionalidade: v('d-nac') || null, valor_atendimento: moedaNum(v('d-valor')),
-      atende_outros: $('#d-outros').checked, ortodontista: $('#d-orto').checked, cep: dig(v('d-cep')) || null, logradouro: v('d-log') || null, numero: v('d-num') || null, complemento: v('d-comp') || null, bairro: v('d-bai') || null, cidade: v('d-cid') || null, uf: v('d-uf') || null,
+      atende_outros: $('#d-outros').checked, ortodontista: $('#d-orto').checked, especialidade: v('d-esp') || null, faz_clinico: v('d-esp') === 'Ortodontia' && $('#d-clin').checked, cep: dig(v('d-cep')) || null, logradouro: v('d-log') || null, numero: v('d-num') || null, complemento: v('d-comp') || null, bairro: v('d-bai') || null, cidade: v('d-cid') || null, uf: v('d-uf') || null,
       funcionario_id: v('d-func') ? Number(v('d-func')) : null };
+    if ($('#d-com')) { const cv = v('d-com').replace(',', '.'); if (cv && !(Number(cv) >= 0 && Number(cv) < 90)) { er.textContent = 'A comissão deve ficar entre 0 e 90%.'; return; } reg.comissao_pct = cv ? Number(cv) : null; }
     const b = $('#d-ok'); b.disabled = true;
     let r;
     if (!idSalvo) { r = await sb.from('dentistas').insert(reg).select('*').single(); if (!r.error) idSalvo = r.data.id; }
@@ -3273,10 +3294,12 @@ function clinTela(){
 function clinOrcTab(){
   const b = $('#cl-body');
   const f = () => CLX.orcs.filter(o => (CLX.st === 'todos' ? true : CLX.st === 'abertos' ? ['rascunho', 'encaminhado', 'salvo'].includes(o.status) : o.status === CLX.st) && (!CLX.q || clNorm(o.paciente).includes(clNorm(CLX.q))));
-  b.innerHTML = '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="co-st" style="margin:0">Situação<select id="co-st">'
+  const podeNovo = pode('clinico.indicar') || pode('clinico.negociar');
+  b.innerHTML = (podeNovo ? '<div class="card"><label class="field" for="co-np" style="margin:0">Novo orçamento: buscar paciente<input id="co-np" type="search" placeholder="Digite o nome do paciente" autocomplete="off"></label><div class="lista" id="co-res" aria-live="polite"></div></div>' : '')
+    + '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="co-st" style="margin:0">Situação<select id="co-st">'
     + [['abertos', 'Em aberto'], ['encaminhado', 'Aguardando negociação'], ['salvo', 'Salvos'], ['rascunho', 'Rascunhos'], ['perdido', 'Perdidos'], ['todos', 'Todos']].map(x => '<option value="' + x[0] + '"' + (CLX.st === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('')
-    + '</select></label><label class="field" for="co-q" style="margin:0;min-width:200px">Paciente<input id="co-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.q) + '"></label></div>'
-    + '<div class="tw" id="co-tab"></div><p class="sub" style="margin:10px 0 0">Para começar um orçamento, abra a ficha do prospect e use <b>Orçamento clínico</b>.</p></div>';
+    + '</select></label><label class="field" for="co-q" style="margin:0;min-width:200px">Filtrar orçamentos por paciente<input id="co-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.q) + '"></label></div>'
+    + '<div class="tw" id="co-tab"></div></div>';
   const tab = () => {
     const l = f();
     $('#co-tab').innerHTML = l.length ? '<table class="tb"><thead><tr><th>Paciente</th><th>Unidade</th><th class="n">Serviços</th><th class="n">Total</th><th>Situação</th><th>Atualizado</th><th></th></tr></thead><tbody>'
@@ -3284,6 +3307,20 @@ function clinOrcTab(){
       : '<div class="vazio">Nenhum orçamento nesta situação.</div>';
     $$('[data-co]', $('#co-tab')).forEach(x => x.addEventListener('click', () => clinOrcAbrir(Number(x.dataset.co))));
   };
+  const np = $('#co-np');
+  if (np) { let tk = 0, tm = null;
+    const busca = async () => {
+      const q = np.value.trim().replace(/[%,()]/g, ' '), box = $('#co-res'); if (!box) return;
+      if (q.length < 2) { box.innerHTML = ''; return; }
+      const my = ++tk, r = await sb.from('pacientes').select('id,nome,telefone,status,unidade_id').ilike('nome', '%' + q + '%').is('anonimizado_em', null).order('nome').limit(8);
+      if (my !== tk || !$('#co-res')) return;
+      if (r.error) { box.innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+      const sg = id => { const u = MINHAS.find(x => x.id === id); return u ? u.sigla : ''; };
+      box.innerHTML = r.data.length ? r.data.map(x => '<button class="row f" type="button" data-pn="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">' + esc(x.status || '') + '</span><span class="m x">' + esc(sg(x.unidade_id)) + '</span><span class="btn sm">Iniciar orçamento</span></button>').join('')
+        : '<div class="vazio">Nenhum paciente encontrado com esse nome.</div>';
+      $$('[data-pn]', box).forEach(x => x.addEventListener('click', () => clinOrcDoPaciente(Number(x.dataset.pn))));
+    };
+    np.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(busca, 250); }); }
   $('#co-st').addEventListener('change', e => { CLX.st = e.target.value; tab(); });
   $('#co-q').addEventListener('input', e => { CLX.q = e.target.value; tab(); });
   tab();
@@ -4192,23 +4229,44 @@ async function vendaAvulsaDialogo(pid, nome, aoFim){
 const PD = { q: '' };
 async function prdCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
-  const r = await sb.from('produtos_servicos').select('*').order('nome');
+  const [r, rt] = await Promise.all([sb.from('produtos_servicos').select('*').order('nome'), sb.rpc('tipos_lancamento_listar')]);
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
-  D.prd = r.data; prdLista();
+  D.prd = r.data; D.tip = rt.error ? [] : (rt.data || []); prdLista();
 }
 function prdLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Produtos e serviços</h1><p class="sub">Lista usada ao lançar uma cobrança avulsa na ficha financeira do paciente. Só o Diretor cadastra. O valor é sugerido na hora de lançar e pode ser ajustado. Vale para todas as unidades do grupo.</p></div>'
     + '<button class="btn" type="button" id="pd-novo">+ Novo produto ou serviço</button></div>'
-    + '<div class="card"><div class="tools"><input id="pd-q" type="search" placeholder="Buscar" aria-label="Buscar produto ou serviço" value="' + esc(PD.q) + '"></div><div class="lista" id="pd-lista"></div></div>';
+    + '<div class="card"><div class="tools"><input id="pd-q" type="search" placeholder="Buscar" aria-label="Buscar produto ou serviço" value="' + esc(PD.q) + '"></div><div class="lista" id="pd-lista"></div></div>'
+    + '<div class="card"><div class="head" style="margin:0 0 8px"><div><h2 style="margin:0;font-size:16px">Tipos de lançamento: Venda ou Cobrança</h2><p class="sub" style="margin:2px 0 0">Venda é feita pela equipe de vendas da clínica; cobrança é recebida pela equipe de cobrança do escritório. O Início do gerente e do diretor soma cada setor. Início do tratamento conta como venda; 1ª mensalidade e mensalidades contam como cobrança.</p></div><button class="btn ghost" type="button" id="tp-novo">+ Novo tipo</button></div>'
+    + '<div class="g2"><div><b>Venda</b><div class="lista" id="tp-venda"></div></div><div><b>Cobrança</b><div class="lista" id="tp-cob"></div></div></div></div>';
+  const pintaTp = () => ['venda', 'cobranca'].forEach(st => { $('#tp-' + (st === 'venda' ? 'venda' : 'cob')).innerHTML = (D.tip || []).filter(t => t.setor === st).map(t => '<button class="row f" type="button" data-tp="' + t.id + '"><b>' + esc(t.nome) + '</b>' + (t.ativo ? '' : '<span class="pill off">Inativo</span>') + '</button>').join('') || '<div class="vazio">Nenhum tipo.</div>'; });
+  pintaTp(); $$('[data-tp]').forEach(b => b.addEventListener('click', () => tpForm(D.tip.find(t => t.id === Number(b.dataset.tp)))));
+  $('#tp-novo').addEventListener('click', () => tpForm(null));
   const pinta = () => { const q = PD.q.trim().toLowerCase(), l = D.prd.filter(x => !q || x.nome.toLowerCase().includes(q));
-    $('#pd-lista').innerHTML = l.length ? l.map(x => '<button class="row f" type="button" data-id="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">' + (x.valor_padrao ? reais(x.valor_padrao) : 'sem valor sugerido') + '</span><span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nada encontrado.</div>';
+    $('#pd-lista').innerHTML = l.length ? l.map(x => '<button class="row f" type="button" data-id="' + x.id + '"><b>' + esc(x.nome) + '</b><span class="m x">' + (x.valor_padrao ? reais(x.valor_padrao) : 'sem valor sugerido') + '</span><span class="m x">' + esc(prdSetor(x)) + '</span><span class="pill ' + (x.ativo ? 'on' : 'off') + '">' + (x.ativo ? 'Ativo' : 'Inativo') + '</span></button>').join('') : '<div class="vazio">Nada encontrado.</div>';
     $$('#pd-lista .row').forEach(b => b.addEventListener('click', () => prdForm(D.prd.find(x => x.id === Number(b.dataset.id))))); };
   pinta(); $('#pd-q').addEventListener('input', e => { PD.q = e.target.value; pinta(); }); $('#pd-novo').addEventListener('click', () => prdForm(null));
+}
+const prdSetor = x => { const t = (D.tip || []).find(y => y.id === x.tipo_id); return t ? t.nome + ' · ' + (t.setor === 'venda' ? 'Venda' : 'Cobrança') : 'Venda'; };
+function tpForm(t){
+  const novo = !t;
+  abrirJanela(novo ? 'Novo tipo de lançamento' : 'Tipo de lançamento', '<form id="tp-form" novalidate><div class="db">' + fld('tp-nome', 'Nome *', t && t.nome, 'maxlength="60" autocomplete="off"')
+    + '<label class="field" for="tp-setor">Setor<select id="tp-setor"><option value="venda"' + (t && t.setor === 'cobranca' ? '' : ' selected') + '>Venda (equipe de vendas da clínica)</option><option value="cobranca"' + (t && t.setor === 'cobranca' ? ' selected' : '') + '>Cobrança (equipe de cobrança do escritório)</option></select></label>'
+    + '<label class="chk"><input type="checkbox" id="tp-ativo"' + (!t || t.ativo ? ' checked' : '') + '> Ativo</label><div class="err" id="tp-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="tp-cancel">Cancelar</button><button class="btn" type="submit" id="tp-ok">Salvar</button></div></form>');
+  $('#tp-cancel').addEventListener('click', fecharJanela);
+  $('#tp-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#tp-err'); er.textContent = ''; const b = $('#tp-ok'); b.disabled = true;
+    const r = await sb.rpc('tipo_lancamento_salvar', { p_id: t ? t.id : null, p_nome: $('#tp-nome').value, p_setor: $('#tp-setor').value, p_ativo: $('#tp-ativo').checked });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast('Tipo salvo.'); prdCarregar();
+  });
 }
 function prdForm(x){
   const novo = !x;
   abrirJanela(novo ? 'Novo produto ou serviço' : 'Produto ou serviço', '<form id="pd-form" novalidate><div class="db">' + fld('pd-nome', 'Nome *', x && x.nome, 'maxlength="80" autocomplete="off"')
     + '<label class="field" for="pd-val">Valor sugerido (opcional)<span class="pw"><input id="pd-val" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(x && x.valor_padrao)) + '"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
+    + '<label class="field" for="pd-tipo">Tipo (define se conta como venda ou cobrança)<select id="pd-tipo"><option value="">Sem tipo (venda)</option>' + (D.tip || []).filter(t => t.ativo || (x && x.tipo_id === t.id)).map(t => '<option value="' + t.id + '"' + (x && x.tipo_id === t.id ? ' selected' : '') + '>' + esc(t.nome) + ' · ' + (t.setor === 'venda' ? 'Venda' : 'Cobrança') + '</option>').join('') + '</select></label>'
     + '<div class="err" id="pd-err" role="alert"></div></div><div class="df"><div class="esq">' + (!novo ? '<button class="btn ' + (x.ativo ? 'danger' : 'ghost') + '" type="button" id="pd-ina">' + (x.ativo ? 'Inativar' : 'Reativar') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="pd-cancel">Cancelar</button><button class="btn" type="submit" id="pd-ok">Salvar</button></div></form>');
   $('#pd-val').addEventListener('input', e => e.target.value = mMoeda(e.target.value));
@@ -4223,7 +4281,7 @@ function prdForm(x){
     e.preventDefault(); const er = $('#pd-err'); er.textContent = '';
     const nome = $('#pd-nome').value.trim().replace(/\s+/g, ' ').toUpperCase(), val = moedaNum($('#pd-val').value) || null;
     if (nome.length < 2) { er.textContent = 'Dê um nome ao produto ou serviço.'; return; }
-    const reg = { nome, valor_padrao: val }, b = $('#pd-ok'); b.disabled = true;
+    const reg = { nome, valor_padrao: val, tipo_id: $('#pd-tipo').value ? Number($('#pd-tipo').value) : null }, b = $('#pd-ok'); b.disabled = true;
     const r = novo ? await sb.from('produtos_servicos').insert(reg) : await sb.from('produtos_servicos').update(reg).eq('id', x.id);
     b.disabled = false;
     if (r.error) { er.textContent = /produtos_nome_uq|23505/.test((r.error.message || '') + r.error.code) ? 'Já existe um item com esse nome.' : erroTxt(r.error); return; }
