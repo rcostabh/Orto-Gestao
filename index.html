@@ -558,7 +558,8 @@ const pode = p => !!EU && (EU.acesso_total || EU.permissoes.includes(p));
 const waIc = (tel, nome) => { const d = dig(tel || ''); if (d.length < 10) return ''; return '<a class="wa-ic" href="https://wa.me/' + waNum(tel) + '" target="_blank" rel="noopener" title="Chamar' + (nome ? ' ' + esc(nome) : '') + ' no WhatsApp" aria-label="Chamar' + (nome ? ' ' + esc(nome) : '') + ' no WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#25d366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#fff" d="M8.6 7.5c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.5l-.5.6c.8 1.5 1.9 2.4 3.3 3l.6-.7c.1-.2.4-.2.6-.1l1.6.8c.2.1.3.3.2.6-.2.9-1 1.4-1.9 1.3-2.9-.4-5.3-2.7-6-5.5-.1-.8.5-1.7 1-2.6z"/></svg></a>'; };
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.wa-ic')) e.stopPropagation(); }, true);
 const ehGer = () => !!EU && !EU.fora && !EU.plataforma && (!!EU.acesso_total || EU.perfil === 'Gerente');
-const inicioRota = () => EU && EU.fora ? 'p-grupos' : (EU && soDent() && pode('atendimento.ver') ? 'atendimento' : 'inicio');
+const ehAtend = () => !!EU && !EU.fora && !EU.plataforma && pode('atendimento.ver') && !ehGer();
+const inicioRota = () => EU && EU.fora ? 'p-grupos' : (ehAtend() ? 'atendimento' : 'inicio');
 const ehDir = () => !!EU && !!EU.acesso_total && !EU.fora && !EU.plataforma;
 
 /* ---------- janelas ---------- */
@@ -824,6 +825,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.53.2', '2026-11-06', 'Quem tem o painel de atendimento e não é gerência (o dentista) entra direto no Atendimento, mesmo com perfil personalizado.'],
   ['0.53.1', '2026-11-06', 'O dentista já entra direto no Atendimento, com o nome no título (Atendimento - nome), sem a tela Início. Procedimentos refeito em cards alinhados, com busca, tempo em destaque, tipo de cadeira e situação, sem textos explicativos. Atendimento e prontuário com menos texto.'],
   ['0.53.0', '2026-11-06', 'Atendimento do dentista: nova tela com três cards (manutenção, avaliação e instalação aguardando) e a maior espera de cada um. A espera conta da hora marcada; quem chega adiantado aparece com tempo negativo (ex.: −12 min); quem chega atrasado conta da chegada. Clicar no card destaca na agenda só quem está aguardando; clicar de novo mostra a agenda toda. O dentista não cancela nem remarca. Prontuário eletrônico: ao iniciar o atendimento abre a ficha da consulta (queixa, exame, procedimentos realizados, conduta, orientações e retorno), com odontograma, histórico de consultas, adendos, assinatura eletrônica, impressão e registro de quem acessou.'],
   ['0.52.0', '2026-11-06', 'Agenda: cancelar pede o motivo, horário que já passou não cancela nem remarca (fica como falta) e todo evento do agendamento é registrado (quem, quando e por quê). Novo item Log da agenda para a gerência e botão Histórico em cada agendamento.'],
@@ -1012,7 +1014,7 @@ function irPara(r, o){
     if (ja && ja === ABA) return;
     await guardar();
     if (ja) { mostrar(ja); if (precisa(ja)) recarregar(ja); return; }
-    const a = { un: UN, chave, rota: r, titulo: (o && o.titulo) || (r === 'atendimento' && soDent() ? 'Atendimento - ' + EU.nome : TITULOS[r]) || '', frag: document.createDocumentFragment(), fixa: r === 'inicio' || r === 'p-grupos' || (r === 'atendimento' && inicioRota() === 'atendimento'), opc: o || {}, y: 0 };
+    const a = { un: UN, chave, rota: r, titulo: (o && o.titulo) || (r === 'atendimento' && ehAtend() ? 'Atendimento - ' + EU.nome : TITULOS[r]) || '', frag: document.createDocumentFragment(), fixa: r === 'inicio' || r === 'p-grupos' || (r === 'atendimento' && inicioRota() === 'atendimento'), opc: o || {}, y: 0 };
     ABAS.push(a); ABA = a; $('#area').replaceChildren(); mostrar(a);
     a.pronto = Promise.resolve(abrirRota(r, o || {})).catch(e => { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(e)) + '</div></div>'; });
     await a.pronto;
@@ -5142,7 +5144,7 @@ async function agdCarregar(){
 function agdAuto(){ if (!EU || (ROTA_ATIVA() !== 'agenda' && ROTA_ATIVA() !== 'atendimento') || dlg.open || document.hidden || !$('#g-corpo') || !AG.cols) return; agdCorpo(); atdAtualiza(); }
 function agdDesenhar(){
   const un = D.unidades.find(u => u.id === AG.un), dt = dataLocal(AG.data);
-  $('#area').innerHTML = '<div class="head"><div><h1>' + (ROTA_ATIVA() === 'atendimento' ? 'Atendimento' + (soDent() ? ' - ' + esc(EU.nome) : '') : 'Agenda') + '</h1></div></div>'
+  $('#area').innerHTML = '<div class="head"><div><h1>' + (ROTA_ATIVA() === 'atendimento' ? 'Atendimento' + (ehAtend() ? ' - ' + esc(EU.nome) : '') : 'Agenda') + '</h1></div></div>'
     + '<div class="agbar"><span class="pill nu">' + esc(un.sigla) + ' — ' + esc(un.razao_social) + '</span>'
     + '<div class="nav"><button class="btn ghost sm" type="button" id="g-ant" aria-label="Dia anterior">◀</button><button class="btn ghost sm" type="button" id="g-hoje">Hoje</button><button class="btn ghost sm" type="button" id="g-prox" aria-label="Próximo dia">▶</button></div>'
     + '<input type="date" id="g-data" value="' + esc(AG.data) + '" aria-label="Data"><span class="dl">' + esc(dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + '</span>'
