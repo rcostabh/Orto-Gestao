@@ -183,9 +183,18 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .avc b{font-size:15px}.avc .m{color:var(--muted);font-size:13px}
 .avc .ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 /* ficha do paciente */
-.ficha{display:grid;grid-template-columns:minmax(260px,380px) minmax(0,1fr);gap:16px;align-items:start}
-.ficha .kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px 12px;align-items:center;font-size:14px}
-.ficha .kv span{color:var(--muted)}.ficha .kv b{font-weight:500;overflow-wrap:anywhere}
+.ficha{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.pdados{padding:14px 18px}
+.ficha .kv{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 20px;align-items:start}
+.ficha .kp{min-width:0;display:flex;flex-direction:column;gap:3px}.ficha .kp.w2{grid-column:span 2}
+.ficha .kp span{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.ficha .kp b{font-size:13px;font-weight:500;overflow-wrap:anywhere;line-height:1.35}
+@media (max-width:1180px){.ficha .kv{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:760px){.ficha .kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pfull{padding:0 18px 18px}
+.pabas{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(max-content,1fr);gap:2px;overflow-x:auto;margin:0 -18px 16px;padding:0 18px;border-bottom:1px solid var(--line)}
+.pabas button{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);font:inherit;font-size:14px;font-weight:600;padding:15px 18px 12px;cursor:pointer;white-space:nowrap;text-align:center;margin-bottom:-1px}
+.pabas button:hover{color:var(--ink)}.pabas button.on{color:var(--ink);border-bottom-color:var(--accent)}
 .tit{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
 .tit h1{margin:0;font-size:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--accent-soft)}
@@ -759,7 +768,7 @@ const BUSCA_EXTRA = [
   { t: 'Documentação do paciente', c: 'Pacientes e prospects › abra o paciente › aba Documentação', r: 'prospects', p: 'documentacao.ver', k: 'fotos radiografias exames arquivos anexos upload' },
   { t: 'Venda avulsa', c: 'Vendas › botão Venda avulsa', r: 'vendas', p: 'financeiro.lancar', k: 'clareamento limpeza produto servico sem contrato pagamento simples receber' },
   { t: 'Iniciar tratamento', c: 'Vendas › Liberados para venda', r: 'vendas', p: 'vendas.registrar', k: 'vender plano contrato mensalidade' },
-  { t: 'Carta de alta / contenção', c: 'Pacientes e prospects › abra o paciente › Carta de alta: passar para contenção', r: 'prospects', p: 'pacientes.editar', k: 'alta encerrar contrato concluir tratamento' },
+  { t: 'Carta de alta / contenção', c: 'Atendimento › abra o prontuário do paciente › Carta de alta (só o dentista)', r: 'atendimento', p: 'prontuario.registrar', k: 'alta encerrar contrato concluir tratamento' },
   { t: 'Cancelar contrato', c: 'Pacientes e prospects › abra o paciente › Mais ações › Cancelar contrato', r: 'prospects', p: 'pacientes.ver', k: 'desistencia rescisao desistente aviso previo multa' },
   { t: 'Cadastrar paciente', c: 'Pacientes e prospects › Novo', r: 'prospects', p: 'pacientes.criar', k: 'novo prospect cadastro cpf telefone' },
   { t: 'Receber pagamento', c: 'Caixa › buscar o paciente › Receber', r: 'caixa', p: ['financeiro.baixar', 'caixa.ver'], k: 'mensalidade parcela pix dinheiro cartao boleto baixa' },
@@ -827,6 +836,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.55.0', '2026-11-07', 'Ficha do paciente refeita: os dados ficam num quadro horizontal sob o nome (no máximo 3 linhas, só os campos preenchidos) e as abas ocupam a largura toda, com Financeiro em primeiro e sempre aberto. A carta de alta saiu da ficha: só o dentista registra, no prontuário.'],
   ['0.54.2', '2026-11-06', 'Prontuário reorganizado: o odontograma ocupa a largura toda (antes estourava sobre as outras caixas), com legenda ao lado, e rola de lado no celular. Horários com hora e minuto, botões alinhados e menos textos explicativos.'],
   ['0.54.1', '2026-11-06', 'Menos consultas ao banco: com o tempo real conectado, a atualização automática da agenda cai de 30 segundos para 3 minutos (volta a 30 segundos se a conexão cair).'],
   ['0.54.0', '2026-11-06', 'Agenda e painel de atendimento em tempo real: quando a recepção marca a chegada do paciente (ou qualquer mudança na agenda), os cards e a grade se atualizam na hora, sem esperar a atualização automática de 30 segundos, que continua como reserva.'],
@@ -2319,9 +2329,8 @@ function pacForm(p, aoSalvar){
 const ROTA_ATIVA = () => ABA ? ABA.rota : '';
 
 /* ---------- ficha do paciente (uma aba por paciente) ---------- */
-const PROX_ST = { 'Ativo': [['Contenção', 'Carta de alta: passar para contenção']], 'Inativo': [['Contenção', 'Carta de alta: passar para contenção']] };
-// a carta de alta (Contenção) só aparece para dentista; Inativo sem contrato ativo (contrato cancelado) pode voltar a prospect para uma nova venda
-const proxSt = (p, semContrato) => (PROX_ST[p.status] || []).filter(x => x[0] !== 'Contenção' || souDent()).concat(p.status === 'Inativo' && semContrato ? [['Prospecção', 'Reabrir como prospect']] : []);
+// a carta de alta (Contenção) não fica na ficha: só o dentista a registra, no prontuário; Inativo sem contrato ativo (contrato cancelado) pode voltar a prospect para uma nova venda
+const proxSt = (p, semContrato) => p.status === 'Inativo' && semContrato ? [['Prospecção', 'Reabrir como prospect']] : [];
 const PILL_ST = { 'Ativo': 'on', 'Inativo': 'off', 'Pré-Ativo': 'wr', 'Contenção': 'nu' };
 async function pacFicha(id){
   sb.rpc('lgpd_registrar_acesso', { p_paciente: id }).then(() => {}, () => {});
@@ -2339,7 +2348,7 @@ async function pacFicha(id){
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
   const vAt = p.status === 'Inativo' ? await sb.from('vendas').select('id').eq('paciente_id', id).eq('status', 'ativa').limit(1) : null, semContrato = !!vAt && !vAt.error && !(vAt.data || []).length;
   const aberta = avs.find(a => a.status === 'aguardando' || a.status === 'em_atendimento'), un = D.unidades.find(u => u.id === p.unidade_id);
-  const kv = (r, v) => '<span>' + r + '</span><b>' + (v ? esc(v) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>';
+  const kv = (r, v, o) => (v || (o && o.sempre)) ? '<div class="kp' + (o && o.w2 ? ' w2' : '') + '"><span>' + r + '</span><b>' + (v ? (o && o.html ? v : esc(v)) : '—') + '</b></div>' : '';
   $('#area').innerHTML = '<div class="card tit"><h1>' + p.codigo + ' - ' + esc(p.nome.toUpperCase()) + ' <span class="pill ' + (PILL_ST[p.status] || 'nu') + '">' + esc(p.status || 'Prospecção') + '</span>' + (aberta ? ' <span class="pill wr">' + ST_AV[aberta.status] + '</span>' : '') + '</h1><div style="display:flex;gap:8px;flex-wrap:wrap">'
     + (pode('pacientes.editar') ? proxSt(p, semContrato).map(x => '<button class="btn ghost sm" type="button" data-st="' + x[0] + '">' + x[1] + '</button>').join('') : '')
     + (pode('clinico.ver') && (pode('clinico.indicar') || pode('clinico.negociar')) && !p.anonimizado_em ? '<button class="btn ghost sm" type="button" id="fi-clin">Orçamento clínico</button>' : '')
@@ -2349,21 +2358,24 @@ async function pacFicha(id){
     + (aberta ? (pode('avaliacoes.iniciar') ? '<button class="btn ghost sm" type="button" id="fi-canc">Cancelar avaliação</button>' : '')
       : p.status === 'Prospecção' ? (concl && pode('avaliacoes.atender') && souDent() && !jaAvaliei ? '<button class="btn sm" type="button" id="fi-rea" title="Outro dentista avalia e registra o seu parecer">Reavaliar (meu parecer)</button>' : '')
         + (pode('avaliacoes.iniciar') ? '<button class="btn ' + (concl ? 'ghost ' : '') + 'sm" type="button" id="fi-ini">' + (concl ? 'Solicitar reavaliação' : 'Iniciar avaliação') + '</button>' : '') : '') + '</div></div>'
-    + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv">' + kv('Código', String(p.codigo)) + kv('Situação', p.status || 'Prospecção') + kv('Nome social', p.nome_social) + kv('CPF', p.cpf ? mCPF(p.cpf) : '') + kv('RG', p.rg) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '') + '<span>Telefone</span><b>' + (p.telefone ? esc(mTel(p.telefone)) + waIc(p.telefone, p.nome_social || p.nome) : '<i style="color:var(--muted);font-weight:400">—</i>') + '</b>'
-    + kv('E-mail', p.email) + kv('Endereço', [p.logradouro && (p.logradouro + (p.numero ? ', ' + p.numero : '') + (p.complemento ? ' - ' + p.complemento : '')), p.bairro, p.cidade && (p.cidade + (p.uf ? '/' + p.uf : '')), p.cep && mCEP(p.cep)].filter(Boolean).join(' · ')) + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : '')) : '')
-    + kv('Canal de vendas', p.canal_venda) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '') + kv('Data do cadastro', dBR(p.data_cadastro)) + kv('Observação', p.observacao) + '</div></div>'
-    + '<div class="card"><div class="pls" id="fi-tabs"><button type="button" class="' + (aberta ? '' : 'on') + '" data-tab="oc">Ocorrências</button><button type="button" class="' + (aberta ? 'on' : '') + '" data-tab="av">Avaliações</button>' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '' + (pode('pacientes.ver') && !p.anonimizado_em ? '<button type="button" data-tab="an" id="fi-tab-an">Anamnese</button>' : '') + (pode('documentacao.ver') && !p.anonimizado_em ? '<button type="button" data-tab="dc" id="fi-tab-dc">Documentação</button>' : '') + (pode('vendas.ver') && !p.anonimizado_em ? '<button type="button" data-tab="ct" id="fi-tab-ct">Contrato</button>' : '') + '</div>'
-    + '<div id="fi-oc"' + (aberta ? ' hidden' : '') + '></div>'
+    + '<div class="ficha"><div class="card pdados"><div class="kv">' + kv('Código', String(p.codigo), { sempre: 1 }) + kv('CPF', p.cpf ? mCPF(p.cpf) : '', { sempre: 1 }) + kv('Nascimento', p.data_nascimento ? dBR(p.data_nascimento) : '', { sempre: 1 })
+    + kv('Telefone', p.telefone ? esc(mTel(p.telefone)) + waIc(p.telefone, p.nome_social || p.nome) : '', { sempre: 1, html: 1 }) + kv('Nome social', p.nome_social) + kv('RG', p.rg) + kv('E-mail', p.email)
+    + kv('Endereço', [p.logradouro && (p.logradouro + (p.numero ? ', ' + p.numero : '') + (p.complemento ? ' - ' + p.complemento : '')), p.bairro, p.cidade && (p.cidade + (p.uf ? '/' + p.uf : '')), p.cep && mCEP(p.cep)].filter(Boolean).join(' · '), { w2: 1 })
+    + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : ''), { w2: 1 }) : '')
+    + kv('Canal de vendas', p.canal_venda, { sempre: 1 }) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '', { sempre: 1, w2: 1 }) + kv('Data do cadastro', dBR(p.data_cadastro), { sempre: 1 }) + kv('Observação', p.observacao, { w2: 1 }) + '</div></div>'
+    + '<div class="card pfull"><div class="pabas" id="fi-tabs">' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '<button type="button" data-tab="oc">Ocorrências</button><button type="button" data-tab="av">Avaliações</button>' + (pode('pacientes.ver') && !p.anonimizado_em ? '<button type="button" data-tab="an" id="fi-tab-an">Anamnese</button>' : '') + (pode('documentacao.ver') && !p.anonimizado_em ? '<button type="button" data-tab="dc" id="fi-tab-dc">Documentação</button>' : '') + (pode('vendas.ver') && !p.anonimizado_em ? '<button type="button" data-tab="ct" id="fi-tab-ct">Contrato</button>' : '') + '</div>'
+    + '<div id="fi-oc" hidden></div>'
     + '<div id="fi-an" hidden></div>'
     + '<div id="fi-dc" hidden></div>'
     + '<div id="fi-ct" hidden></div>'
     + '<div id="fi-fn" hidden>' + (pode('financeiro.lancar') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nova" title="Lançar uma cobrança avulsa (produto ou serviço, consulta de manutenção)">+ Nova cobrança</button>' + (pode('financeiro.baixar') ? ' <button class="btn sm ghost" type="button" id="fi-vavulsa" title="Produto ou serviço pago na hora, sem contrato">Venda avulsa</button>' : '') + '</div>' : '') + '<div id="fi-fng"></div></div>'
-    + '<div class="tw" id="fi-av"' + (aberta ? '' : ' hidden') + '>'
+    + '<div class="tw" id="fi-av" hidden>'
     + (avs.length ? '<table class="tb"><thead><tr><th>Data avaliação</th><th>Unidade</th><th>Status</th><th>Resultado</th><th>Avaliado por</th><th>Observação</th><th>Iniciada por</th></tr></thead><tbody>' + avs.map(a => '<tr><td>' + dtHora(a.iniciada_em) + (a.reavaliacao ? '<br><small style="color:var(--muted)">reavaliação</small>' : '') + '</td><td>' + esc(a.unidade_sigla) + '</td><td>' + ((a.status === 'aguardando' && pode('avaliacoes.atender') && souDent()) || (a.status === 'em_atendimento' && ((pode('avaliacoes.atender') && souDent()) || pode('avaliacoes.ver_todas'))) ? '<button class="link" type="button" data-avf="' + a.id + '" data-avs="' + a.status + '" title="Abrir a avaliação do dentista">' + ST_AV[a.status] + ' ›</button>' : '<span title="A avaliação é feita por um dentista: entre com o login dele">' + ST_AV[a.status] + '</span>') + '</td><td>' + (a.status === 'concluida' ? '<span class="pill ' + (a.apto ? 'on' : 'off') + '">' + (a.apto ? 'Apto' : 'Não apto') + '</span><br><small style="color:var(--muted)">Clínico concomitante: ' + (a.tratamento_clinico ? 'sim' : 'não') + '<br>Limpeza profunda: ' + (a.limpeza_profunda ? 'sim' : 'não') + '</small>' : '') + '</td><td>' + esc(a.dentista_nome || '') + '</td><td>' + esc(a.observacao || '') + '</td><td>' + esc(a.iniciada_por_nome || '') + '</td></tr>').join('') + '</tbody></table>' : '<div class="vazio">Nenhuma avaliação ainda.</div>')
     + '</div></div></div>'
     + (marc.length ? '<div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px;font-size:16px">Agendamentos</h2><div class="tw"><table class="tb"><thead><tr><th>Data</th><th>Hora</th><th>Agenda</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>'
       + marc.map(g => '<tr><td>' + dBR(g.data) + '</td><td>' + hmDe(g.ini_min) + '</td><td>' + esc(nAg(g.agenda_id)) + '</td><td>' + esc(nPr(g.procedimento_id)) + '</td><td><span class="sd s-' + g.status + '"></span>' + ST_AG[g.status] + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
+  const recarregaAv = () => { FI_TAB = 'av'; recarrega(); }; // quem mexe na avaliação continua vendo a aba Avaliações
   pacAnamnese(p, recarrega); pacPrivacidade(p, recarrega);
   gradeF($('#fi-oc'), { vazio: 'Nenhuma ocorrência ainda.', dados: ocs.map((o, n) => Object.assign({ _n: n + 1 }, o)), cols: [
     { t: '#', k: x => x._n, v: x => String(x._n) }, { t: 'Data', k: x => x.quando || '', v: x => dtHora(x.quando) }, { t: 'Ocorrência', v: x => x.titulo || '', h: x => '<b>' + esc(x.titulo) + '</b>' }, { t: 'Responsável', v: x => x.responsavel || '' },
@@ -2378,22 +2390,22 @@ async function pacFicha(id){
     { t: 'Situação', v: sitTxt, h: fnSit }, { t: 'Pagamento', v: x => x.status === 'paga' ? dBR(x.pago_em) + ' · ' + (x.forma_pagamento || '') : x.status === 'isenta' ? 'Isento em ' + dBR(x.pago_em) : '' }],
     acao: x => x.status === 'aberta' && baixaF ? '<button class="btn sm" type="button" data-rec="' + x.id + '">Receber</button>' : '', liga: bx => $$('[data-rec]', bx).forEach(b => b.addEventListener('click', () => caixaPaciente(p.id))) });
   $$('#fi-tabs [data-tab]').forEach(b => b.addEventListener('click', () => { $$('#fi-tabs [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#fi-oc').hidden = b.dataset.tab !== 'oc'; $('#fi-av').hidden = b.dataset.tab !== 'av'; const fn = $('#fi-fn'); if (fn) fn.hidden = b.dataset.tab !== 'fn'; const an = $('#fi-an'); if (an) an.hidden = b.dataset.tab !== 'an'; const ct = $('#fi-ct'); if (ct) { ct.hidden = b.dataset.tab !== 'ct'; if (b.dataset.tab === 'ct') pacContrato(ct, p); } const dc = $('#fi-dc'); if (dc) { dc.hidden = b.dataset.tab !== 'dc'; if (b.dataset.tab === 'dc' && !dc.dataset.ok) { dc.dataset.ok = '1'; docPaciente(dc, p); } } }));
-  if (FI_TAB) { const bt = $('#fi-tabs [data-tab="' + FI_TAB + '"]'); FI_TAB = null; if (bt) bt.click(); }
+  { const bt = $('#fi-tabs [data-tab="' + (FI_TAB || 'fn') + '"]') || $('#fi-tabs [data-tab]'); FI_TAB = null; if (bt) bt.click(); }
   const fnv = $('#fi-nova'); if (fnv) fnv.addEventListener('click', () => cobrancaDialogo(p.id, p.nome_social || p.nome, null));
   const fva = $('#fi-vavulsa'); if (fva) fva.addEventListener('click', () => vendaAvulsaDialogo(p.id, p.nome_social || p.nome, null));
   $$('[data-avf]').forEach(b => b.addEventListener('click', async () => {
     const avId = Number(b.dataset.avf);
     if (b.dataset.avs === 'aguardando') {
       b.disabled = true; const r = await sb.rpc('atender_avaliacao', { p_id: avId }); b.disabled = false;
-      if (r.error) { toast(erroTxt(r.error)); return; } avBuscar(); recarrega();
+      if (r.error) { toast(erroTxt(r.error)); return; } avBuscar(); recarregaAv();
     }
-    avConcluirDialogo(avId, p.nome_social || p.nome, recarrega);
+    avConcluirDialogo(avId, p.nome_social || p.nome, recarregaAv);
   }));
   const rea = $('#fi-rea'); if (rea) rea.addEventListener('click', async () => {
     if (rea.dataset.c !== '1') { rea.dataset.c = '1'; rea.textContent = 'Confirmar: vou reavaliar'; return; }
     rea.disabled = true; const r = await sb.rpc('reavaliar_avaliacao', { p_paciente: id }); rea.disabled = false;
     if (r.error) { toast(erroTxt(r.error)); rea.dataset.c = ''; rea.textContent = 'Reavaliar (meu parecer)'; return; }
-    avBuscar(); recarrega(); avConcluirDialogo(r.data, p.nome_social || p.nome, recarrega);
+    avBuscar(); recarregaAv(); avConcluirDialogo(r.data, p.nome_social || p.nome, recarregaAv);
   });
   $$('[data-st]').forEach(b => b.addEventListener('click', async () => {
     if (b.dataset.c !== '1') { b.dataset.c = '1'; b.textContent = 'Confirmar: ' + b.textContent; return; }
@@ -5442,7 +5454,7 @@ function prontDesenha(){
   const anTxt = !an ? '<span class="pill off">Sem anamnese</span>' : an.status === 'respondida' ? '<span class="pill on">Anamnese assinada</span> em ' + dtHm(an.respondida_em) : '<span class="pill wr">Anamnese pendente</span>';
   const cat = ab ? ab.categoria : 'manutencao';
   $('#area').innerHTML = '<div class="head"><div><h1>' + esc(p.nome) + '</h1><p class="sub">Prontuário eletrônico' + (p.idade != null ? ' · ' + p.idade + ' anos' : '') + (p.telefone ? ' · ' + esc(p.telefone) : '') + ' · <span class="pill nu">' + esc(p.status) + '</span></p></div>'
-    + '<div class="tools" style="margin:0">' + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" id="pr-ficha">Ficha do paciente</button>' : '') + '<button class="btn ghost sm" type="button" id="pr-imp">Imprimir prontuário</button>' + (ehGer() ? '<button class="btn ghost sm" type="button" id="pr-acc">Quem acessou</button>' : '') + '</div></div>'
+    + '<div class="tools" style="margin:0">' + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" id="pr-ficha">Ficha do paciente</button>' : '') + '<button class="btn ghost sm" type="button" id="pr-imp">Imprimir prontuário</button>' + (soDent() && ['Ativo', 'Inativo'].includes(p.status) ? '<button class="btn ghost sm" type="button" id="pr-alta">Carta de alta</button>' : '') + (ehGer() ? '<button class="btn ghost sm" type="button" id="pr-acc">Quem acessou</button>' : '') + '</div></div>'
     + '<div class="kpis"><div class="kpi"><span>Consultas assinadas</span><b>' + rs.consultas + '</b></div><div class="kpi"><span>Primeira consulta</span><b style="font-size:17px">' + (rs.primeira ? dBR(String(rs.primeira).slice(0, 10)) : '—') + '</b></div><div class="kpi"><span>Última consulta</span><b style="font-size:17px">' + (rs.ultima ? dBR(String(rs.ultima).slice(0, 10)) : '—') + '</b></div>'
     + '<div class="kpi' + (rs.faltas > 1 ? ' al' : '') + '"><span>Faltas</span><b>' + rs.faltas + '</b></div><div class="kpi"><span>Próximo agendamento</span><b style="font-size:17px">' + (rs.proximo ? dBR(rs.proximo.data) + ' ' + hmDe(rs.proximo.ini_min) : '—') + '</b></div></div>'
     + '<p class="pran">' + anTxt + '</p>'
@@ -5463,6 +5475,12 @@ function prontDesenha(){
 function prontLiga(){
   const f = $('#pr-ficha'); if (f) f.addEventListener('click', () => abrirPaciente({ id: PR.pid, nome: PR.d.paciente.nome_civil, nome_social: PR.d.paciente.nome }));
   const im = $('#pr-imp'); if (im) im.addEventListener('click', prontImprimir);
+  const al = $('#pr-alta'); if (al) al.addEventListener('click', async () => {
+    if (al.dataset.c !== '1') { al.dataset.c = '1'; al.textContent = 'Confirmar carta de alta'; return; }
+    al.disabled = true; const r = await sb.rpc('mudar_status_paciente', { p_id: PR.pid, p_status: 'Contenção' });
+    if (r.error) { toast(erroTxt(r.error)); al.disabled = false; al.dataset.c = ''; al.textContent = 'Carta de alta'; return; }
+    toast('Alta registrada: contrato encerrado, mensalidades futuras canceladas e paciente em Contenção.'); prontCarregar(PR.pid);
+  });
   const ac = $('#pr-acc'); if (ac) ac.addEventListener('click', prontAcessos);
   $$('#pr-queixa,#pr-exame,#pr-diag,#pr-conduta,#pr-orient,#pr-retorno').forEach(e => e.addEventListener('input', prontAgenda));
   const ligaItens = () => {
