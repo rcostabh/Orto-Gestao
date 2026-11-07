@@ -220,6 +220,40 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .ag .a b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .ag .a small{opacity:.88;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .ag .a:hover{filter:brightness(1.25)}.ag .a:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.atd{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:0 0 12px}
+.atc{text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-left:6px solid var(--ok);border-radius:16px;padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit;box-shadow:var(--shadow);min-width:0;transition:transform .15s var(--ease)}
+.atc:hover{transform:translateY(-1px)}.atc[aria-pressed=true]{outline:3px solid var(--accent);outline-offset:1px}
+.atc.warn{border-left-color:#e0a000}.atc.crit{border-left-color:var(--red)}.atc.early{border-left-color:#1769d6}.atc.vazio{border-left-color:var(--line)}
+.atc .atl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.atc .atn{font-size:34px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums}.atc .atn small{font-size:13px;font-weight:500;color:var(--muted)}
+.atc .atm{font-size:13px}.atc .atm b{font-size:19px;font-variant-numeric:tabular-nums}.atc.crit .atm b{color:var(--red)}.atc.warn .atm b{color:var(--warn)}.atc.early .atm b{color:#1769d6}
+.atc small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atfil{margin:0 0 10px}.atq{margin:0 0 12px;padding:12px 16px}.atq summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.atl2{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:260px;overflow:auto}
+.atr{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 10px;background:var(--surface-2);border-radius:12px}
+.atr .atp{display:flex;flex-direction:column;min-width:0;flex:1 1 200px}.atr .atp small{color:var(--muted);font-size:12px}
+.ate{font-weight:700;font-variant-numeric:tabular-nums;font-size:13px}.ate.warn{color:var(--warn)}.ate.crit{color:var(--red)}.ate.early{color:#1769d6}.ate.ok{color:var(--ok)}
+.ath{font-size:13px;margin:14px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ag.filtrando .a:not(.dest){opacity:.18;filter:grayscale(1)}.ag .a.dest{outline:3px solid var(--accent);outline-offset:1px;z-index:3;box-shadow:0 0 0 5px var(--accent-soft)}
+.ag .a .eb{font-weight:700;opacity:1}
+.prg{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}.prc,.prs{display:flex;flex-direction:column;gap:14px;min-width:0}.prs{position:sticky;top:12px}
+@media (max-width:1000px){.prg{grid-template-columns:minmax(0,1fr)}.prs{position:static}}
+.pran{margin:0 0 12px;font-size:13.5px}.prtop{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;margin-bottom:10px}.prtop h2{margin:0;font-size:17px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prnow{border-top:4px solid var(--accent)}.pchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.chip{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:99px;padding:6px 12px;font:500 12.5px var(--font);cursor:pointer}.chip:hover{border-color:var(--accent);background:var(--accent-soft)}
+.pfl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:0 0 10px}.pfl textarea{min-height:64px;resize:vertical}
+.pit{display:grid;grid-template-columns:2fr 1.4fr 1.4fr 1.2fr auto;gap:8px;align-items:end;margin:0 0 8px;padding:10px;background:var(--surface-2);border-radius:12px}
+@media (max-width:700px){.pit{grid-template-columns:1fr 1fr}.pit .btn{grid-column:2}}
+.prdf{align-items:center;margin-top:8px}.prdf .sub{margin:0 auto 0 0}
+.prh{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}.prh header{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-bottom:6px}.prh .prm{color:var(--muted);font-size:13px}
+.prk{margin:6px 0}.prk>span{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.prk p{margin:2px 0}.prk ul{margin:2px 0 2px 18px;padding:0}.prad{background:var(--surface-2);border-radius:8px;padding:6px 10px}.prad small{color:var(--muted)}
+.prh footer{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+.odo{display:flex;flex-direction:column;gap:6px;align-items:center}.orow{display:flex;gap:3px;align-items:center}.osep{width:8px}.oline{width:100%;border-top:1px dashed var(--line);margin:2px 0}
+.ot{width:34px;height:42px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:9px 9px 14px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;font:inherit;cursor:pointer}
+.ot b{font-size:10.5px;font-weight:600;color:var(--muted)}.ot i{font-style:normal;font-size:12px;font-weight:700;min-height:14px}
+.c-higido{background:#dff3e5!important;color:#14532d}.c-carie{background:#f8d4d0!important;color:#7f1d1d}.c-restaurado{background:#d6e6fb!important;color:#143d73}.c-canal{background:#ead8f7!important;color:#4a1d6e}.c-coroa{background:#fbe9b7!important;color:#6b4a00}.c-implante{background:#cfeff2!important;color:#0b4a52}.c-ausente{background:#d9d7d2!important;color:#3a3833;text-decoration:line-through}.c-extracao{background:#ffd9b8!important;color:#7a3300}.c-fratura{background:#f5c6e0!important;color:#6e1049}.c-selante{background:#e5f3c9!important;color:#3d5a00}.c-protese{background:#e4dccd!important;color:#4a3a1c}.c-aparelho{background:#cfd8ff!important;color:#1b2a8a}
+.ot[class*="c-"] b{color:inherit}.odo.ed .ot:hover{outline:2px solid var(--accent)}
+.oleg{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:12px;font-size:11.5px;color:var(--muted)}.oleg span{display:flex;align-items:center;gap:4px}.oleg .ot{width:22px;height:20px;border-radius:6px;font-size:10px;font-weight:700;cursor:default}
 .s-agendado{background:#111}.s-compareceu{background:#1b8a4b}.s-em_atendimento{background:#1769d6}.s-faltou{background:#d4271c}.s-concluido{background:#7a7a7a}
 .ag .a.cp{background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.09) 7px 14px)}
 .lgd{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 10px;font-size:12.5px;color:var(--muted)}
@@ -635,6 +669,7 @@ const IC = {
   feriados: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13.500l1 2h2.200l-1.800 1.400.7 2.100-2.100-1.300-2.100 1.300.7-2.100L8.800 15.500H11z"/>',
   procedimentos: '<path d="M9 3h6v5l4 9a3 3 0 0 1-2.7 4H7.700A3 3 0 0 1 5 17l4-9z"/><path d="M8 14h8"/>',
   vendas: '<path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/>',
+  atendimento: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
   agenda: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
   financeiro: '<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/>',
   solicitacoes: '<path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2zM9 9h6M9 13h4"/>',
@@ -651,6 +686,7 @@ const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg
 const MENU = [
   { r: 'inicio', t: 'Início', p: null },
   { r: 'painel', t: 'Painel', p: 'gerencia' },
+  { r: 'atendimento', t: 'Atendimento', p: 'atendimento.ver' },
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
   { r: 'ag-log', t: 'Log da agenda', p: 'gerencia' },
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
@@ -687,7 +723,7 @@ const MENU = [
     { r: 'transferencias', t: 'Transferências', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -780,6 +816,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.53.0', '2026-11-06', 'Atendimento do dentista: nova tela com três cards (manutenção, avaliação e instalação aguardando) e a maior espera de cada um. A espera conta da hora marcada; quem chega adiantado aparece com tempo negativo (ex.: −12 min); quem chega atrasado conta da chegada. Clicar no card destaca na agenda só quem está aguardando; clicar de novo mostra a agenda toda. O dentista não cancela nem remarca. Prontuário eletrônico: ao iniciar o atendimento abre a ficha da consulta (queixa, exame, procedimentos realizados, conduta, orientações e retorno), com odontograma, histórico de consultas, adendos, assinatura eletrônica, impressão e registro de quem acessou.'],
   ['0.52.0', '2026-11-06', 'Agenda: cancelar pede o motivo, horário que já passou não cancela nem remarca (fica como falta) e todo evento do agendamento é registrado (quem, quando e por quê). Novo item Log da agenda para a gerência e botão Histórico em cada agendamento.'],
   ['0.51.0', '2026-11-06', 'Botão de tema no menu lateral: automático (segue o aparelho), claro ou escuro. A escolha fica salva neste navegador.'],
   ['0.50.0', '2026-11-06', 'Novo Painel no menu (gerência e diretoria): alertas clicáveis, números do mês com comparação, recebimentos acumulados, funil, agenda de hoje, canais de venda e financiamento próprio. O Início continua como estava.'],
@@ -897,7 +934,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -930,7 +967,8 @@ function abrirRota(r, o){
   if (r === 'produtos') return ehDir() ? prdCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os produtos e serviços.</div></div>');
   if (r === 'tratamentos') return ehDir() ? trtCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os tipos de tratamento.</div></div>');
   if (r === 'avaliacoes') return avTela();
-  if (r === 'agenda') return agdCarregar();
+  if (r === 'agenda' || r === 'atendimento') return agdCarregar();
+  if (r === 'prontuario') return prontCarregar(o.id);
   if (r === 'perfis') return perCarregar();
   if (r === 'email') return ehDir() ? emailCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa a configuração de e-mail.</div></div>');
   if (r === 'privacidade') return ehDir() ? privCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa a Privacidade.</div></div>');
@@ -995,12 +1033,13 @@ function telaInicio(){
   const sem = !EU.acesso_total && !EU.permissoes.length;
   const dir = ehGer(), recep = !dir && pode('agenda.ver') && pode('agendamentos.recepcao'), cxr = !dir && pode('financeiro.baixar'), cxg = pode('caixa.abrir');
   $('#area').innerHTML = '<div class="head in-head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
-    + (pode('agenda.ver') ? '<button class="btn" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
+    + (pode('atendimento.ver') ? '<button class="btn" type="button" id="in-atend">Abrir painel de atendimento</button>' : '') + (pode('agenda.ver') ? '<button class="btn' + (pode('atendimento.ver') ? ' ghost' : '') + '" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
     + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
     + (recep || cxr || cxg || dir ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
       .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('') + '</div>');
   const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); });
+  const ia = $('#in-atend'); if (ia) ia.addEventListener('click', () => irPara('atendimento'));
   convitesCarrega();
   if (recep || cxr || cxg || dir) inicioCarrega(recep, cxr, cxg, dir);
 }
@@ -5076,21 +5115,24 @@ async function agdCarregar(){
   defUn(r.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Agenda'); return; }
   AG.un = UN;
-  if (!AG.data) AG.data = hoje();
+  if (!AG.data || ROTA_ATIVA() === 'atendimento') AG.data = hoje();
   if (!AG.timer) AG.timer = setInterval(agdAuto, 30000);
+  if (!AG.tick) AG.tick = setInterval(atdTick, 15000);
   agdDesenhar();
 }
 // atualiza sozinha: faltas e mudanças feitas por outras pessoas aparecem sem recarregar a página
-function agdAuto(){ if (!EU || ROTA_ATIVA() !== 'agenda' || dlg.open || document.hidden || !$('#g-corpo') || !AG.cols) return; agdCorpo(); }
+function agdAuto(){ if (!EU || (ROTA_ATIVA() !== 'agenda' && ROTA_ATIVA() !== 'atendimento') || dlg.open || document.hidden || !$('#g-corpo') || !AG.cols) return; agdCorpo(); atdAtualiza(); }
 function agdDesenhar(){
   const un = D.unidades.find(u => u.id === AG.un), dt = dataLocal(AG.data);
-  $('#area').innerHTML = '<div class="head"><div><h1>Agenda</h1><p class="sub">Grade do dia, em horários de 15 em 15 minutos. Clique em um horário livre para agendar.</p></div></div>'
+  $('#area').innerHTML = '<div class="head"><div><h1>' + (ROTA_ATIVA() === 'atendimento' ? 'Atendimento' : 'Agenda') + '</h1><p class="sub">' + (ROTA_ATIVA() === 'atendimento' ? 'Quem está aguardando e há quanto tempo. Clique em um card para destacar esses pacientes na agenda.' : 'Grade do dia, em horários de 15 em 15 minutos. Clique em um horário livre para agendar.') + '</p></div></div>'
     + '<div class="agbar"><span class="pill nu">' + esc(un.sigla) + ' — ' + esc(un.razao_social) + '</span>'
     + '<div class="nav"><button class="btn ghost sm" type="button" id="g-ant" aria-label="Dia anterior">◀</button><button class="btn ghost sm" type="button" id="g-hoje">Hoje</button><button class="btn ghost sm" type="button" id="g-prox" aria-label="Próximo dia">▶</button></div>'
     + '<input type="date" id="g-data" value="' + esc(AG.data) + '" aria-label="Data"><span class="dl">' + esc(dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + '</span>'
-    + '<button class="btn ghost sm" type="button" id="g-atual">Atualizar</button>' + (pode('agenda.substituir') ? '<button class="btn ghost sm" type="button" id="g-abrir">Abrir outra cadeira</button>' : '') + '</div>'
+    + '<button class="btn ghost sm" type="button" id="g-atual">Atualizar</button>' + (pode('agenda.substituir') ? '<button class="btn ghost sm" type="button" id="g-abrir">Abrir outra cadeira</button>' : '') + (soDent() ? '<label class="chk"><input type="checkbox" id="g-todos"' + (AG.todos ? ' checked' : '') + '> Toda a clínica</label>' : '') + '</div>'
     + '<div class="lgd"><span><i style="background:#111"></i>Agendado</span><span><i style="background:#1b8a4b"></i>Compareceu</span><span><i style="background:#1769d6"></i>Em atendimento</span><span><i style="background:#d4271c"></i>Faltou (+15 min)</span><span><i style="background:#7a7a7a"></i>Concluído</span></div>'
-    + '<div id="g-corpo"><div class="card"><p class="sub">Carregando...</p></div></div>';
+    + '<div id="atd"></div><div id="g-corpo"><div class="card"><p class="sub">Carregando...</p></div></div>';
+  const td = $('#g-todos'); if (td) td.addEventListener('change', () => { AG.todos = td.checked; atdAtualiza(); });
+  atdAtualiza();
   const troca = () => { agdDesenhar(); };
   $('#g-ant').addEventListener('click', () => { AG.data = somaDias(AG.data, -1); troca(); });
   $('#g-prox').addEventListener('click', () => { AG.data = somaDias(AG.data, 1); troca(); });
@@ -5130,6 +5172,7 @@ async function agdCorpo(){
   }));
   $$('[data-liv]').forEach(b => b.addEventListener('click', () => agdAgendar(Number(b.dataset.liv), Number(b.dataset.m))));
   $$('[data-ag]').forEach(b => b.addEventListener('click', () => agdDetalhe(Number(b.dataset.ag))));
+  agdAplicaFiltro();
 }
 function agdGrade(cols, h, dt, ags){
   const dd = String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'), rot = DIA_CURTO[dt.getDay()].toLowerCase() + ' ' + dd;
@@ -5231,6 +5274,222 @@ function agdAgendar(aid, m){
   });
 }
 
+/* ---------- ATENDIMENTO: cards de espera, destaque na agenda e fila ---------- */
+const CAT_AT = { manutencao: 'Manutenção', avaliacao: 'Avaliação', instalacao: 'Instalação' };
+const soDent = () => !!EU && pode('prontuario.registrar') && !ehGer();
+const durMin = m => m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min';
+// segundos de espera (positivo: esperando há; negativo: chegou antes do horário e falta isso) já corrigidos pelo tempo desde a consulta ao servidor
+const atdSeg = x => x.espera_seg == null ? null : x.espera_seg + Math.floor((Date.now() - (AG.atdT || Date.now())) / 1000);
+const atdTxt = s => s == null ? '' : s < 0 ? '−' + durMin(Math.ceil(-s / 60)) : durMin(Math.floor(s / 60));
+const atdNivel = s => s == null ? 'vazio' : s < 0 ? 'early' : s >= 1800 ? 'crit' : s >= 900 ? 'warn' : 'ok';
+const hmMarc = x => hmDe(x.ini_min);
+function atdFila(cat){ return (AG.atd || []).filter(x => x.status === 'compareceu' && (!cat || x.categoria === cat)).sort((a, b) => (atdSeg(b) || 0) - (atdSeg(a) || 0)); }
+function atdDesenha(erro){
+  const box = $('#atd'); if (!box) return;
+  if (erro) { box.innerHTML = '<div class="err" style="margin-bottom:10px">O painel de atendimento não pôde ser carregado: ' + esc(erroTxt(erro)) + '</div>'; return; }
+  const cards = Object.keys(CAT_AT).map(cat => {
+    const l = atdFila(cat), m = l[0], s = m ? atdSeg(m) : null, niv = atdNivel(s);
+    let corpo;
+    if (!m) corpo = '<span class="atm">Ninguém aguardando</span>';
+    else if (s < 0) corpo = '<span class="atm">Já na clínica, antes do horário</span><span class="atm"><b>' + atdTxt(s) + '</b> para as ' + hmMarc(m) + '</span><small>' + esc(m.paciente_nome) + ' · ' + esc(m.agenda_nome) + '</small>';
+    else corpo = '<span class="atm">Maior espera <b>' + atdTxt(s) + '</b></span><small>' + esc(m.paciente_nome) + ' · ' + esc(m.agenda_nome) + ' · marcado ' + hmMarc(m) + '</small>';
+    return '<button type="button" class="atc ' + niv + '" data-cat="' + cat + '" aria-pressed="' + (AG.filtro === cat) + '"><span class="atl">' + CAT_AT[cat] + '</span><span class="atn">' + l.length + '<small> aguardando</small></span>' + corpo + '</button>';
+  }).join('');
+  const fila = atdFila(), emA = (AG.atd || []).filter(x => x.status === 'em_atendimento'), ab = AG.abertos || [];
+  const podeIni = pode('agendamentos.atender') && soDent();
+  const linha = (x, ini) => '<div class="atr"><span class="pill ' + (x.categoria === 'avaliacao' ? 'wr' : x.categoria === 'instalacao' ? 'on' : 'nu') + '">' + CAT_AT[x.categoria] + '</span><span class="atp"><b>' + esc(x.paciente_nome) + '</b><small>' + esc(x.procedimento_nome) + ' · ' + esc(x.agenda_nome) + ' · marcado ' + hmMarc(x) + (x.dentista_nome ? ' · ' + esc(x.dentista_nome) : '') + '</small></span>'
+    + (ini ? '<span class="ate ' + atdNivel(atdSeg(x)) + '">' + (atdSeg(x) < 0 ? 'chegou antes · ' : 'espera ') + atdTxt(atdSeg(x)) + '</span>' : '<span class="ate ok">desde ' + dtHora(x.atendimento_em).slice(-5) + '</span>')
+    + (ini ? (podeIni ? '<button class="btn sm" type="button" data-ini="' + x.id + '">Iniciar atendimento</button>' : '') : (pode('prontuario.ver') ? '<button class="btn sm ghost" type="button" data-pr="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">Abrir prontuário</button>' : '')) + '</div>';
+  box.innerHTML = '<div class="atd">' + cards + '</div>'
+    + (AG.filtro ? '<p class="sub atfil">Na agenda, só estão em destaque os pacientes aguardando em <b>' + CAT_AT[AG.filtro] + '</b>. Clique no card de novo para ver a agenda toda.</p>' : '')
+    + ((fila.length || emA.length || ab.length) ? '<details class="card atq"' + (fila.length ? ' open' : '') + '><summary><b>Fila de espera</b> <span class="pill nu">' + fila.length + '</span>' + (emA.length ? ' <span class="pill on">' + emA.length + ' em atendimento</span>' : '') + (ab.length ? ' <span class="pill off">' + ab.length + ' prontuário(s) sem assinatura</span>' : '') + '</summary>'
+      + (fila.length ? '<div class="atl2">' + fila.map(x => linha(x, true)).join('') + '</div>' : '<p class="sub" style="margin:8px 0 0">Ninguém aguardando agora.</p>')
+      + (emA.length ? '<h3 class="ath">Em atendimento</h3><div class="atl2">' + emA.map(x => linha(x, false)).join('') + '</div>' : '')
+      + (ab.length ? '<h3 class="ath">Prontuários abertos de dias anteriores</h3><div class="atl2">' + ab.map(x => '<div class="atr"><span class="pill off">' + esc(CAT_AT[x.categoria] || '') + '</span><span class="atp"><b>' + esc(x.paciente_nome) + '</b><small>' + esc(x.procedimento || '') + ' · ' + dBR(String(x.iniciado_em).slice(0, 10)) + ' · falta assinar</small></span><button class="btn sm ghost" type="button" data-pr="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">Abrir prontuário</button></div>').join('') + '</div>' : '')
+      + '</details>' : '');
+  $$('#atd .atc').forEach(b => b.addEventListener('click', () => { AG.filtro = AG.filtro === b.dataset.cat ? null : b.dataset.cat; if (AG.filtro && !atdFila(AG.filtro).length) toast('Ninguém aguardando em ' + CAT_AT[AG.filtro] + ' agora.'); atdDesenha(); agdAplicaFiltro(); }));
+  $$('#atd [data-pr]').forEach(b => b.addEventListener('click', () => prontuarioAbrir(Number(b.dataset.pr), b.dataset.nm)));
+  $$('#atd [data-ini]').forEach(b => b.addEventListener('click', () => atdIniciar(AG.atd.find(x => x.id === Number(b.dataset.ini)), b)));
+}
+// marca na grade quem está aguardando (e esmaece o resto quando um card está ativo)
+function agdAplicaFiltro(){
+  const g = $('#g-grade'); if (!g) return;
+  const ids = new Map((AG.atd || []).filter(x => x.status === 'compareceu').map(x => [x.id, x]));
+  g.classList.toggle('filtrando', !!AG.filtro);
+  $$('#g-grade .a[data-ag]').forEach(b => {
+    const x = ids.get(Number(b.dataset.ag)), dest = !!x && (!AG.filtro || x.categoria === AG.filtro);
+    b.classList.toggle('dest', !!AG.filtro && dest);
+    let e = b.querySelector('.eb');
+    if (x && dest) { if (!e) { e = document.createElement('small'); e.className = 'eb'; b.appendChild(e); } const s = atdSeg(x); e.textContent = s < 0 ? 'chegou antes · ' + atdTxt(s) : 'espera ' + atdTxt(s); }
+    else if (e) e.remove();
+  });
+}
+async function atdAtualiza(){
+  const box = $('#atd'); if (!box) return;
+  if (!pode('atendimento.ver') || AG.data !== hoje()) { AG.atd = []; AG.abertos = []; box.innerHTML = ''; return; }
+  const tk = AG.atdTk = (AG.atdTk || 0) + 1;
+  const rs = await Promise.all([sb.rpc('painel_atendimento', { p_unidade: AG.un, p_todos: !!AG.todos }), pode('prontuario.ver') ? sb.rpc('prontuarios_abertos', { p_unidade: AG.un }) : Promise.resolve({ data: [] })]);
+  if (tk !== AG.atdTk || !$('#atd')) return;
+  AG.atd = rs[0].error ? [] : (rs[0].data || []); AG.atdT = Date.now(); AG.abertos = rs[1].error ? [] : (rs[1].data || []);
+  atdDesenha(rs[0].error); agdAplicaFiltro();
+}
+function atdTick(){ if (!EU || !$('#atd') || document.hidden || !AG.atd || !AG.atd.length) return; atdDesenha(); agdAplicaFiltro(); }
+async function atdIniciar(x, b){
+  if (!x) return;
+  b.disabled = true;
+  const r = x.categoria === 'avaliacao' ? await sb.rpc('atender_avaliacao', { p_id: x.avaliacao_id }) : await sb.rpc('agendamento_acao', { p_id: x.id, p_acao: 'atender' });
+  if (r.error) { toast(erroTxt(r.error)); b.disabled = false; return; }
+  toast('Atendimento iniciado.'); agdCorpo(); atdAtualiza(); prontuarioAbrir(x.paciente_id, x.paciente_nome);
+}
+
+/* ---------- PRONTUÁRIO ELETRÔNICO ---------- */
+const PR = { d: null, pid: null, itens: [], rasc: null, t: null, fil: '' };
+const CONDS = { higido: ['Hígido', 'H'], carie: ['Cárie', 'C'], restaurado: ['Restaurado', 'R'], canal: ['Tratamento de canal', 'E'], coroa: ['Coroa', 'Co'], implante: ['Implante', 'I'], ausente: ['Ausente', 'A'], extracao: ['Extração indicada', 'X'], fratura: ['Fratura', 'F'], selante: ['Selante', 'S'], protese: ['Prótese', 'P'], aparelho: ['Aparelho (braquete)', 'B'] };
+const ITENS_RAPIDOS = {
+  manutencao: ['Troca de arco superior', 'Troca de arco inferior', 'Troca de ligaduras', 'Colagem de braquete', 'Recolagem de braquete', 'Troca de elásticos', 'Ativação / dobras no arco', 'Reposição de tubo ou banda', 'Desgaste interproximal', 'Profilaxia', 'Instrução de higiene', 'Remoção do aparelho', 'Contenção instalada'],
+  instalacao: ['Profilaxia e isolamento', 'Condicionamento e adesivo', 'Colagem dos braquetes', 'Colocação de bandas', 'Colocação do arco', 'Fotografias iniciais', 'Moldagem ou escaneamento', 'Instrução de uso e higiene', 'Entrega do kit de higiene'],
+  avaliacao: ['Anamnese revisada', 'Exame clínico', 'Fotografias', 'Radiografia solicitada', 'Escaneamento', 'Plano de tratamento explicado']
+};
+const prontuarioAbrir = (pid, nome) => irPara('prontuario', { chave: 'pront:' + pid, titulo: 'Prontuário · ' + String(nome || '').split(' ')[0], id: pid });
+const dtHm = t => t ? dtHora(t).slice(0, -3) : '';
+async function prontCarregar(pid){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando o prontuário...</p></div>';
+  const r = await sb.rpc('prontuario_do_paciente', { p_paciente: pid });
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  PR.d = r.data; PR.pid = pid; PR.rasc = null; clearTimeout(PR.t);
+  const ab = PR.d.atendimentos.find(a => a.id === PR.d.aberto_id); PR.itens = ab ? (ab.itens || []).map(i => ({ ...i })) : [];
+  prontDesenha();
+}
+function odontoHtml(dentes, ed){
+  const m = new Map(dentes.map(d => [d.dente, d])), q = n => '<button type="button" class="ot' + (m.has(n) ? ' c-' + m.get(n).condicao : '') + '" data-d="' + n + '" title="Dente ' + n + (m.has(n) ? ' · ' + CONDS[m.get(n).condicao][0] + (m.get(n).nota ? ' · ' + esc(m.get(n).nota) : '') : '') + '"><b>' + n + '</b><i>' + (m.has(n) ? CONDS[m.get(n).condicao][1] : '') + '</i></button>';
+  const lin = (a, b) => '<div class="orow">' + a.map(q).join('') + '<span class="osep"></span>' + b.map(q).join('') + '</div>';
+  const r = (x, y) => { const v = []; for (let i = x; i !== y + (x < y ? 1 : -1); i += (x < y ? 1 : -1)) v.push(i); return v; };
+  return '<div class="odo' + (ed ? ' ed' : '') + '">' + lin(r(18, 11), r(21, 28)) + '<div class="oline"></div>' + lin(r(48, 41), r(31, 38)) + '</div>'
+    + '<div class="oleg">' + Object.entries(CONDS).map(([k, v]) => '<span><i class="ot c-' + k + '">' + v[1] + '</i>' + v[0] + '</span>').join('') + '</div>';
+}
+function prontItensHtml(){
+  return PR.itens.length ? PR.itens.map((it, i) => '<div class="pit" data-i="' + i + '"><label class="field">Procedimento<input data-f="item" value="' + esc(it.item || '') + '" maxlength="120"></label><label class="field">Dentes ou região<input data-f="dentes" value="' + esc(it.dentes || '') + '" maxlength="120" placeholder="Ex.: 13, 23 ou arco superior"></label><label class="field">Detalhe<input data-f="detalhe" value="' + esc(it.detalhe || '') + '" maxlength="500" placeholder="Ex.: NiTi 0,014"></label><label class="field">Material<input data-f="material" value="' + esc(it.material || '') + '" maxlength="200"></label><button class="btn ghost sm" type="button" data-rm="' + i + '" aria-label="Remover procedimento">×</button></div>').join('')
+    : '<p class="sub" style="margin:0">Nenhum procedimento lançado ainda. Toque em um atalho acima ou em “Outro procedimento”.</p>';
+}
+function prontColeta(){
+  const v = id => { const e = $(id); return e ? e.value : ''; };
+  return { queixa: v('#pr-queixa'), exame: v('#pr-exame'), diagnostico: v('#pr-diag'), conduta: v('#pr-conduta'), orientacoes: v('#pr-orient'), retorno: v('#pr-retorno'), itens: PR.itens };
+}
+function prontAgenda(){ PR.rasc = prontColeta(); const s = $('#pr-sal'); if (s) s.textContent = 'Alterações não salvas...'; clearTimeout(PR.t); PR.t = setTimeout(() => prontSalvar(false), 1500); }
+async function prontSalvar(avisa){
+  clearTimeout(PR.t); const ab = PR.d && PR.d.aberto_id; if (!ab) return true;
+  const dados = PR.rasc || prontColeta(), s = $('#pr-sal'); if (s) s.textContent = 'Salvando...';
+  const r = await sb.rpc('prontuario_salvar', { p_id: ab, p_dados: dados });
+  const s2 = $('#pr-sal');
+  if (r.error) { if (s2) s2.textContent = 'Não salvou: ' + erroTxt(r.error); if (avisa) toast(erroTxt(r.error)); return false; }
+  PR.rasc = null; if (s2) s2.textContent = 'Salvo às ' + new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }); if (avisa) toast('Rascunho salvo.'); return true;
+}
+function prontHistHtml(){
+  const l = PR.d.atendimentos.filter(a => a.id !== PR.d.aberto_id && (!PR.fil || a.categoria === PR.fil));
+  const reg = soDent();
+  const cmp = (r, v) => v ? '<div class="prk"><span>' + r + '</span><p>' + esc(v).replace(/\n/g, '<br>') + '</p></div>' : '';
+  return l.length ? l.map(a => '<article class="prh"><header><b>' + dtHm(a.iniciado_em) + '</b><span class="pill ' + (a.categoria === 'avaliacao' ? 'wr' : a.categoria === 'instalacao' ? 'on' : 'nu') + '">' + CAT_AT[a.categoria] + '</span><span class="prm">' + esc(a.procedimento || '') + (a.dentista ? ' · ' + esc(a.dentista) : '') + '</span>' + (a.status === 'assinado' ? '<span class="pill on">Assinado</span>' : '<span class="pill off">Sem assinatura</span>') + '</header>'
+      + cmp('Queixa', a.queixa) + cmp('Exame clínico', a.exame) + cmp('Diagnóstico', a.diagnostico)
+      + (a.itens.length ? '<div class="prk"><span>Realizado</span><ul>' + a.itens.map(i => '<li><b>' + esc(i.item) + '</b>' + [i.dentes, i.detalhe, i.material].filter(Boolean).map(x => ' · ' + esc(x)).join('') + '</li>').join('') + '</ul></div>' : '')
+      + cmp('Conduta', a.conduta) + cmp('Orientações ao paciente', a.orientacoes) + cmp('Retorno / próxima etapa', a.retorno)
+      + (a.adendos.length ? '<div class="prk"><span>Adendos</span>' + a.adendos.map(d => '<p class="prad">' + esc(d.texto) + '<small> — ' + esc(d.por) + ', ' + dtHm(d.em) + '</small></p>').join('') + '</div>' : '')
+      + '<footer>' + (a.status === 'assinado' ? 'Assinado eletronicamente por ' + esc(a.assinado_por || '') + ' em ' + dtHm(a.concluido_em) + ' · código ' + esc(a.codigo || '') : 'Atendimento sem assinatura.') + (a.status === 'assinado' && reg ? ' <button class="link" type="button" data-ad="' + a.id + '">Adicionar adendo</button>' : '') + '</footer></article>').join('')
+    : '<p class="sub" style="margin:0">' + (PR.fil ? 'Nenhuma consulta desta categoria.' : 'Nenhuma consulta registrada ainda. O histórico começa no primeiro atendimento iniciado pelo dentista.') + '</p>';
+}
+function prontDesenha(){
+  const d = PR.d, p = d.paciente, ab = d.atendimentos.find(a => a.id === d.aberto_id), edita = !!ab && soDent(), rs = d.resumo, an = d.anamnese;
+  const anTxt = !an ? '<span class="pill off">Sem anamnese</span> Envie a anamnese pela ficha do paciente.' : an.status === 'respondida' ? '<span class="pill on">Anamnese assinada</span> em ' + dtHm(an.respondida_em) : '<span class="pill wr">Anamnese pendente</span> o paciente ainda não respondeu.';
+  const cat = ab ? ab.categoria : 'manutencao';
+  $('#area').innerHTML = '<div class="head"><div><h1>' + esc(p.nome) + '</h1><p class="sub">Prontuário eletrônico' + (p.idade != null ? ' · ' + p.idade + ' anos' : '') + (p.telefone ? ' · ' + esc(p.telefone) : '') + ' · <span class="pill nu">' + esc(p.status) + '</span></p></div>'
+    + '<div class="tools" style="margin:0">' + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" id="pr-ficha">Ficha do paciente</button>' : '') + '<button class="btn ghost sm" type="button" id="pr-imp">Imprimir prontuário</button>' + (ehGer() ? '<button class="btn ghost sm" type="button" id="pr-acc">Quem acessou</button>' : '') + '</div></div>'
+    + '<div class="kpis"><div class="kpi"><span>Consultas assinadas</span><b>' + rs.consultas + '</b></div><div class="kpi"><span>Primeira consulta</span><b style="font-size:17px">' + (rs.primeira ? dBR(String(rs.primeira).slice(0, 10)) : '—') + '</b></div><div class="kpi"><span>Última consulta</span><b style="font-size:17px">' + (rs.ultima ? dBR(String(rs.ultima).slice(0, 10)) : '—') + '</b></div>'
+    + '<div class="kpi' + (rs.faltas > 1 ? ' al' : '') + '"><span>Faltas</span><b>' + rs.faltas + '</b></div><div class="kpi"><span>Próximo agendamento</span><b style="font-size:17px">' + (rs.proximo ? dBR(rs.proximo.data) + ' ' + hmDe(rs.proximo.ini_min) : '—') + '</b></div></div>'
+    + '<p class="pran">' + anTxt + '</p>'
+    + '<div class="prg"><div class="prc">'
+    + (ab ? '<div class="card prnow"><div class="prtop"><h2>Atendimento de hoje <span class="pill ' + (cat === 'avaliacao' ? 'wr' : cat === 'instalacao' ? 'on' : 'nu') + '">' + CAT_AT[cat] + '</span></h2><span class="sub">Iniciado às ' + dtHm(ab.iniciado_em).slice(-5) + (ab.dentista ? ' · ' + esc(ab.dentista) : '') + '</span></div>'
+      + (edita ? '<div class="pchips" id="pr-chips">' + (ITENS_RAPIDOS[cat] || []).map((t, i) => '<button type="button" class="chip" data-q="' + i + '">+ ' + esc(t) + '</button>').join('') + '<button type="button" class="chip" data-q="-1">+ Outro procedimento</button></div>' : '')
+      + '<div class="pfl"><label class="field">Queixa / relato do paciente<textarea id="pr-queixa" rows="2" maxlength="4000"' + (edita ? '' : ' disabled') + '>' + esc(ab.queixa || '') + '</textarea></label><label class="field">Exame clínico<textarea id="pr-exame" rows="2" maxlength="4000"' + (edita ? '' : ' disabled') + '>' + esc(ab.exame || '') + '</textarea></label><label class="field">Diagnóstico<textarea id="pr-diag" rows="2" maxlength="4000"' + (edita ? '' : ' disabled') + '>' + esc(ab.diagnostico || '') + '</textarea></label></div>'
+      + '<h3 class="ath">Procedimentos realizados</h3><div id="pr-itens">' + prontItensHtml() + '</div>'
+      + '<div class="pfl"><label class="field">Conduta / evolução<textarea id="pr-conduta" rows="3" maxlength="6000"' + (edita ? '' : ' disabled') + '>' + esc(ab.conduta || '') + '</textarea></label><label class="field">Orientações ao paciente<textarea id="pr-orient" rows="2" maxlength="4000"' + (edita ? '' : ' disabled') + '>' + esc(ab.orientacoes || '') + '</textarea></label><label class="field">Retorno / próxima etapa<textarea id="pr-retorno" rows="2" maxlength="2000"' + (edita ? '' : ' disabled') + '>' + esc(ab.retorno || '') + '</textarea></label></div>'
+      + (edita ? '<div class="df prdf"><span class="sub" id="pr-sal" aria-live="polite">Rascunho salvo automaticamente.</span><button class="btn ghost" type="button" id="pr-rasc">Salvar rascunho</button><button class="btn" type="button" id="pr-fim">' + (cat === 'avaliacao' ? 'Concluir avaliação (parecer)' : 'Concluir e assinar') + '</button></div>' : '<p class="sub" style="margin:10px 0 0">Somente o dentista deste atendimento registra aqui. Você está em modo de leitura.</p>')
+      + '</div>'
+      : '<div class="card"><p class="sub" style="margin:0">' + (soDent() ? 'Nenhum atendimento em andamento. O registro da consulta abre sozinho quando você inicia o atendimento do paciente (no painel de atendimento ou na agenda).' : 'Nenhum atendimento em andamento neste momento.') + '</p></div>')
+    + '<div class="card"><div class="prtop"><h2>Histórico de consultas</h2><label class="field" style="margin:0;min-width:180px"><select id="pr-fil" aria-label="Filtrar por tipo"><option value="">Todas</option>' + Object.entries(CAT_AT).map(([k, v]) => '<option value="' + k + '"' + (PR.fil === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></label></div><div id="pr-hist">' + prontHistHtml() + '</div></div>'
+    + '</div><div class="prs"><div class="card"><h2 style="margin:0 0 4px;font-size:16px">Odontograma</h2><p class="sub" style="margin:0 0 8px">' + (soDent() ? 'Toque em um dente para marcar a condição.' : 'Situação atual dos dentes.') + '</p><div id="pr-odo">' + odontoHtml(d.dentes, soDent()) + '</div></div></div></div>';
+  prontLiga();
+}
+function prontLiga(){
+  const f = $('#pr-ficha'); if (f) f.addEventListener('click', () => abrirPaciente({ id: PR.pid, nome: PR.d.paciente.nome_civil, nome_social: PR.d.paciente.nome }));
+  const im = $('#pr-imp'); if (im) im.addEventListener('click', prontImprimir);
+  const ac = $('#pr-acc'); if (ac) ac.addEventListener('click', prontAcessos);
+  $$('#pr-queixa,#pr-exame,#pr-diag,#pr-conduta,#pr-orient,#pr-retorno').forEach(e => e.addEventListener('input', prontAgenda));
+  const ligaItens = () => {
+    $$('#pr-itens [data-f]').forEach(e => e.addEventListener('input', () => { PR.itens[Number(e.closest('.pit').dataset.i)][e.dataset.f] = e.value; prontAgenda(); }));
+    $$('#pr-itens [data-rm]').forEach(b => b.addEventListener('click', () => { PR.itens.splice(Number(b.dataset.rm), 1); $('#pr-itens').innerHTML = prontItensHtml(); ligaItens(); prontAgenda(); }));
+  };
+  ligaItens();
+  const ab = PR.d.atendimentos.find(a => a.id === PR.d.aberto_id);
+  $$('#pr-chips [data-q]').forEach(b => b.addEventListener('click', () => {
+    const i = Number(b.dataset.q); PR.itens.push({ item: i < 0 ? '' : (ITENS_RAPIDOS[ab.categoria] || [])[i], dentes: '', detalhe: '', material: '' });
+    $('#pr-itens').innerHTML = prontItensHtml(); ligaItens(); prontAgenda(); const ins = $$('#pr-itens .pit [data-f="item"]'); const u = ins[ins.length - 1]; if (u && i < 0) u.focus();
+  }));
+  const rs = $('#pr-rasc'); if (rs) rs.addEventListener('click', () => prontSalvar(true));
+  const fim = $('#pr-fim'); if (fim) fim.addEventListener('click', async () => {
+    fim.disabled = true; const ok = await prontSalvar(false); if (!ok) { fim.disabled = false; toast('Não foi possível salvar o rascunho. Tente de novo.'); return; }
+    if (ab.categoria === 'avaliacao') { fim.disabled = false; avConcluirDialogo(ab.avaliacao_id, PR.d.paciente.nome, () => { prontCarregar(PR.pid); atdAtualiza(); }); return; }
+    abrirJanela('Concluir e assinar', '<div class="db"><p style="margin:0">Ao assinar, o prontuário desta consulta <b>não poderá mais ser alterado</b>. Se precisar complementar, use um adendo.</p><p class="sub" style="margin:8px 0 0">Assinatura eletrônica de ' + esc((EU && EU.nome) || '') + ', com data, hora e código de verificação.</p><div class="err" id="pf-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pf-x">Voltar</button><button class="btn" type="button" id="pf-ok">Assinar e concluir</button></div>');
+    $('#pf-x').addEventListener('click', () => { fecharJanela(); fim.disabled = false; });
+    $('#pf-ok').addEventListener('click', async () => {
+      const b = $('#pf-ok'); b.disabled = true; const r = await sb.rpc('prontuario_concluir', { p_id: ab.id });
+      if (r.error) { $('#pf-err').textContent = erroTxt(r.error); b.disabled = false; return; }
+      fecharJanela(); toast('Atendimento concluído e prontuário assinado.'); prontCarregar(PR.pid); atdAtualiza(); if (AG.cols) agdCorpo();
+    });
+  });
+  const fl = $('#pr-fil'); if (fl) fl.addEventListener('change', () => { PR.fil = fl.value; $('#pr-hist').innerHTML = prontHistHtml(); prontLigaHist(); });
+  prontLigaHist();
+  $$('#pr-odo .ot').forEach(b => b.addEventListener('click', () => prontDente(Number(b.dataset.d))));
+}
+function prontLigaHist(){ $$('#pr-hist [data-ad]').forEach(b => b.addEventListener('click', () => prontAdendo(Number(b.dataset.ad)))); }
+function prontAdendo(id){
+  abrirJanela('Adendo ao prontuário', '<form id="ad-form" novalidate><div class="db"><p class="sub" style="margin:0">O prontuário assinado não muda. O adendo fica registrado com seu nome, data e hora.</p><label class="field" for="ad-txt">Adendo *<textarea id="ad-txt" rows="4" maxlength="3000"></textarea></label><div class="err" id="ad-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="ad-x">Cancelar</button><button class="btn" type="submit" id="ad-ok">Registrar adendo</button></div></form>');
+  $('#ad-x').addEventListener('click', fecharJanela);
+  $('#ad-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!$('#ad-txt').value.trim()) { $('#ad-err').textContent = 'Escreva o adendo.'; return; }
+    const b = $('#ad-ok'); b.disabled = true; const r = await sb.rpc('prontuario_adendo', { p_id: id, p_texto: $('#ad-txt').value });
+    b.disabled = false; if (r.error) { $('#ad-err').textContent = erroTxt(r.error); return; } fecharJanela(); toast('Adendo registrado.'); prontCarregar(PR.pid);
+  });
+}
+function prontDente(n){
+  const at = PR.d.dentes.find(x => x.dente === n), ed = soDent();
+  abrirJanela('Dente ' + n, '<form id="dn-form" novalidate><div class="db">' + (ed ? '<label class="field" for="dn-c">Condição<select id="dn-c"><option value="">Sem marcação</option>' + Object.entries(CONDS).map(([k, v]) => '<option value="' + k + '"' + (at && at.condicao === k ? ' selected' : '') + '>' + v[0] + '</option>').join('') + '</select></label><label class="field" for="dn-n">Observação <small>(opcional)</small><input id="dn-n" maxlength="200" value="' + esc(at && at.nota || '') + '" placeholder="Ex.: face mesial"></label>'
+      : '<p style="margin:0">' + (at ? '<b>' + CONDS[at.condicao][0] + '</b>' + (at.nota ? ' · ' + esc(at.nota) : '') : 'Sem marcação.') + '</p>')
+    + (at ? '<p class="sub" style="margin:0">Marcado por ' + esc(at.por || '') + ' em ' + dtHm(at.em) + '.</p>' : '') + '<div class="err" id="dn-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="dn-x">' + (ed ? 'Cancelar' : 'Fechar') + '</button>' + (ed ? '<button class="btn" type="submit" id="dn-ok">Salvar</button>' : '') + '</div></form>');
+  $('#dn-x').addEventListener('click', fecharJanela);
+  $('#dn-form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!ed) return; const b = $('#dn-ok'); b.disabled = true;
+    const r = await sb.rpc('prontuario_dente', { p_paciente: PR.pid, p_dente: n, p_condicao: $('#dn-c').value || null, p_nota: $('#dn-n').value.trim() || null });
+    b.disabled = false; if (r.error) { $('#dn-err').textContent = erroTxt(r.error); return; }
+    fecharJanela(); const c = $('#dn-c') ? null : null; await prontSalvar(false); const q = await sb.rpc('prontuario_do_paciente', { p_paciente: PR.pid }); if (!q.error) { PR.d.dentes = q.data.dentes; $('#pr-odo').innerHTML = odontoHtml(PR.d.dentes, true); $$('#pr-odo .ot').forEach(x => x.addEventListener('click', () => prontDente(Number(x.dataset.d)))); }
+  });
+}
+async function prontAcessos(){
+  const r = await sb.rpc('prontuario_acessos', { p_paciente: PR.pid });
+  abrirJanela('Quem acessou este prontuário', '<div class="db">' + (r.error ? '<div class="err">' + esc(erroTxt(r.error)) + '</div>' : (r.data || []).length ? '<div class="tw"><table class="tb"><thead><tr><th>Quando</th><th>Quem</th><th>O quê</th></tr></thead><tbody>' + r.data.map(x => '<tr><td>' + dtHm(x.em) + '</td><td>' + esc(x.nome) + '</td><td>' + esc({ abriu: 'Abriu o prontuário', assinou: 'Assinou uma consulta', adendo: 'Registrou adendo' }[x.acao] || x.acao) + '</td></tr>').join('') + '</tbody></table></div>' : '<p class="sub">Ninguém acessou ainda.</p>') + '</div><div class="df"><button class="btn ghost" type="button" id="ac-x">Fechar</button></div>');
+  $('#ac-x').addEventListener('click', fecharJanela);
+}
+function prontImprimir(){
+  const d = PR.d, p = d.paciente, css = 'body{font:12px/1.45 system-ui,sans-serif;color:#111;margin:24px}h1{font-size:20px;margin:0}h2{font-size:14px;border-bottom:1px solid #999;padding-bottom:3px;margin:18px 0 6px}.s{color:#555}.c{border:1px solid #bbb;border-radius:6px;padding:8px 10px;margin:8px 0;break-inside:avoid}.c b{font-size:12.5px}p{margin:3px 0}ul{margin:3px 0 3px 18px;padding:0}footer{font-size:10.5px;color:#555;margin-top:6px}';
+  const cmp = (r, v) => v ? '<p><b>' + r + ':</b> ' + esc(v).replace(/\n/g, '<br>') + '</p>' : '';
+  const html = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Prontuário — ' + esc(p.nome) + '</title><style>' + css + '</style></head><body><h1>Prontuário odontológico</h1><p class="s">' + esc(p.nome) + (p.nome_civil !== p.nome ? ' (' + esc(p.nome_civil) + ')' : '') + (p.nascimento ? ' · nascimento ' + dBR(p.nascimento) : '') + (p.idade != null ? ' · ' + p.idade + ' anos' : '') + ' · emitido em ' + dtHm(new Date().toISOString()) + '</p>'
+    + (d.dentes.length ? '<h2>Odontograma</h2><p>' + d.dentes.map(x => '<b>' + x.dente + '</b> ' + CONDS[x.condicao][0] + (x.nota ? ' (' + esc(x.nota) + ')' : '')).join(' · ') + '</p>' : '')
+    + '<h2>Consultas</h2>' + (d.atendimentos.filter(a => a.status === 'assinado').map(a => '<div class="c"><b>' + dtHm(a.iniciado_em) + ' · ' + CAT_AT[a.categoria] + (a.procedimento ? ' · ' + esc(a.procedimento) : '') + '</b> <span class="s">' + esc(a.dentista || '') + '</span>' + cmp('Queixa', a.queixa) + cmp('Exame clínico', a.exame) + cmp('Diagnóstico', a.diagnostico)
+      + (a.itens.length ? '<p><b>Realizado:</b></p><ul>' + a.itens.map(i => '<li>' + esc(i.item) + [i.dentes, i.detalhe, i.material].filter(Boolean).map(x => ' — ' + esc(x)).join('') + '</li>').join('') + '</ul>' : '') + cmp('Conduta', a.conduta) + cmp('Orientações', a.orientacoes) + cmp('Retorno', a.retorno)
+      + a.adendos.map(x => '<p><b>Adendo</b> (' + esc(x.por) + ', ' + dtHm(x.em) + '): ' + esc(x.texto) + '</p>').join('') + '<footer>Assinado eletronicamente por ' + esc(a.assinado_por || '') + ' em ' + dtHm(a.concluido_em) + ' · código ' + esc(a.codigo || '') + '</footer></div>').join('') || '<p class="s">Nenhuma consulta assinada.</p>') + '</body></html>';
+  abrirJanela('Prontuário de ' + p.nome, '<div class="db" style="padding:0"><iframe id="pi-doc" title="Prontuário" style="width:100%;height:68vh;min-height:420px;border:0;background:#fff"></iframe></div><div class="df"><button class="btn ghost" type="button" id="pi-x">Fechar</button><button class="btn" type="button" id="pi-p">Imprimir / salvar em PDF</button></div>');
+  $('#pi-doc').srcdoc = html; $('#pi-x').addEventListener('click', fecharJanela);
+  $('#pi-p').addEventListener('click', () => { const f = $('#pi-doc'); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('Não foi possível abrir a impressão.'); } });
+}
+
 /* ---------- um horário marcado: situação e ações ---------- */
 function agdDetalhe(id){
   const a = AG.ags.find(x => x.id === id); if (!a) return;
@@ -5238,32 +5497,38 @@ function agdDetalhe(id){
   const aberto = a.status === 'agendado' || a.status === 'faltou';
   const passou = AG.data < hoje() || (AG.data === hoje() && a.ini_min < agoraMin()), editavel = a.status === 'agendado' && !passou;
   const bt = [], dicas = [];
+  const dentSo = soDent(), podeAv = pac && a.avaliacao && a.status === 'compareceu' && a.avaliacao_id && pode('avaliacoes.atender') && soDent();
+  if (podeAv) bt.push(['iniciar-av', 'Iniciar avaliação', 'btn']);
   if (pac && aberto && pode('agendamentos.recepcao')) { if (hj) bt.push(['compareceu', 'Paciente chegou (compareceu)', 'btn']); else dicas.push('O comparecimento só pode ser marcado no próprio dia.'); }
   if (pac && a.status === 'compareceu' && pode('agendamentos.recepcao')) bt.push(['desfazer', 'Desfazer comparecimento', 'btn ghost']);
   if (pac && a.status === 'compareceu' && !a.avaliacao && pode('agendamentos.atender')) bt.push(['atender', 'Iniciar atendimento', 'btn']);
-  if (pac && a.avaliacao && (a.status === 'compareceu')) dicas.push('A avaliação é iniciada pelo dentista do dia, no aviso de avaliações (sino).');
-  if (pac && a.status === 'em_atendimento' && !a.avaliacao && pode('agendamentos.atender')) bt.push(['concluir', 'Concluir atendimento', 'btn']);
+  if (pac && a.avaliacao && (a.status === 'compareceu') && !podeAv) dicas.push('A avaliação é iniciada pelo dentista do dia, no aviso de avaliações (sino).');
+  if (pac && a.status === 'em_atendimento' && !a.avaliacao && pode('agendamentos.atender') && !soDent()) bt.push(['concluir', 'Concluir atendimento', 'btn']);
+  if (dentSo && pac && a.status === 'em_atendimento') dicas.push('O atendimento é concluído e assinado no prontuário.');
   if (aberto && passou) dicas.push('Este horário já passou e fica como falta. Não dá para cancelar nem remarcar. Se o paciente voltar, faça um novo agendamento.');
   const kv = (r, v) => v ? '<span>' + r + '</span><b>' + esc(v) + '</b>' : '';
   abrirJanela(pac ? 'Agendamento' : 'Compromisso',
     '<div class="db"><p style="margin:0;font-size:17px"><span class="sd s-' + a.status + '"></span><b>' + esc(pac ? a.paciente_nome : a.titulo) + '</b> <span class="pill ' + (a.status === 'faltou' ? 'off' : a.status === 'agendado' ? 'nu' : 'on') + '">' + ST_AG[a.status] + '</span></p>'
     + '<div class="kv dkv">' + kv('Horário', hmDe(a.ini_min) + ' às ' + hmDe(a.ini_min + a.dur_min) + ' (' + minTxt(a.dur_min) + ')') + kv('Data', dBR(AG.data)) + kv('Agenda', c.nome + (c.dentista_nome ? ' · ' + c.dentista_nome : '')) + kv('Procedimento', a.procedimento_nome) + kv('Situação do cadastro', a.paciente_status) + kv('Observação', a.observacao) + '</div>'
     + dicas.map(d => '<p class="sub" style="margin:0">' + esc(d) + '</p>').join('') + '<div class="err" id="d-err" role="alert"></div></div>'
-    + '<div class="df"><div class="esq">' + (editavel && pode('agendamentos.cancelar') ? '<button class="btn danger" type="button" id="d-canc">Cancelar agendamento</button>' : '') + '</div>'
+    + '<div class="df"><div class="esq">' + (editavel && !dentSo && pode('agendamentos.cancelar') ? '<button class="btn danger" type="button" id="d-canc">Cancelar agendamento</button>' : '') + '</div>'
+    + (pac && pode('prontuario.ver') && a.status !== 'agendado' && a.status !== 'faltou' ? '<button class="btn ghost" type="button" id="d-pront">Prontuário</button>' : '')
     + (pac && pode('pacientes.ver') ? '<button class="btn ghost" type="button" id="d-ficha">Abrir ficha</button>' : '')
     + (ehGer() ? '<button class="btn ghost" type="button" id="d-hist">Histórico</button>' : '')
-    + (editavel && pode('agendamentos.criar') ? '<button class="btn ghost" type="button" id="d-rem">Remarcar</button>' : '')
+    + (editavel && !dentSo && pode('agendamentos.criar') ? '<button class="btn ghost" type="button" id="d-rem">Remarcar</button>' : '')
     + bt.map(b => '<button class="' + b[2] + '" type="button" data-acao="' + b[0] + '">' + b[1] + '</button>').join('') + '<button class="btn ghost" type="button" id="d-x">Fechar</button></div>');
   const agir = async (acao, btn) => {
-    btn.disabled = true; const r = await sb.rpc('agendamento_acao', { p_id: a.id, p_acao: acao });
+    btn.disabled = true; const r = acao === 'iniciar-av' ? await sb.rpc('atender_avaliacao', { p_id: a.avaliacao_id }) : await sb.rpc('agendamento_acao', { p_id: a.id, p_acao: acao });
     if (r.error) { $('#d-err').textContent = erroTxt(r.error); btn.disabled = false; return; }
-    fecharJanela(); toast(acao === 'cancelar' ? 'Agendamento cancelado.' : 'Situação atualizada.'); agdCorpo(); if (acao === 'compareceu' || acao === 'desfazer') avBuscar();
+    fecharJanela(); toast(acao === 'cancelar' ? 'Agendamento cancelado.' : 'Situação atualizada.'); agdCorpo(); atdAtualiza(); if (acao === 'compareceu' || acao === 'desfazer') avBuscar();
+    if ((acao === 'atender' || acao === 'iniciar-av') && soDent() && pode('prontuario.ver')) prontuarioAbrir(a.paciente_id, a.paciente_nome);
   };
   $$('[data-acao]').forEach(b => b.addEventListener('click', () => agir(b.dataset.acao, b)));
   $('#d-x').addEventListener('click', fecharJanela);
   const cn = $('#d-canc'); if (cn) cn.addEventListener('click', () => agdCancelar(a));
   const hs = $('#d-hist'); if (hs) hs.addEventListener('click', () => agdHistorico(a));
   const rm = $('#d-rem'); if (rm) rm.addEventListener('click', () => agdRemarcar(a, c));
+  const pt = $('#d-pront'); if (pt) pt.addEventListener('click', () => { fecharJanela(); prontuarioAbrir(a.paciente_id, a.paciente_nome); });
   const fi = $('#d-ficha'); if (fi) fi.addEventListener('click', () => { fecharJanela(); abrirPaciente({ id: a.paciente_id, nome: a.paciente_nome }); });
 }
 const EV_AG = { criado: 'Agendado', remarcado: 'Remarcado', compareceu: 'Paciente chegou', desfez_comparecimento: 'Comparecimento desfeito', iniciou_atendimento: 'Atendimento iniciado', concluiu_atendimento: 'Atendimento concluído', faltou: 'Faltou', cancelado: 'Cancelado', status: 'Situação alterada' };
