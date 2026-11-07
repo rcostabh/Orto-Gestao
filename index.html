@@ -236,24 +236,26 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .ath{font-size:13px;margin:14px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .ag.filtrando .a:not(.dest){opacity:.18;filter:grayscale(1)}.ag .a.dest{outline:3px solid var(--accent);outline-offset:1px;z-index:3;box-shadow:0 0 0 5px var(--accent-soft)}
 .ag .a .eb{font-weight:700;opacity:1}
-.prg{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}.prc,.prs{display:flex;flex-direction:column;gap:14px;min-width:0}.prs{position:sticky;top:12px}
-@media (max-width:1000px){.prg{grid-template-columns:minmax(0,1fr)}.prs{position:static}}
+.prg{display:block}.prc{display:flex;flex-direction:column;gap:16px;min-width:0}
 .pran{margin:0 0 12px;font-size:13.5px}.prtop{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;margin-bottom:10px}.prtop h2{margin:0;font-size:17px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .prnow{border-top:4px solid var(--accent)}.pchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
 .chip{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:99px;padding:6px 12px;font:500 12.5px var(--font);cursor:pointer}.chip:hover{border-color:var(--accent);background:var(--accent-soft)}
 .pfl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:0 0 10px}.pfl textarea{min-height:64px;resize:vertical}
 .pit{display:grid;grid-template-columns:2fr 1.4fr 1.4fr 1.2fr auto;gap:8px;align-items:end;margin:0 0 8px;padding:10px;background:var(--surface-2);border-radius:12px}
 @media (max-width:700px){.pit{grid-template-columns:1fr 1fr}.pit .btn{grid-column:2}}
-.prdf{align-items:center;margin-top:8px}.prdf .sub{margin:0 auto 0 0}
+.prdf{align-items:center;margin-top:8px;flex-wrap:wrap}.prdf .sub{margin:0 auto 0 0}.prdf .btn{white-space:nowrap}@media (max-width:700px){.prdf .sub{flex:1 1 100%}.prdf .btn{flex:1 1 140px}.prod>div:first-child{overflow-x:auto;padding-bottom:4px}.odo{min-width:600px}}
+.pit .btn{min-height:42px;min-width:42px;padding:0;font-size:18px}
 .prh{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}.prh header{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-bottom:6px}.prh .prm{color:var(--muted);font-size:13px}
 .prk{margin:6px 0}.prk>span{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.prk p{margin:2px 0}.prk ul{margin:2px 0 2px 18px;padding:0}.prad{background:var(--surface-2);border-radius:8px;padding:6px 10px}.prad small{color:var(--muted)}
 .prh footer{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
-.odo{display:flex;flex-direction:column;gap:6px;align-items:center}.orow{display:flex;gap:3px;align-items:center}.osep{width:8px}.oline{width:100%;border-top:1px dashed var(--line);margin:2px 0}
-.ot{width:34px;height:42px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:9px 9px 14px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;font:inherit;cursor:pointer}
+.prod{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:20px;align-items:start}@media (max-width:1000px){.prod{grid-template-columns:minmax(0,1fr)}}
+.odo{display:flex;flex-direction:column;gap:8px;width:100%;max-width:880px;margin:0 auto}.orow{display:flex;gap:14px;align-items:center}.oh{display:flex;gap:4px;flex:1 1 0;min-width:0}.osep{display:none}.oline{border-top:1px dashed var(--line);margin:2px 0}
+.ot{flex:1 1 0;min-width:0;aspect-ratio:3/4;max-height:56px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:9px 9px 14px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;font:inherit;cursor:pointer}
 .ot b{font-size:10.5px;font-weight:600;color:var(--muted)}.ot i{font-style:normal;font-size:12px;font-weight:700;min-height:14px}
 .c-higido{background:#dff3e5!important;color:#14532d}.c-carie{background:#f8d4d0!important;color:#7f1d1d}.c-restaurado{background:#d6e6fb!important;color:#143d73}.c-canal{background:#ead8f7!important;color:#4a1d6e}.c-coroa{background:#fbe9b7!important;color:#6b4a00}.c-implante{background:#cfeff2!important;color:#0b4a52}.c-ausente{background:#d9d7d2!important;color:#3a3833;text-decoration:line-through}.c-extracao{background:#ffd9b8!important;color:#7a3300}.c-fratura{background:#f5c6e0!important;color:#6e1049}.c-selante{background:#e5f3c9!important;color:#3d5a00}.c-protese{background:#e4dccd!important;color:#4a3a1c}.c-aparelho{background:#cfd8ff!important;color:#1b2a8a}
 .ot[class*="c-"] b{color:inherit}.odo.ed .ot:hover{outline:2px solid var(--accent)}
-.oleg{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:12px;font-size:11.5px;color:var(--muted)}.oleg span{display:flex;align-items:center;gap:4px}.oleg .ot{width:22px;height:20px;border-radius:6px;font-size:10px;font-weight:700;cursor:default}
+.oleg{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12px;color:var(--muted)}.oleg span{display:flex;align-items:center;gap:6px}.oleg .ot{flex:0 0 22px;width:22px;height:22px;aspect-ratio:auto;border-radius:6px;font-size:10px;font-weight:700;cursor:default;display:inline-flex}
+@media (max-width:1000px){.oleg{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 .pcbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 18px}.pcbar input{flex:1 1 240px;max-width:380px;min-height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0 14px;font:inherit}
 .pcs{display:flex;flex-direction:column;gap:26px}.pch{display:flex;align-items:center;gap:10px;margin:0 0 10px}.pch h2{margin:0;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.pch span{font-size:12px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:99px;padding:2px 9px}
 .pcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
@@ -659,7 +661,7 @@ function temaAplica(t, grava){
 }
 { let t = 'auto'; try { const x = localStorage.getItem('orto_tema'); if (x === 'light' || x === 'dark') t = x; } catch (e) {} temaAplica(t, false);
   $('#tema').addEventListener('click', () => { const a = document.documentElement.getAttribute('data-theme') || 'auto'; temaAplica(TEMAS[(TEMAS.findIndex(x => x[0] === a) + 1) % 3][0], true); }); }
-$('#sair').addEventListener('click', async () => { await sb.auth.signOut(); avParar(); UN = null; MINHAS.length = 0; ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
+$('#sair').addEventListener('click', async () => { try { if (AG.rt) { sb.removeChannel(AG.rt); AG.rt = null; AG.rtUn = null; } } catch (_) {} await sb.auth.signOut(); avParar(); UN = null; MINHAS.length = 0; ABAS.length = 0; ABA = null; $('#area').replaceChildren(); FILA = Promise.resolve(); EU = null; $('#v-app').hidden = true; $('#v-login').hidden = false; $('#v-app').classList.remove('aberto'); $('#l-login').focus(); });
 
 /* ---------- menu ---------- */
 const IC = {
@@ -825,6 +827,9 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.54.2', '2026-11-06', 'Prontuário reorganizado: o odontograma ocupa a largura toda (antes estourava sobre as outras caixas), com legenda ao lado, e rola de lado no celular. Horários com hora e minuto, botões alinhados e menos textos explicativos.'],
+  ['0.54.1', '2026-11-06', 'Menos consultas ao banco: com o tempo real conectado, a atualização automática da agenda cai de 30 segundos para 3 minutos (volta a 30 segundos se a conexão cair).'],
+  ['0.54.0', '2026-11-06', 'Agenda e painel de atendimento em tempo real: quando a recepção marca a chegada do paciente (ou qualquer mudança na agenda), os cards e a grade se atualizam na hora, sem esperar a atualização automática de 30 segundos, que continua como reserva.'],
   ['0.53.2', '2026-11-06', 'Quem tem o painel de atendimento e não é gerência (o dentista) entra direto no Atendimento, mesmo com perfil personalizado.'],
   ['0.53.1', '2026-11-06', 'O dentista já entra direto no Atendimento, com o nome no título (Atendimento - nome), sem a tela Início. Procedimentos refeito em cards alinhados, com busca, tempo em destaque, tipo de cadeira e situação, sem textos explicativos. Atendimento e prontuário com menos texto.'],
   ['0.53.0', '2026-11-06', 'Atendimento do dentista: nova tela com três cards (manutenção, avaliação e instalação aguardando) e a maior espera de cada um. A espera conta da hora marcada; quem chega adiantado aparece com tempo negativo (ex.: −12 min); quem chega atrasado conta da chegada. Clicar no card destaca na agenda só quem está aguardando; clicar de novo mostra a agenda toda. O dentista não cancela nem remarca. Prontuário eletrônico: ao iniciar o atendimento abre a ficha da consulta (queixa, exame, procedimentos realizados, conduta, orientações e retorno), com odontograma, histórico de consultas, adendos, assinatura eletrônica, impressão e registro de quem acessou.'],
@@ -5138,10 +5143,25 @@ async function agdCarregar(){
   if (!AG.data || ROTA_ATIVA() === 'atendimento') AG.data = hoje();
   if (!AG.timer) AG.timer = setInterval(agdAuto, 30000);
   if (!AG.tick) AG.tick = setInterval(atdTick, 15000);
+  agdRealtime();
   agdDesenhar();
 }
 // atualiza sozinha: faltas e mudanças feitas por outras pessoas aparecem sem recarregar a página
-function agdAuto(){ if (!EU || (ROTA_ATIVA() !== 'agenda' && ROTA_ATIVA() !== 'atendimento') || dlg.open || document.hidden || !$('#g-corpo') || !AG.cols) return; agdCorpo(); atdAtualiza(); }
+// tempo real: qualquer mudança nos agendamentos da unidade (ex.: a recepção marcou que o paciente chegou) atualiza a tela na hora
+function agdRealtime(){
+  if (!sb || !sb.channel || AG.rtUn === AG.un) return;
+  try { if (AG.rt) sb.removeChannel(AG.rt); } catch (_) {}
+  AG.rtUn = AG.un;
+  AG.rt = sb.channel('agd-' + AG.un).on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos', filter: 'unidade_id=eq.' + AG.un }, () => { clearTimeout(AG.rtT); AG.rtT = setTimeout(agdRealtimeAtualiza, 400); }).subscribe(st => { AG.rtOk = st === 'SUBSCRIBED'; });
+}
+function agdRealtimeAtualiza(){
+  if (!EU || (ROTA_ATIVA() !== 'agenda' && ROTA_ATIVA() !== 'atendimento') || !$('#g-corpo')) return;
+  if (!dlg.open) agdCorpo();
+  atdAtualiza();
+}
+function agdAuto(){ if (!EU || (ROTA_ATIVA() !== 'agenda' && ROTA_ATIVA() !== 'atendimento') || dlg.open || document.hidden || !$('#g-corpo') || !AG.cols) return;
+  if (AG.rtOk && (AG.rtN = (AG.rtN || 0) + 1) % 6) return; // com o tempo real ligado, a busca de segurança roda só a cada 3 minutos
+  agdCorpo(); atdAtualiza(); }
 function agdDesenhar(){
   const un = D.unidades.find(u => u.id === AG.un), dt = dataLocal(AG.data);
   $('#area').innerHTML = '<div class="head"><div><h1>' + (ROTA_ATIVA() === 'atendimento' ? 'Atendimento' + (ehAtend() ? ' - ' + esc(EU.nome) : '') : 'Agenda') + '</h1></div></div>'
@@ -5372,7 +5392,7 @@ const ITENS_RAPIDOS = {
   avaliacao: ['Anamnese revisada', 'Exame clínico', 'Fotografias', 'Radiografia solicitada', 'Escaneamento', 'Plano de tratamento explicado']
 };
 const prontuarioAbrir = (pid, nome) => irPara('prontuario', { chave: 'pront:' + pid, titulo: 'Prontuário · ' + String(nome || '').split(' ')[0], id: pid });
-const dtHm = t => t ? dtHora(t).slice(0, -3) : '';
+const dtHm = t => t ? dtHora(t) : '';
 async function prontCarregar(pid){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando o prontuário...</p></div>';
   const r = await sb.rpc('prontuario_do_paciente', { p_paciente: pid });
@@ -5383,14 +5403,14 @@ async function prontCarregar(pid){
 }
 function odontoHtml(dentes, ed){
   const m = new Map(dentes.map(d => [d.dente, d])), q = n => '<button type="button" class="ot' + (m.has(n) ? ' c-' + m.get(n).condicao : '') + '" data-d="' + n + '" title="Dente ' + n + (m.has(n) ? ' · ' + CONDS[m.get(n).condicao][0] + (m.get(n).nota ? ' · ' + esc(m.get(n).nota) : '') : '') + '"><b>' + n + '</b><i>' + (m.has(n) ? CONDS[m.get(n).condicao][1] : '') + '</i></button>';
-  const lin = (a, b) => '<div class="orow">' + a.map(q).join('') + '<span class="osep"></span>' + b.map(q).join('') + '</div>';
+  const lin = (a, b) => '<div class="orow"><div class="oh">' + a.map(q).join('') + '</div><span class="osep"></span><div class="oh">' + b.map(q).join('') + '</div></div>';
   const r = (x, y) => { const v = []; for (let i = x; i !== y + (x < y ? 1 : -1); i += (x < y ? 1 : -1)) v.push(i); return v; };
-  return '<div class="odo' + (ed ? ' ed' : '') + '">' + lin(r(18, 11), r(21, 28)) + '<div class="oline"></div>' + lin(r(48, 41), r(31, 38)) + '</div>'
-    + '<div class="oleg">' + Object.entries(CONDS).map(([k, v]) => '<span><i class="ot c-' + k + '">' + v[1] + '</i>' + v[0] + '</span>').join('') + '</div>';
+  return '<div class="odo' + (ed ? ' ed' : '') + '">' + lin(r(18, 11), r(21, 28)) + '<div class="oline"></div>' + lin(r(48, 41), r(31, 38)) + '</div>';
 }
+const odontoLeg = () => '<div class="oleg">' + Object.entries(CONDS).map(([k, v]) => '<span><i class="ot c-' + k + '">' + v[1] + '</i>' + v[0] + '</span>').join('') + '</div>';
 function prontItensHtml(){
-  return PR.itens.length ? PR.itens.map((it, i) => '<div class="pit" data-i="' + i + '"><label class="field">Procedimento<input data-f="item" value="' + esc(it.item || '') + '" maxlength="120"></label><label class="field">Dentes ou região<input data-f="dentes" value="' + esc(it.dentes || '') + '" maxlength="120" placeholder="Ex.: 13, 23 ou arco superior"></label><label class="field">Detalhe<input data-f="detalhe" value="' + esc(it.detalhe || '') + '" maxlength="500" placeholder="Ex.: NiTi 0,014"></label><label class="field">Material<input data-f="material" value="' + esc(it.material || '') + '" maxlength="200"></label><button class="btn ghost sm" type="button" data-rm="' + i + '" aria-label="Remover procedimento">×</button></div>').join('')
-    : '<p class="sub" style="margin:0">Nenhum procedimento lançado ainda. Toque em um atalho acima ou em “Outro procedimento”.</p>';
+  return PR.itens.length ? PR.itens.map((it, i) => '<div class="pit" data-i="' + i + '"><label class="field">Procedimento<input data-f="item" value="' + esc(it.item || '') + '" maxlength="120"></label><label class="field">Dentes ou região<input data-f="dentes" value="' + esc(it.dentes || '') + '" maxlength="120" placeholder="Ex.: 13, 23"></label><label class="field">Detalhe<input data-f="detalhe" value="' + esc(it.detalhe || '') + '" maxlength="500" placeholder="Ex.: NiTi 0,014"></label><label class="field">Material<input data-f="material" value="' + esc(it.material || '') + '" maxlength="200"></label><button class="btn ghost sm" type="button" data-rm="' + i + '" aria-label="Remover procedimento">×</button></div>').join('')
+    : '<p class="sub" style="margin:0">Nenhum procedimento lançado.</p>';
 }
 function prontColeta(){
   const v = id => { const e = $(id); return e ? e.value : ''; };
@@ -5415,11 +5435,11 @@ function prontHistHtml(){
       + cmp('Conduta', a.conduta) + cmp('Orientações ao paciente', a.orientacoes) + cmp('Retorno / próxima etapa', a.retorno)
       + (a.adendos.length ? '<div class="prk"><span>Adendos</span>' + a.adendos.map(d => '<p class="prad">' + esc(d.texto) + '<small> — ' + esc(d.por) + ', ' + dtHm(d.em) + '</small></p>').join('') + '</div>' : '')
       + '<footer>' + (a.status === 'assinado' ? 'Assinado eletronicamente por ' + esc(a.assinado_por || '') + ' em ' + dtHm(a.concluido_em) + ' · código ' + esc(a.codigo || '') : 'Atendimento sem assinatura.') + (a.status === 'assinado' && reg ? ' <button class="link" type="button" data-ad="' + a.id + '">Adicionar adendo</button>' : '') + '</footer></article>').join('')
-    : '<p class="sub" style="margin:0">' + (PR.fil ? 'Nenhuma consulta desta categoria.' : 'Nenhuma consulta registrada ainda. O histórico começa no primeiro atendimento iniciado pelo dentista.') + '</p>';
+    : '<p class="sub" style="margin:0">' + (PR.fil ? 'Nenhuma consulta desta categoria.' : 'Nenhuma consulta registrada.') + '</p>';
 }
 function prontDesenha(){
   const d = PR.d, p = d.paciente, ab = d.atendimentos.find(a => a.id === d.aberto_id), edita = !!ab && soDent(), rs = d.resumo, an = d.anamnese;
-  const anTxt = !an ? '<span class="pill off">Sem anamnese</span> Envie a anamnese pela ficha do paciente.' : an.status === 'respondida' ? '<span class="pill on">Anamnese assinada</span> em ' + dtHm(an.respondida_em) : '<span class="pill wr">Anamnese pendente</span> o paciente ainda não respondeu.';
+  const anTxt = !an ? '<span class="pill off">Sem anamnese</span>' : an.status === 'respondida' ? '<span class="pill on">Anamnese assinada</span> em ' + dtHm(an.respondida_em) : '<span class="pill wr">Anamnese pendente</span>';
   const cat = ab ? ab.categoria : 'manutencao';
   $('#area').innerHTML = '<div class="head"><div><h1>' + esc(p.nome) + '</h1><p class="sub">Prontuário eletrônico' + (p.idade != null ? ' · ' + p.idade + ' anos' : '') + (p.telefone ? ' · ' + esc(p.telefone) : '') + ' · <span class="pill nu">' + esc(p.status) + '</span></p></div>'
     + '<div class="tools" style="margin:0">' + (pode('pacientes.ver') ? '<button class="btn ghost sm" type="button" id="pr-ficha">Ficha do paciente</button>' : '') + '<button class="btn ghost sm" type="button" id="pr-imp">Imprimir prontuário</button>' + (ehGer() ? '<button class="btn ghost sm" type="button" id="pr-acc">Quem acessou</button>' : '') + '</div></div>'
@@ -5435,8 +5455,9 @@ function prontDesenha(){
       + (edita ? '<div class="df prdf"><span class="sub" id="pr-sal" aria-live="polite">Rascunho salvo automaticamente.</span><button class="btn ghost" type="button" id="pr-rasc">Salvar rascunho</button><button class="btn" type="button" id="pr-fim">' + (cat === 'avaliacao' ? 'Concluir avaliação (parecer)' : 'Concluir e assinar') + '</button></div>' : '<p class="sub" style="margin:10px 0 0">Somente o dentista deste atendimento registra aqui. Você está em modo de leitura.</p>')
       + '</div>'
       : '<div class="card"><p class="sub" style="margin:0">' + 'Nenhum atendimento em andamento.' + '</p></div>')
+    + '<div class="card"><div class="prtop"><h2>Odontograma</h2></div><div class="prod"><div id="pr-odo">' + odontoHtml(d.dentes, soDent()) + '</div>' + odontoLeg() + '</div></div>'
     + '<div class="card"><div class="prtop"><h2>Histórico de consultas</h2><label class="field" style="margin:0;min-width:180px"><select id="pr-fil" aria-label="Filtrar por tipo"><option value="">Todas</option>' + Object.entries(CAT_AT).map(([k, v]) => '<option value="' + k + '"' + (PR.fil === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></label></div><div id="pr-hist">' + prontHistHtml() + '</div></div>'
-    + '</div><div class="prs"><div class="card"><h2 style="margin:0 0 4px;font-size:16px">Odontograma</h2><div id="pr-odo">' + odontoHtml(d.dentes, soDent()) + '</div></div></div></div>';
+    + '</div></div>';
   prontLiga();
 }
 function prontLiga(){
