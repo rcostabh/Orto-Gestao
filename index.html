@@ -652,6 +652,7 @@ const MENU = [
   { r: 'inicio', t: 'Início', p: null },
   { r: 'painel', t: 'Painel', p: 'gerencia' },
   { r: 'agenda', t: 'Agenda', p: 'agenda.ver' },
+  { r: 'ag-log', t: 'Log da agenda', p: 'gerencia' },
   { r: 'avaliacoes', t: 'Avaliações', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'] },
   { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver', 'cobranca.contatar'] },
   { r: 'comunicacao', t: 'Comunicação', p: ['cobranca.contatar', 'cobranca.campanhas'] },
@@ -686,7 +687,7 @@ const MENU = [
     { r: 'transferencias', t: 'Transferências', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { painel: 'Painel', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -779,6 +780,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.52.0', '2026-11-06', 'Agenda: cancelar pede o motivo, horário que já passou não cancela nem remarca (fica como falta) e todo evento do agendamento é registrado (quem, quando e por quê). Novo item Log da agenda para a gerência e botão Histórico em cada agendamento.'],
   ['0.51.0', '2026-11-06', 'Botão de tema no menu lateral: automático (segue o aparelho), claro ou escuro. A escolha fica salva neste navegador.'],
   ['0.50.0', '2026-11-06', 'Novo Painel no menu (gerência e diretoria): alertas clicáveis, números do mês com comparação, recebimentos acumulados, funil, agenda de hoje, canais de venda e financiamento próprio. O Início continua como estava.'],
   ['0.49.0', '2026-11-06', 'Agenda por dia: a cadeira é cadastrada uma vez e o dentista que a assume em cada dia da semana é definido no cadastro dele (cadeira sem dentista no dia fica fechada). Dá para abrir outra cadeira só para uma data. O paciente que fechou tratamento só é agendado na cadeira do dentista da venda; outro dentista só com a gerência ou a diretoria.'],
@@ -895,7 +897,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'painel', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -922,6 +924,7 @@ function abrirRota(r, o){
   if (r === 'caixa') return caixaCarregar();
   if (r === 'solicitacoes') return solCarregar();
   if (r === 'transferencias') return trfCarregar();
+  if (r === 'ag-log') return ehGer() ? agLogCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">O log da agenda é da gerência e da diretoria.</div></div>');
   if (r === 'painel') return ehGer() ? painelCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">O painel é da gerência e da diretoria.</div></div>');
   if (r === 'canais') return ehDir() ? canCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os canais de venda.</div></div>');
   if (r === 'produtos') return ehDir() ? prdCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os produtos e serviços.</div></div>');
@@ -5233,21 +5236,23 @@ function agdDetalhe(id){
   const a = AG.ags.find(x => x.id === id); if (!a) return;
   const c = AG.cols.find(x => x.agenda_id === a.agenda_id) || { nome: '' }, pac = a.tipo === 'paciente', hj = AG.data === hoje();
   const aberto = a.status === 'agendado' || a.status === 'faltou';
+  const passou = AG.data < hoje() || (AG.data === hoje() && a.ini_min < agoraMin()), editavel = a.status === 'agendado' && !passou;
   const bt = [], dicas = [];
   if (pac && aberto && pode('agendamentos.recepcao')) { if (hj) bt.push(['compareceu', 'Paciente chegou (compareceu)', 'btn']); else dicas.push('O comparecimento só pode ser marcado no próprio dia.'); }
   if (pac && a.status === 'compareceu' && pode('agendamentos.recepcao')) bt.push(['desfazer', 'Desfazer comparecimento', 'btn ghost']);
   if (pac && a.status === 'compareceu' && !a.avaliacao && pode('agendamentos.atender')) bt.push(['atender', 'Iniciar atendimento', 'btn']);
   if (pac && a.avaliacao && (a.status === 'compareceu')) dicas.push('A avaliação é iniciada pelo dentista do dia, no aviso de avaliações (sino).');
   if (pac && a.status === 'em_atendimento' && !a.avaliacao && pode('agendamentos.atender')) bt.push(['concluir', 'Concluir atendimento', 'btn']);
-  if (a.status === 'faltou') dicas.push('Passaram mais de 15 minutos do horário. Esta falta ficará disponível para a cobrança recuperar o paciente (em breve).');
+  if (aberto && passou) dicas.push('Este horário já passou e fica como falta. Não dá para cancelar nem remarcar. Se o paciente voltar, faça um novo agendamento.');
   const kv = (r, v) => v ? '<span>' + r + '</span><b>' + esc(v) + '</b>' : '';
   abrirJanela(pac ? 'Agendamento' : 'Compromisso',
     '<div class="db"><p style="margin:0;font-size:17px"><span class="sd s-' + a.status + '"></span><b>' + esc(pac ? a.paciente_nome : a.titulo) + '</b> <span class="pill ' + (a.status === 'faltou' ? 'off' : a.status === 'agendado' ? 'nu' : 'on') + '">' + ST_AG[a.status] + '</span></p>'
     + '<div class="kv dkv">' + kv('Horário', hmDe(a.ini_min) + ' às ' + hmDe(a.ini_min + a.dur_min) + ' (' + minTxt(a.dur_min) + ')') + kv('Data', dBR(AG.data)) + kv('Agenda', c.nome + (c.dentista_nome ? ' · ' + c.dentista_nome : '')) + kv('Procedimento', a.procedimento_nome) + kv('Situação do cadastro', a.paciente_status) + kv('Observação', a.observacao) + '</div>'
     + dicas.map(d => '<p class="sub" style="margin:0">' + esc(d) + '</p>').join('') + '<div class="err" id="d-err" role="alert"></div></div>'
-    + '<div class="df"><div class="esq">' + (aberto && pode('agendamentos.cancelar') ? '<button class="btn danger" type="button" id="d-canc">Cancelar agendamento</button>' : '') + '</div>'
+    + '<div class="df"><div class="esq">' + (editavel && pode('agendamentos.cancelar') ? '<button class="btn danger" type="button" id="d-canc">Cancelar agendamento</button>' : '') + '</div>'
     + (pac && pode('pacientes.ver') ? '<button class="btn ghost" type="button" id="d-ficha">Abrir ficha</button>' : '')
-    + (aberto && pode('agendamentos.criar') ? '<button class="btn ghost" type="button" id="d-rem">Remarcar</button>' : '')
+    + (ehGer() ? '<button class="btn ghost" type="button" id="d-hist">Histórico</button>' : '')
+    + (editavel && pode('agendamentos.criar') ? '<button class="btn ghost" type="button" id="d-rem">Remarcar</button>' : '')
     + bt.map(b => '<button class="' + b[2] + '" type="button" data-acao="' + b[0] + '">' + b[1] + '</button>').join('') + '<button class="btn ghost" type="button" id="d-x">Fechar</button></div>');
   const agir = async (acao, btn) => {
     btn.disabled = true; const r = await sb.rpc('agendamento_acao', { p_id: a.id, p_acao: acao });
@@ -5256,9 +5261,63 @@ function agdDetalhe(id){
   };
   $$('[data-acao]').forEach(b => b.addEventListener('click', () => agir(b.dataset.acao, b)));
   $('#d-x').addEventListener('click', fecharJanela);
-  const cn = $('#d-canc'); if (cn) cn.addEventListener('click', () => { if (cn.dataset.c !== '1') { cn.dataset.c = '1'; cn.textContent = 'Confirmar cancelamento'; return; } agir('cancelar', cn); });
+  const cn = $('#d-canc'); if (cn) cn.addEventListener('click', () => agdCancelar(a));
+  const hs = $('#d-hist'); if (hs) hs.addEventListener('click', () => agdHistorico(a));
   const rm = $('#d-rem'); if (rm) rm.addEventListener('click', () => agdRemarcar(a, c));
   const fi = $('#d-ficha'); if (fi) fi.addEventListener('click', () => { fecharJanela(); abrirPaciente({ id: a.paciente_id, nome: a.paciente_nome }); });
+}
+const EV_AG = { criado: 'Agendado', remarcado: 'Remarcado', compareceu: 'Paciente chegou', desfez_comparecimento: 'Comparecimento desfeito', iniciou_atendimento: 'Atendimento iniciado', concluiu_atendimento: 'Atendimento concluído', faltou: 'Faltou', cancelado: 'Cancelado', status: 'Situação alterada' };
+const MOT_CANC = ['O paciente desmarcou', 'O paciente faltou e pediu para cancelar', 'O dentista não pôde atender', 'Erro de agendamento', 'Outro'];
+function agdCancelar(a){
+  abrirJanela('Cancelar agendamento',
+    '<form id="cc-form" novalidate><div class="db"><p style="margin:0"><b>' + esc(a.tipo === 'paciente' ? a.paciente_nome : a.titulo) + '</b> · ' + dBR(AG.data) + ' às ' + hmDe(a.ini_min) + '</p>'
+    + '<label class="field" for="cc-mot">Motivo<select id="cc-mot">' + MOT_CANC.map(m => '<option>' + esc(m) + '</option>').join('') + '</select></label>'
+    + fld('cc-obs', 'Detalhe <small>(obrigatório em "Outro")</small>', '', 'maxlength="200" autocomplete="off"')
+    + '<div class="err" id="cc-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="cc-x">Voltar</button><button class="btn danger" type="submit" id="cc-ok">Cancelar agendamento</button></div></form>');
+  $('#cc-x').addEventListener('click', () => agdDetalhe(a.id));
+  $('#cc-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#cc-err'); er.textContent = '';
+    if ($('#cc-mot').value === 'Outro' && !$('#cc-obs').value.trim()) { er.textContent = 'Descreva o motivo.'; return; }
+    const b = $('#cc-ok'); b.disabled = true;
+    const r = await sb.rpc('agendamento_cancelar', { p_id: a.id, p_motivo: $('#cc-mot').value, p_obs: $('#cc-obs').value.trim() || null });
+    b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
+    fecharJanela(); toast('Agendamento cancelado.'); agdCorpo();
+  });
+}
+const agLogLinha = x => {
+  const dt = x.detalhe, para = dt && dt.para ? ' · de ' + dBR(dt.de.data) + ' ' + hmDe(dt.de.ini_min) + ' (' + esc(dt.de.agenda || '') + ') para ' + dBR(dt.para.data) + ' ' + hmDe(dt.para.ini_min) + ' (' + esc(dt.para.agenda || '') + ')' : '';
+  return '<b>' + esc(EV_AG[x.evento] || x.evento) + '</b>' + para + (x.motivo ? '<br><small style="color:var(--muted)">' + esc(x.motivo) + '</small>' : '');
+};
+async function agdHistorico(a){
+  const r = await sb.from('agendamentos_log').select('*').eq('agendamento_id', a.id).order('feito_em').order('id');
+  abrirJanela('Histórico do agendamento', '<div class="db"><p style="margin:0"><b>' + esc(a.tipo === 'paciente' ? a.paciente_nome : a.titulo) + '</b></p>'
+    + (r.error ? '<div class="err">' + esc(erroTxt(r.error)) + '</div>' : (r.data || []).length ? '<div class="tw"><table class="tb"><thead><tr><th>Quando</th><th>O que aconteceu</th><th>Quem</th></tr></thead><tbody>' + r.data.map(x => '<tr><td style="white-space:nowrap">' + dtHora(x.feito_em) + '</td><td>' + agLogLinha(x) + '</td><td>' + esc(x.feito_por_nome) + '</td></tr>').join('') + '</tbody></table></div>' : '<p class="sub" style="margin:0">Sem registros. Os eventos anteriores a esta função não foram gravados.</p>')
+    + '</div><div class="df"><button class="btn ghost" type="button" id="h-x">Voltar</button></div>');
+  $('#h-x').addEventListener('click', () => agdDetalhe(a.id));
+}
+async function agLogCarregar(){
+  const de0 = (() => { const d = dataLocal(hoje()); d.setDate(d.getDate() - 7); return d.toISOString().slice(0, 10); })();
+  $('#area').innerHTML = '<div class="head"><div><h1>Log da agenda</h1><p class="sub" style="margin:0">Tudo que acontece nos agendamentos: quem fez, quando e por quê.</p></div></div>'
+    + '<div class="card"><div class="g3"><label class="field" for="lg-de">De<input id="lg-de" type="date" value="' + de0 + '"></label><label class="field" for="lg-ate">Até<input id="lg-ate" type="date" value="' + hoje() + '"></label>'
+    + '<label class="field" for="lg-ev">Evento<select id="lg-ev"><option value="">Todos</option>' + Object.keys(EV_AG).filter(k => k !== 'status').map(k => '<option value="' + k + '">' + EV_AG[k] + '</option>').join('') + '</select></label></div>'
+    + '<label class="field" for="lg-q">Buscar<input id="lg-q" type="search" placeholder="Paciente, funcionário ou motivo" autocomplete="off"></label></div>'
+    + '<div class="card"><div id="lg-lista" class="tw"><p class="sub">Carregando...</p></div></div>';
+  let l = [];
+  const desenha = () => {
+    const q = $('#lg-q').value.trim().toLowerCase(), v = l.filter(x => !q || [x.paciente_nome, x.titulo, x.feito_por_nome, x.motivo].some(t => (t || '').toLowerCase().includes(q)));
+    $('#lg-lista').innerHTML = v.length ? '<table class="tb"><thead><tr><th>Quando</th><th>Evento</th><th>Paciente</th><th>Horário</th><th>Quem</th></tr></thead><tbody>'
+      + v.map(x => '<tr><td style="white-space:nowrap">' + dtHora(x.feito_em) + '</td><td>' + agLogLinha(x) + '</td><td>' + esc(x.paciente_nome || x.titulo || '') + '</td><td style="white-space:nowrap">' + dBR(x.data) + ' ' + hmDe(x.ini_min) + '<br><small style="color:var(--muted)">' + esc(x.agenda_nome || '') + '</small></td><td>' + esc(x.feito_por_nome) + '</td></tr>').join('') + '</tbody></table>'
+      + (l.length >= 300 ? '<p class="sub">Mostrando os 300 registros mais recentes. Reduza o período para ver os outros.</p>' : '') : '<p class="sub" style="margin:0">Nenhum registro neste período.</p>';
+  };
+  const busca = async () => {
+    const de = $('#lg-de').value, ate = $('#lg-ate').value; if (!de || !ate) return;
+    let q = sb.from('agendamentos_log').select('*').eq('unidade_id', UN).gte('feito_em', de + 'T00:00:00-03:00').lte('feito_em', ate + 'T23:59:59-03:00').order('feito_em', { ascending: false }).limit(300);
+    if ($('#lg-ev').value) q = q.eq('evento', $('#lg-ev').value);
+    const r = await q; if (r.error) { $('#lg-lista').innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+    l = r.data || []; desenha();
+  };
+  ['#lg-de', '#lg-ate', '#lg-ev'].forEach(i => $(i).addEventListener('change', busca)); $('#lg-q').addEventListener('input', desenha);
+  busca();
 }
 async function agdRemarcar(a, c0){
   const r0 = await sb.from('agendas').select('id,nome,tipo,principal').eq('unidade_id', AG.un).eq('ativa', true).order('ordem');
@@ -5269,6 +5328,7 @@ async function agdRemarcar(a, c0){
     + '<div class="g3"><label class="field" for="r-data">Data<input id="r-data" type="date" min="' + hoje() + '" value="' + esc(AG.data) + '"></label>'
     + '<label class="field" for="r-ag">Agenda<select id="r-ag">' + l.map(x => '<option value="' + x.id + '"' + (x.id === a.agenda_id ? ' selected' : '') + '>' + esc(x.nome) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="r-hora">Horário<input id="r-hora" type="time" step="900" value="' + hmDe(a.ini_min) + '"></label></div>'
+    + fld('r-motivo', 'Motivo <small>(opcional, fica no histórico)</small>', '', 'maxlength="120" autocomplete="off"')
     + '<div class="err" id="r-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="r-cancel">Voltar</button><button class="btn" type="submit" id="r-ok">Remarcar</button></div></form>');
   $('#r-cancel').addEventListener('click', () => agdDetalhe(a.id));
   $('#r-form').addEventListener('submit', async e => {
@@ -5277,7 +5337,7 @@ async function agdRemarcar(a, c0){
     if (!d || !hm) { er.textContent = 'Informe a data e o horário.'; return; }
     if (d < hoje() || (d === hoje() && minDe(hm) < agoraMin())) { er.textContent = 'Esse horário já passou. Escolha um horário a partir de agora.'; return; }
     const b = $('#r-ok'); b.disabled = true;
-    const r = await sb.rpc('reagendar', { p_id: a.id, p_agenda: Number($('#r-ag').value), p_data: d, p_ini: minDe(hm) });
+    const r = await sb.rpc('reagendar', { p_id: a.id, p_agenda: Number($('#r-ag').value), p_data: d, p_ini: minDe(hm), p_motivo: $('#r-motivo').value.trim() || null });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
     fecharJanela(); toast('Remarcado para ' + dBR(d) + ' às ' + hm + '.'); if (d !== AG.data) { AG.data = d; agdDesenhar(); } else agdCorpo();
   });
