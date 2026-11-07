@@ -133,6 +133,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 #dlg-c,#dlg-c form{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
 .df{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--line)}
 .df .esq{margin-right:auto;display:flex;gap:10px}
+.nfk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.nfk .kp{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;min-width:0}.nfk .kp span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.nfk .kp b{font-size:21px;line-height:1.2}.nfk .kp small{font-size:12px;color:var(--muted)}@media(max-width:900px){.nfk{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end}
 .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}
 .sec{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-text);font-weight:700;margin:4px 0 -4px}
@@ -748,6 +749,7 @@ const MENU = [
     { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
     { r: 'fin-prop', t: 'Financiamento próprio', p: 'financeiro.ver' },
     { r: 'fin-prev', t: 'Previsão de recebimento', p: 'financeiro.ver' },
+    { r: 'notas', t: 'Notas fiscais', p: 'notas.ver' },
     { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] } ] },
   { g: 'Pacientes', ic: 'prospects', itens: [
     { r: 'documentacao', t: 'Documentação', p: 'documentacao.ver' },
@@ -755,7 +757,7 @@ const MENU = [
     { r: 'transferencias', t: 'Transferências', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   let h = '';
   if (EU.plataforma) h += '<div class="grp">Plataforma</div>' + [{ r: 'p-grupos', t: 'Grupos' }].concat(EU.plataforma === 'master' ? [{ r: 'p-usuarios', t: 'Usuários da plataforma' }, { r: 'p-log', t: 'Registro de acessos' }] : []).map(btnMenu).join('');
@@ -794,6 +796,7 @@ const BUSCA_EXTRA = [
   { t: 'Comunicação por WhatsApp', c: 'Comunicação › Enviar', r: 'comunicacao', p: ['cobranca.contatar', 'cobranca.campanhas'], k: 'whatsapp mensagem lembrete campanha enviar api modelos historico conexao meta recuperacao vencimento' },
   { t: 'Marcar consulta', c: 'Agenda', r: 'agenda', p: 'agenda.ver', k: 'agendar horario compromisso paciente remarcar cancelar' },
   { t: 'Fazer avaliação (dentista)', c: 'Avaliações', r: 'avaliacoes', p: ['avaliacoes.atender', 'avaliacoes.ver_todas'], k: 'apto nao apto clinico limpeza profunda' },
+  { t: 'Notas fiscais (NFS-e), lote do mês e nota na hora', c: 'Financeiro › Notas fiscais', r: 'notas', p: 'notas.ver', k: 'nota fiscal nfse nfs-e emitir lote pix imposto' },
   { t: 'CNPJ, endereço e horário da unidade', c: 'Configurações › Unidades', r: 'unidades', p: 'unidades.ver', k: 'cnpj razao social telefone funcionamento almoco' },
   { t: 'Valores do tratamento (mensalidade e desconto)', c: 'Configurações › Tipos de tratamento', r: 'tratamentos', p: 'diretor', k: 'plano prazo meses preco desconto' },
   { t: 'Clareamento, limpeza e outros produtos', c: 'Configurações › Produtos e serviços', r: 'produtos', p: 'diretor', k: 'valor padrao catalogo servico' },
@@ -848,6 +851,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.56.0', '2026-11-07', 'Notas fiscais (NFS-e) com integração: seção Nota fiscal no cadastro da unidade (empresa, serviço, imposto, lote com os dias que a clínica escolher, todo dia ou só manual, % do Pix e token), tela Notas fiscais (emitidas, na fila, sem nota, gerar lote) e a opção Emitir nota agora ao receber. Cada pagamento só recebe uma nota.'],
   ['0.55.1', '2026-11-07', 'Cobrança: o quadro de faturamento e a pesquisa de datas ficaram com metade da altura (tudo num quadro só, em duas linhas finas) e o texto explicativo do título saiu, para a régua e a lista subirem na tela.'],
   ['0.55.0', '2026-11-07', 'Ficha do paciente refeita: os dados ficam num quadro horizontal sob o nome (no máximo 3 linhas, só os campos preenchidos) e as abas ocupam a largura toda, com Financeiro em primeiro e sempre aberto. A carta de alta saiu da ficha: só o dentista registra, no prontuário.'],
   ['0.54.2', '2026-11-06', 'Prontuário reorganizado: o odontograma ocupa a largura toda (antes estourava sobre as outras caixas), com legenda ao lado, e rola de lado no celular. Horários com hora e minuto, botões alinhados e menos textos explicativos.'],
@@ -973,7 +977,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -995,6 +999,7 @@ function abrirRota(r, o){
   if (r === 'cobranca') return cobCarregar();
   if (r === 'fin-prop') return finPropCarregar();
   if (r === 'fin-prev') return finPrevCarregar();
+  if (r === 'notas') return nfCarregar();
   if (r === 'comunicacao') return waCarregar();
   if (r === 'clinico' || r.startsWith('clin-')) return clinCarregar(r);
   if (r === 'caixa') return caixaCarregar();
@@ -1648,10 +1653,107 @@ async function cepAuto(p, cep){
     if (j.erro) { msg.textContent = 'CEP não encontrado. Confira os números ou preencha o endereço à mão.'; return; }
     [[p + '-log', j.logradouro], [p + '-bai', j.bairro], [p + '-cid', j.localidade]].forEach(([id, v]) => { if (v) $('#' + id).value = v; });
     if (j.uf) $('#' + p + '-uf').value = j.uf;
+    { const ib = $('#nf-ibge'); if (ib && !ib.disabled && j.ibge) ib.value = j.ibge; }
     msg.textContent = 'Endereço preenchido pelo CEP. Confira e informe o número.';
     const n = $('#' + p + '-num'); if (n && !n.disabled) n.focus();
   } catch (_) { msg.textContent = 'Não consegui consultar o CEP agora. Preencha o endereço à mão.'; }
 }
+
+
+/* ---------- NOTAS FISCAIS (tela) ---------- */
+const NFA = {}, NFS = { aba: 'notas', ini: '', fim: '', st: '' };
+async function nfAtiva(){ if (!UN) return false; if (NFA[UN] === undefined) { const r = await sb.rpc('nf_ativa', { p_unidade: UN }); NFA[UN] = !r.error && r.data === true; } return NFA[UN]; }
+async function nfProcessar(){ try { return await sb.functions.invoke('nfse-api', { body: { acao: 'processar' } }); } catch (_) { return null; } }
+async function nfPedir(parcelaId){
+  const r = await sb.rpc('nf_solicitar_ultimo', { p_parcela: parcelaId });
+  if (r.error) return ' Mas a nota não foi pedida: ' + erroTxt(r.error);
+  nfProcessar(); setTimeout(nfProcessar, 25000); setTimeout(nfProcessar, 70000);
+  const d = r.data || {};
+  return d.status === 'sem_dados' ? ' Nota guardada: falta o CPF (veja em Notas fiscais).' : d.status === 'emitida' ? ' Nota já emitida.' : ' Nota fiscal enviada para emissão.';
+}
+const NF_ST = { pendente: ['Na fila', 'wr'], processando: ['Enviando', 'wr'], emitida: ['Emitida', 'on'], erro: ['Erro', 'off'], sem_dados: ['Falta CPF', 'off'], cancelando: ['Cancelando', 'wr'], cancelada: ['Cancelada', 'nu'] };
+async function nfCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Notas fiscais'); return; }
+  const h = hoje(); if (!NFS.ini) { NFS.ini = h.slice(0, 8) + '01'; NFS.fim = h; }
+  const rs = await Promise.all([sb.rpc('nf_resumo', { p_unidade: UN }), sb.rpc('notas_lista', { p_unidade: UN, p_ini: NFS.ini, p_fim: NFS.fim, p_status: NFS.st || null }), sb.rpc('notas_sem_nota', { p_unidade: UN, p_ini: NFS.ini, p_fim: NFS.fim })]);
+  const er = rs.map(x => x.error).find(Boolean); if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
+  const rz = rs[0].data, notas = rs[1].data || [], sem = rs[2].data || [], ps = rz.por_status || {}, q = k => (ps[k] ? ps[k].qtd : 0);
+  const ger = ehGer(), emite = pode('notas.emitir');
+  const kp = (t, v, sub) => '<div class="kp"><span>' + t + '</span><b>' + v + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
+  $('#area').innerHTML = '<div class="head"><div><h1>Notas fiscais</h1></div><div class="acoes">' + (rz.ativo ? '<button class="btn ghost" type="button" id="nf-atu">Atualizar situação</button> ' : '') + (ger && rz.ativo ? '<button class="btn" type="button" id="nf-lote">Gerar lote agora</button>' : '') + '</div></div>'
+    + '<div class="card"><div class="nfk">' + kp('Emitidas no mês', q('emitida'), brl(ps.emitida ? ps.emitida.valor : 0)) + kp('Na fila', q('pendente') + q('processando')) + kp('Com problema', q('erro') + q('sem_dados'))
+    + kp('Pix com nota', brl(rz.pix_com_nota), 'meta ' + brl(rz.pix_alvo) + ' (' + nTxt(rz.pct_pix || 0, 2) + '% de ' + brl(rz.pix_total) + ')') + kp('Lote do mês', !rz.ativo ? 'Desligado' : rz.lote_rodou ? 'Gerado' : (rz.dias_lote || []).length >= 28 ? 'Todo dia' : (rz.dias_lote || []).length ? 'Dia ' + rz.dias_lote.join(', ') : 'Manual') + '</div></div>'
+    + '<div class="card"><div class="pabas" id="nf-tabs"><button type="button" data-t="notas">Notas (' + notas.length + ')</button><button type="button" data-t="sem">Sem nota (' + sem.length + ')</button></div>'
+    + '<div class="tools cbv" style="margin-top:10px"><label class="field" for="nf-ini">De<input id="nf-ini" type="date" value="' + NFS.ini + '"></label><label class="field" for="nf-fim">Até<input id="nf-fim" type="date" value="' + NFS.fim + '"></label>'
+    + '<label class="field" for="nf-st">Situação<select id="nf-st"><option value="">Todas</option>' + Object.keys(NF_ST).map(k => '<option value="' + k + '"' + (NFS.st === k ? ' selected' : '') + '>' + NF_ST[k][0] + '</option>').join('') + '</select></label><button class="btn ghost" type="button" id="nf-ok">Filtrar</button></div>'
+    + '<div id="nf-p1"></div><div id="nf-p2" hidden></div></div>';
+  const aba = t => { NFS.aba = t; $$('#nf-tabs [data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t)); $('#nf-p1').hidden = t !== 'notas'; $('#nf-p2').hidden = t !== 'sem'; $('#nf-st').closest('label').hidden = t !== 'notas'; };
+  $$('#nf-tabs [data-t]').forEach(b => b.addEventListener('click', () => aba(b.dataset.t)));
+  gradeF($('#nf-p1'), { dados: notas, f: NFS.f1 = NFS.f1 || [], vazio: 'Nenhuma nota neste período.', maxH: 520, cols: [
+    { t: 'Data', v: x => dtHora(x.criado_em), k: x => x.criado_em }, { t: 'Paciente', v: x => x.paciente }, { t: 'Forma', v: x => x.forma }, { t: 'Valor', n: 1, v: x => brl(x.valor), k: x => x.valor, soma: x => x.valor },
+    { t: 'Origem', v: x => x.origem === 'lote' ? 'Lote' : 'Na hora' }, { t: 'Nº', v: x => x.numero || '' },
+    { t: 'Situação', v: x => NF_ST[x.status][0], h: x => '<span class="pill ' + NF_ST[x.status][1] + '" title="' + esc(x.mensagem || '') + '">' + NF_ST[x.status][0] + '</span>' + (x.mensagem && ['erro', 'sem_dados'].includes(x.status) ? '<br><small style="color:var(--muted)">' + esc(x.mensagem) + '</small>' : '') }],
+    acao: x => (x.url_pdf ? '<a class="btn sm ghost" target="_blank" rel="noopener" href="' + esc(x.url_pdf) + '">Ver nota</a> ' : '') + (emite && ['erro', 'sem_dados'].includes(x.status) ? '<button class="btn sm" type="button" data-nfr="' + x.id + '">Tentar de novo</button> ' : '')
+      + (ger && ['emitida', 'pendente', 'erro', 'sem_dados'].includes(x.status) ? '<button class="btn sm ghost" type="button" data-nfc="' + x.id + '">Cancelar</button>' : ''), liga: box => {
+      $$('[data-nfr]', box).forEach(b => b.addEventListener('click', async () => { b.disabled = true; const r = await sb.rpc('nf_tentar_novamente', { p_id: Number(b.dataset.nfr) }); if (r.error) { toast(erroTxt(r.error)); b.disabled = false; return; } nfProcessar(); nfCarregar(); }));
+      $$('[data-nfc]', box).forEach(b => b.addEventListener('click', () => nfCancelar(Number(b.dataset.nfc)))); } });
+  gradeF($('#nf-p2'), { dados: sem, f: NFS.f2 = NFS.f2 || [], vazio: 'Todos os pagamentos do período já têm nota.', maxH: 520, cols: [
+    { t: 'Pago em', v: x => dtHora(x.pago_em), k: x => x.pago_em }, { t: 'Paciente', v: x => x.paciente }, { t: 'Parcela', v: x => x.descricao || ('Parcela ' + x.parcela) }, { t: 'Forma', v: x => x.forma }, { t: 'Valor', n: 1, v: x => brl(x.valor), k: x => x.valor, soma: x => x.valor }],
+    acao: x => emite && rz.ativo ? '<button class="btn sm" type="button" data-nfe="' + x.id + '">Emitir nota</button>' : '', liga: box => {
+      $$('[data-nfe]', box).forEach(b => b.addEventListener('click', async () => { b.disabled = true; const r = await sb.rpc('nf_solicitar_pagamento', { p_pagamento: Number(b.dataset.nfe) }); if (r.error) { toast(erroTxt(r.error)); b.disabled = false; return; } toast('Nota enviada para emissão.'); nfProcessar(); nfCarregar(); })); } });
+  aba(NFS.aba);
+  if (q('pendente') + q('processando') > 0 && !NFS.auto) { NFS.auto = true; nfProcessar().then(() => setTimeout(() => { NFS.auto = false; if (ROTA_ATIVA() === 'notas') nfCarregar(); }, 10000)); }
+  const filtra = () => { NFS.ini = $('#nf-ini').value || NFS.ini; NFS.fim = $('#nf-fim').value || NFS.fim; NFS.st = $('#nf-st').value; nfCarregar(); };
+  $('#nf-ok').addEventListener('click', filtra);
+  const au = $('#nf-atu'); if (au) au.addEventListener('click', async () => { au.disabled = true; await nfProcessar(); nfCarregar(); });
+  const lt = $('#nf-lote'); if (lt) lt.addEventListener('click', async () => { if (lt.dataset.c !== '1') { lt.dataset.c = '1'; lt.textContent = 'Confirmar geração do lote'; return; } lt.disabled = true; const r = await sb.rpc('nf_lote_agora', { p_unidade: UN }); if (r.error) { toast(erroTxt(r.error)); lt.disabled = false; return; } toast('Lote gerado: ' + (r.data.qtd || 0) + ' nota(s).'); nfProcessar(); nfCarregar(); });
+}
+function nfCancelar(id){
+  abrirJanela('Cancelar nota fiscal', '<form id="nc-form" novalidate><div class="db"><label class="field" for="nc-m">Motivo do cancelamento *<textarea id="nc-m" rows="3" maxlength="250"></textarea></label><div class="err" id="nc-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="nc-x">Voltar</button><button class="btn danger" type="submit" id="nc-ok">Cancelar a nota</button></div></form>');
+  $('#nc-x').addEventListener('click', fecharJanela);
+  $('#nc-form').addEventListener('submit', async e => { e.preventDefault(); const b = $('#nc-ok'); b.disabled = true; const r = await sb.rpc('nf_cancelar', { p_id: id, p_motivo: $('#nc-m').value.trim() }); b.disabled = false;
+    if (r.error) { $('#nc-err').textContent = erroTxt(r.error); return; } fecharJanela(); toast('Cancelamento pedido.'); nfProcessar(); nfCarregar(); });
+}
+
+/* ---------- NOTA FISCAL (seção do cadastro da unidade) ---------- */
+const NF_FORMAS = ['Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Boleto', 'Transferência'];
+async function nfSecao(u, edita){
+  const el = $('#nf-sec'); if (!el) return null;
+  const r = await sb.rpc('nf_config_ler', { p_unidade: u.id });
+  if (r.error || !r.data) return null;
+  const c = r.data, ro = edita && ehDir() ? '' : ' disabled';
+  const ck = (id, rot, on) => '<label class="chk"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + ro + '> ' + rot + '</label>';
+  const sel = (id, rot, ops, v) => '<label class="field" for="' + id + '">' + rot + '<select id="' + id + '"' + ro + '>' + ops.map(o => '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label>';
+  const num = (id, rot, v, ex) => fld(id, rot, v == null ? '' : v, 'inputmode="decimal" ' + (ex || '') + ro);
+  const formas = c.formas_lote || ['Cartão de débito', 'Cartão de crédito'];
+  el.hidden = false;
+  el.innerHTML = '<div class="sec">Nota fiscal</div>'
+    + '<div class="g2">' + ck('nf-ativo', 'Emitir notas fiscais nesta unidade', c.ativo) + sel('nf-amb', 'Ambiente', [['homologacao', 'Teste (homologação)'], ['producao', 'Valendo (produção)']], c.ambiente || 'homologacao') + '</div>'
+    + '<div class="g3">' + fld('nf-im', 'Inscrição municipal', c.inscricao_municipal || '', 'maxlength="20"' + ro) + fld('nf-ibge', 'Código IBGE do município', c.codigo_municipio || '', 'inputmode="numeric" maxlength="7"' + ro)
+    + sel('nf-mod', 'Tipo de nota', [['municipal', 'NFS-e municipal'], ['nacional', 'NFS-e nacional']], c.modelo || 'municipal') + '</div>'
+    + '<div class="g3">' + fld('nf-item', 'Item da lista de serviços', c.item_lista_servico || '', 'placeholder="04.01"' + ro) + fld('nf-cnae', 'CNAE', c.codigo_cnae || '', 'inputmode="numeric" maxlength="9"' + ro) + fld('nf-ctm', 'Código de tributação do município', c.codigo_tributacao_municipio || '', ro) + '</div>'
+    + '<div class="g3">' + fld('nf-ctn', 'Código de tributação nacional', c.codigo_tributacao_nacional || '', 'placeholder="04.01.01"' + ro) + num('nf-aliq', 'Alíquota do ISS (%)', c.aliquota_iss == null ? 0 : String(c.aliquota_iss).replace('.', ','), 'maxlength="5"')
+    + '<div>' + ck('nf-simples', 'Optante pelo Simples Nacional', c.optante_simples !== false) + ck('nf-iss', 'ISS retido pelo tomador', c.iss_retido) + '</div></div>'
+    + fld('nf-disc', 'Descrição do serviço na nota', c.discriminacao || 'Serviços odontológicos', 'maxlength="200"' + ro)
+    + '<div class="sec">Regras de emissão</div>'
+    + '<div class="g3">' + fld('nf-dias', 'Dias do lote (ex.: 15, 29)', (c.dias_lote || [29]).length >= 28 ? '' : (c.dias_lote || [29]).join(', '), 'maxlength="40" placeholder="vazio = só quando o gestor pedir"' + ro) + num('nf-pix', '% do Pix que recebe nota', c.pct_pix == null ? 0 : String(c.pct_pix).replace('.', ','), 'maxlength="6"')
+    + '<div>' + ck('nf-todo', 'Gerar o lote todo dia', (c.dias_lote || []).length >= 28) + ck('nf-cpf', 'Exigir CPF para emitir', c.exigir_cpf !== false) + '</div></div>'
+    + '<div class="chks" id="nf-formas"><span class="sub">No lote entram inteiras as formas:</span> ' + NF_FORMAS.map(f => '<label class="chk" style="display:inline-flex;margin-right:14px"><input type="checkbox" data-f="' + f + '"' + (formas.includes(f) ? ' checked' : '') + ro + '> ' + f + '</label>').join('') + '</div>'
+    + (ehDir() ? '<label class="field" for="nf-token">Token do provedor de notas' + (c.tem_token ? ' <small>(já guardado; preencha só para trocar)</small>' : '') + '<input id="nf-token" type="password" autocomplete="off" placeholder="' + (c.tem_token ? '••••••••••••' : 'Cole o token da unidade') + '"' + ro + '></label>' : '<input id="nf-token" type="hidden">');
+  const ib = $('#nf-ibge'); if (ib) ib.addEventListener('input', e => e.target.value = dig(e.target.value));
+  return c;
+}
+const nfLer = () => {
+  const n = id => ($('#' + id).value || '').trim(), dec = id => parseFloat(n(id).replace(',', '.')) || 0;
+  return { ativo: $('#nf-ativo').checked, ambiente: n('nf-amb'), modelo: n('nf-mod'), inscricao_municipal: n('nf-im'), codigo_municipio: n('nf-ibge'), optante_simples: $('#nf-simples').checked, item_lista_servico: n('nf-item'), codigo_cnae: dig(n('nf-cnae')),
+    codigo_tributacao_municipio: n('nf-ctm'), codigo_tributacao_nacional: n('nf-ctn'), aliquota_iss: dec('nf-aliq'), iss_retido: $('#nf-iss').checked, discriminacao: n('nf-disc'), exigir_cpf: $('#nf-cpf').checked,
+    dias_lote: $('#nf-todo').checked ? Array.from({ length: 31 }, (_, i) => i + 1) : [...new Set(n('nf-dias').split(/[^0-9]+/).filter(Boolean).map(Number).filter(d => d >= 1 && d <= 31))].sort((a, b) => a - b), pct_pix: dec('nf-pix'), formas_lote: $$('#nf-formas [data-f]').filter(x => x.checked).map(x => x.dataset.f) };
+};
 
 /* ---------- UNIDADES ---------- */
 const DIAS = [[1, 'Segunda'], [2, 'Terça'], [3, 'Quarta'], [4, 'Quinta'], [5, 'Sexta'], [6, 'Sábado'], [0, 'Domingo']];
@@ -1702,6 +1804,7 @@ function uniForm(u){
     + '<div class="g3"><label class="field" for="u-uf">UF<select id="u-uf"' + ro + '><option value=""></option>' + UFS.map(x => '<option' + (u && u.uf === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label></div>'
     + '<div class="sec">Horário de funcionamento</div><div class="hor" id="u-hor">' + horas + '</div>'
     + (edita ? '<div><button class="link" type="button" id="u-rep">Repetir a segunda-feira de terça a sexta</button></div><p class="sub" style="margin:0">Se a clínica não para para o almoço, use "Sem almoço" no dia. Sem dentista na unidade não há atendimento, então o horário aqui é o de quando a clínica funciona.</p>' : '')
+    + (!novo && pode('notas.ver') ? '<div id="nf-sec" hidden></div>' : '')
     + '<div class="err" id="u-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('unidades.inativar') ? '<button class="btn ' + (u.ativa ? 'danger' : 'ghost') + '" type="button" id="u-ina">' + (u.ativa ? 'Inativar unidade' : 'Reativar unidade') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="u-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="u-ok">Salvar</button>' : '') + '</div></form>');
@@ -1710,6 +1813,7 @@ function uniForm(u){
   $$('.h-on').forEach(c => c.addEventListener('change', () => liga(linhaDia(c.dataset.d), c.checked)));
   $$('.h-sem').forEach(b => b.addEventListener('click', () => { const l = linhaDia(b.dataset.d); l.i.value = ''; l.v.value = ''; }));
   const rep = $('#u-rep'); if (rep) rep.addEventListener('click', () => { const s = linhaDia(1); for (let d = 2; d <= 5; d++) { const l = linhaDia(d); l.on.checked = s.on.checked; l.a.value = s.a.value; l.i.value = s.i.value; l.v.value = s.v.value; l.f.value = s.f.value; liga(l, s.on.checked); } });
+  let NFC = null; if (!novo && pode('notas.ver')) nfSecao(u, edita).then(c => { NFC = c; });
   $('#u-cancel').addEventListener('click', fecharJanela);
   $('#u-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
   $('#u-cnpj').addEventListener('input', e => e.target.value = mCnpj(e.target.value));
@@ -1742,6 +1846,7 @@ function uniForm(u){
     const reg = { razao_social: v('u-razao'), cnpj: dig(v('u-cnpj')) || null, sigla, telefone: dig(v('u-tel')), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
     const b = $('#u-ok'); b.disabled = true;
     const { error } = novo ? await sb.from('unidades').insert(reg) : await sb.from('unidades').update(reg).eq('id', u.id);
+    if (!error && !novo && NFC) { const r = await sb.rpc('nf_config_salvar', { p_unidade: u.id, p_cfg: nfLer(), p_token: ($('#nf-token').value || '').trim() || null }); if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; } }
     b.disabled = false;
     if (error) { er.textContent = erroTxt(error); return; }
     fecharJanela(); toast(novo ? 'Unidade cadastrada.' : 'Unidade atualizada.'); uniCarregar();
@@ -3197,10 +3302,12 @@ function fnReceber(x, nome, aoFim){
     + '<div class="g2"><label class="field" for="rc-valor">Valor recebido agora *<span class="pw"><input id="rc-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(x.saldo)) + '"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
     + '<label class="field" for="rc-forma">Forma de pagamento *<select id="rc-forma"><option value="">Escolha...</option>' + FORMAS_PGTO.map(f => '<option>' + f + '</option>').join('') + '</select></label></div>'
     + '<div id="rc-resto" hidden><p style="margin:0;font-weight:700" id="rc-falta"></p><label class="field" for="rc-venc">O paciente paga o restante até *<input id="rc-venc" type="date" min="' + hoje() + '" max="' + somaDias(hoje(), 120) + '" value="' + somaDias(hoje(), 7) + '"></label></div>'
+    + '<div id="rc-nf" hidden><label class="chk"><input type="checkbox" id="rc-nfck"> O paciente pediu nota fiscal: emitir agora</label></div>'
     + '<div class="err" id="rc-err" role="alert"></div></div>'
     + '<div class="df"><button class="btn ghost" type="button" id="rc-cancel">Voltar</button><button class="btn" type="submit" id="rc-ok">Confirmar recebimento</button></div></form>');
   const calc = () => { const v = moedaNum($('#rc-valor').value) || 0, falta = Math.round((x.saldo - v) * 100) / 100; $('#rc-resto').hidden = !(v > 0 && falta > 0);
     $('#rc-falta').textContent = 'Pagamento parcial: ficará devendo ' + reais(falta) + ' nesta parcela.'; };
+  nfAtiva().then(on => { const w = $('#rc-nf'); if (w && on) w.hidden = false; });
   calc(); $('#rc-valor').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); calc(); });
   $('#rc-cancel').addEventListener('click', () => { if (aoFim) aoFim(); else fecharJanela(); });
   $('#rc-form').addEventListener('submit', async e => {
@@ -3213,7 +3320,8 @@ function fnReceber(x, nome, aoFim){
     const b = $('#rc-ok'); b.disabled = true;
     const r = await sb.rpc('baixar_parcela', { p_id: x.id, p_forma: forma, p_valor: v, p_venc_saldo: parcial ? venc : null });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
-    toast(parcial ? 'Recebido ' + reais(v) + '. Saldo de ' + reais(r.data) + ' até ' + dBR(venc) + '.' : 'Pagamento registrado.' + (x.numero === 0 ? ' Foi gerada a 1ª mensalidade.' : x.numero === 1 ? ' O paciente agora está Ativo.' : ''));
+    const quer = !$('#rc-nf').hidden && $('#rc-nfck').checked, nfm = quer ? await nfPedir(x.id) : '';
+    toast((parcial ? 'Recebido ' + reais(v) + '. Saldo de ' + reais(r.data) + ' até ' + dBR(venc) + '.' : 'Pagamento registrado.' + (x.numero === 0 ? ' Foi gerada a 1ª mensalidade.' : x.numero === 1 ? ' O paciente agora está Ativo.' : '')) + nfm);
     if (aoFim) aoFim(); else fecharJanela(); refrescaTela();
   });
 }
