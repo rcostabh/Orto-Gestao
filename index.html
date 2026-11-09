@@ -133,6 +133,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 #dlg-c,#dlg-c form{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
 .df{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--line)}
 .df .esq{margin-right:auto;display:flex;gap:10px}
+.pnd2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}.pnd{display:flex;flex-direction:column;gap:8px;min-width:0}.pnd-h{display:flex;justify-content:space-between;align-items:center;gap:10px}.pnd-h h2{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}.seg button{border:0;background:transparent;color:var(--muted);padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.seg button.on{background:var(--ink);color:var(--surface)}.pnd-l{list-style:none;margin:0;padding:0;max-height:230px;overflow:auto;display:flex;flex-direction:column}.pnd-l li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line)}.pnd-l li:first-child{border-top:0}.pnd-t{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}.pnd-l a{color:var(--ink);font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pnd-l small{color:var(--muted);font-size:12px;white-space:nowrap}.pnd-v{margin:6px 0 2px;color:var(--muted)}@media(max-width:900px){.pnd2{grid-template-columns:1fr}}
 .nfk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.nfk .kp{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;min-width:0}.nfk .kp span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.nfk .kp b{font-size:21px;line-height:1.2}.nfk .kp small{font-size:12px;color:var(--muted)}@media(max-width:900px){.nfk{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end}
 .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}
@@ -851,6 +852,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.57.0', '2026-11-09', 'Nova ocorrência na ficha do paciente (ligação, WhatsApp, presencial...), com dia, hora e quem registrou; mensagens automáticas entram sozinhas no histórico; relatório Cobrança › Sem contato; e, na tela inicial da recepção, os cards de Documentação e Limpeza profunda em atraso (hoje ou semana).'],
   ['0.56.1', '2026-11-08', 'Os botões de atender avaliação (aviso do sino e tela Avaliações) aparecem só para o dentista; diretor e gerência não veem.'],
   ['0.56.0', '2026-11-07', 'Notas fiscais (NFS-e) com integração: seção Nota fiscal no cadastro da unidade (empresa, serviço, imposto, lote com os dias que a clínica escolher, todo dia ou só manual, % do Pix e token), tela Notas fiscais (emitidas, na fila, sem nota, gerar lote) e a opção Emitir nota agora ao receber. Cada pagamento só recebe uma nota.'],
   ['0.55.1', '2026-11-07', 'Cobrança: o quadro de faturamento e a pesquisa de datas ficaram com metade da altura (tudo num quadro só, em duas linhas finas) e o texto explicativo do título saiu, para a régua e a lista subirem na tela.'],
@@ -1080,7 +1082,7 @@ function telaInicio(){
   $('#area').innerHTML = '<div class="head in-head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
     + (pode('atendimento.ver') ? '<button class="btn" type="button" id="in-atend">Abrir painel de atendimento</button>' : '') + (pode('agenda.ver') ? '<button class="btn' + (pode('atendimento.ver') ? ' ghost' : '') + '" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
-    + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
+    + (recep ? '<div id="in-pend"></div>' : '') + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
     + (recep || cxr || cxg || dir ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
       .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('') + '</div>');
   const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); });
@@ -1110,7 +1112,7 @@ async function inicioCarrega(recep, cxr, cxg, dir){
   const [rf, rc, rp, rg, rd] = await Promise.all(q); if (ROTA_ATIVA() !== 'inicio' || !$('#in-cx')) return;
   if (cxr || cxg) inicioCaixa(rc.data || [], rp.data, rg.data || [], cxr, cxg);
   if (dir) inicioDashCarrega();
-  if (recep) inicioFaltas(rf.error ? null : (rf.data || []), rf.error);
+  if (recep) { inicioFaltas(rf.error ? null : (rf.data || []), rf.error); pendCarrega(); }
 }
 const MES3 = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 /* ---------- dashboard do Diretor: indicadores por unidade e, com mais de uma unidade, mapa de Minas Gerais ---------- */
@@ -1660,6 +1662,64 @@ async function cepAuto(p, cep){
   } catch (_) { msg.textContent = 'Não consegui consultar o CEP agora. Preencha o endereço à mão.'; }
 }
 
+
+
+/* ---------- CONTATOS (ocorrências de contato) e relatório sem contato ---------- */
+const CT_CANAL = [['ligacao', 'Ligação'], ['whatsapp', 'WhatsApp'], ['presencial', 'Presencial'], ['email', 'E-mail'], ['outro', 'Outro']];
+const CT_RES = [['nao_atendeu', 'Não atendeu'], ['atendeu', 'Atendeu'], ['recado', 'Deixou recado'], ['sem_resposta', 'Sem resposta'], ['agendou', 'Agendou'], ['numero_errado', 'Número errado'], ['nao_quer', 'Não quer contato'], ['enviado', 'Mensagem enviada']];
+const ctRot = (l, k) => ((l.find(x => x[0] === k)) || [0, k || ''])[1];
+const ctOcorrencia = c => ({ quando: c.quando, tipo: 'contato', titulo: c.origem === 'auto' ? 'Mensagem automática · WhatsApp' : 'Contato · ' + ctRot(CT_CANAL, c.canal), responsavel: c.responsavel || '', resultado: ctRot(CT_RES, c.resultado), detalhe: c.descricao || '' });
+function ocorrenciaDialogo(pacienteId, nome, depois){
+  abrirJanela('Nova ocorrência' + (nome ? ' · ' + nome : ''), '<form id="oc-form" novalidate><div class="db">'
+    + '<div class="g2"><label class="field" for="oc-canal">Como foi o contato<select id="oc-canal">' + CT_CANAL.map(c => '<option value="' + c[0] + '">' + c[1] + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="oc-res">Resultado<select id="oc-res">' + CT_RES.filter(r => r[0] !== 'enviado').map(c => '<option value="' + c[0] + '">' + c[1] + '</option>').join('') + '</select></label></div>'
+    + '<label class="field" for="oc-txt">O que aconteceu *<textarea id="oc-txt" rows="4" maxlength="500" placeholder="Ex.: Liguei, o paciente não atendeu. Mandei mensagem."></textarea></label>'
+    + '<div class="err" id="oc-err" role="alert"></div></div><div class="df"><div class="esq"></div><button class="btn ghost" type="button" id="oc-x">Voltar</button><button class="btn" type="submit" id="oc-ok">Registrar</button></div></form>');
+  $('#oc-x').addEventListener('click', fecharJanela); setTimeout(() => { const t = $('#oc-txt'); if (t) t.focus(); }, 30);
+  $('#oc-form').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#oc-err'); er.textContent = ''; const b = $('#oc-ok'), txt = $('#oc-txt').value.trim();
+    if (txt.length < 3) { er.textContent = 'Escreva o que aconteceu.'; return; }
+    b.disabled = true; const r = await sb.rpc('contato_registrar', { p_paciente: pacienteId, p_canal: $('#oc-canal').value, p_resultado: $('#oc-res').value, p_descricao: txt }); b.disabled = false;
+    if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Ocorrência registrada.'); if (depois) depois();
+  });
+}
+const SC = { dias: 30, atraso: true };
+async function cbSemContato(){
+  $('#area').innerHTML = cbCabeca('Pacientes sem contato') + '<div class="card"><p class="sub">Carregando...</p></div>'; cobAbasLiga();
+  const r = await sb.rpc('pacientes_sem_contato', { p_unidade: UN, p_dias: SC.dias, p_so_atraso: SC.atraso });
+  if (r.error) { $('#area').innerHTML = cbCabeca('Pacientes sem contato') + '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; cobAbasLiga(); return; }
+  const l = r.data || [];
+  $('#area').innerHTML = cbCabeca('Pacientes sem contato') + '<div class="card"><div class="tools cbv" style="gap:12px;align-items:end"><label class="field" for="sc-d" style="margin:0">Sem contato há mais de (dias)<input id="sc-d" type="number" min="0" max="3650" value="' + SC.dias + '" style="width:110px"></label>'
+    + '<label class="chk" style="flex:none"><input type="checkbox" id="sc-a"' + (SC.atraso ? ' checked' : '') + '> Só quem tem parcela em atraso</label><button class="btn" type="button" id="sc-ok">Atualizar</button></div><div id="sc-g"></div></div>';
+  cobAbasLiga();
+  gradeF($('#sc-g'), { dados: l, f: SC.f = SC.f || [], vazio: 'Nenhum paciente nessa condição.', maxH: 560, cols: [
+    { t: 'Paciente', v: x => x.paciente_nome, h: x => '<a href="#" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '"><b>' + esc(x.paciente_nome) + '</b></a>' }, { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '' }, { t: 'Status', v: x => x.status },
+    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dtHora(x.ultimo_contato) : 'Nunca', h: x => x.ultimo_contato ? dtHora(x.ultimo_contato) + '<br><small style="color:var(--muted)">' + esc(ctRot(CT_CANAL, x.ultimo_canal) + ' · ' + (x.ultimo_por || '')) + '</small>' : '<span style="color:var(--muted)">Nunca</span>' },
+    { t: 'Dias', n: 0, k: x => x.dias == null ? 99999 : x.dias, v: x => x.dias == null ? 'Nunca' : String(x.dias) }, { t: 'Parcelas em atraso', k: x => x.qtd_atraso, v: x => String(x.qtd_atraso) }, { t: 'Valor em atraso', n: 1, k: x => Number(x.valor_atraso), soma: x => x.valor_atraso, v: x => reais(x.valor_atraso) }],
+    acao: x => '<button class="btn sm" type="button" data-sco="' + x.paciente_id + '">Registrar contato</button>', liga: box => {
+      $$('[data-sco]', box).forEach(b => b.addEventListener('click', () => { const x = l.find(y => y.paciente_id === Number(b.dataset.sco)); ocorrenciaDialogo(x.paciente_id, x.paciente_nome, cbSemContato); }));
+      $$('[data-pac]', box).forEach(a => a.addEventListener('click', e => { e.preventDefault(); abrirPaciente({ id: Number(a.dataset.pac), nome: a.dataset.nm, nome_social: null }); })); } });
+  const go = () => { SC.dias = Math.max(0, Math.min(3650, parseInt($('#sc-d').value, 10) || 0)); SC.atraso = $('#sc-a').checked; SC.f = []; cbSemContato(); };
+  $('#sc-ok').addEventListener('click', go); $('#sc-d').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+}
+
+/* ---------- RECEPÇÃO: documentação e limpeza profunda em atraso (início) ---------- */
+const PEND = { per: 'hoje', dados: null, erro: null };
+async function pendCarrega(){
+  const h = hoje(), fim = PEND.per === 'hoje' ? h : somaDias(h, 6);
+  const r = await sb.rpc('pendencias_clinicas', { p_unidade: UN, p_ini: h, p_fim: fim, p_meses: 4 });
+  if (ROTA_ATIVA() !== 'inicio' || !$('#in-pend')) return; PEND.erro = r.error ? erroTxt(r.error) : null; PEND.dados = r.error ? [] : (r.data || []); pendDesenha();
+}
+function pendDesenha(){
+  const box = $('#in-pend'); if (!box) return; const h = hoje(), d = PEND.dados || [], sem = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  const card = (id, titulo, l, ult, rot) => '<div class="card pnd"><div class="pnd-h"><h2>' + titulo + ' <span class="pill ' + (l.length ? 'off' : 'on') + '">' + l.length + '</span></h2><div class="seg" role="group" aria-label="Período">'
+    + '<button type="button" data-per="hoje" class="' + (PEND.per === 'hoje' ? 'on' : '') + '">Hoje</button><button type="button" data-per="semana" class="' + (PEND.per === 'semana' ? 'on' : '') + '">Semana</button></div></div>'
+    + (PEND.erro ? '<div class="err">' + esc(PEND.erro) + '</div>' : l.length ? '<ul class="pnd-l">' + l.map(x => '<li><span class="pnd-t">' + (PEND.per === 'semana' && x.data !== h ? sem[new Date(x.data + 'T12:00:00').getDay()] + ' ' + dBR(x.data).slice(0, 5) + ' · ' : '') + hmDe(x.ini_min) + '</span><a href="#" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</a><small>' + (x[ult] ? rot + ' em ' + dBR(x[ult]) : 'Nunca fez') + '</small></li>').join('') + '</ul>'
+      : '<p class="pnd-v">Nenhum paciente em atraso ' + (PEND.per === 'hoje' ? 'hoje' : 'nesta semana') + '.</p>') + '</div>';
+  box.innerHTML = '<div class="pnd2">' + card('doc', 'Documentação', d.filter(x => x.doc_pend), 'doc_ultima', 'Última') + card('limp', 'Limpeza profunda', d.filter(x => x.limp_pend), 'limp_ultima', 'Última') + '</div>';
+  $$('#in-pend [data-per]').forEach(b => b.addEventListener('click', () => { PEND.per = b.dataset.per; pendCarrega(); }));
+  $$('#in-pend [data-pac]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); abrirPaciente({ id: Number(a.dataset.pac), nome: a.dataset.nm, nome_social: null }); }));
+}
 
 /* ---------- NOTAS FISCAIS (tela) ---------- */
 const NFA = {}, NFS = { aba: 'notas', ini: '', fim: '', st: '' };
@@ -2456,13 +2516,13 @@ async function pacFicha(id){
   await sb.rpc('financeiro_atualizar');
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.from('pacientes').select('*').eq('id', id).single(), sb.rpc('avaliacoes_do_paciente', { p_paciente: id }), sb.from('unidades').select('*').order('sigla'),
-    sb.from('agendamentos').select('*').eq('paciente_id', id).order('data', { ascending: false }), sb.from('agendas').select('id,nome'), sb.from('procedimentos').select('id,nome'), sb.rpc('ocorrencias_do_paciente', { p_paciente: id }), pode('financeiro.ver') ? sb.rpc('parcelas_do_paciente', { p_paciente: id }) : Promise.resolve({ data: [] })]);
+    sb.from('agendamentos').select('*').eq('paciente_id', id).order('data', { ascending: false }), sb.from('agendas').select('id,nome'), sb.from('procedimentos').select('id,nome'), sb.rpc('ocorrencias_do_paciente', { p_paciente: id }), pode('financeiro.ver') ? sb.rpc('parcelas_do_paciente', { p_paciente: id }) : Promise.resolve({ data: [] }), sb.rpc('contatos_do_paciente', { p_paciente: id })]);
   const er = rs.slice(0, 3).map(r => r.error).find(Boolean);
   if (er || !rs[0].data) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(er ? erroTxt(er) : 'Paciente não encontrado.') + '</div></div>'; return; }
   const p = rs[0].data, avs = rs[1].data || []; D.unidades = rs[2].data;
   if (UN && p.unidade_id !== UN) { const uo = D.unidades.find(u => u.id === p.unidade_id);
     $('#area').innerHTML = '<div class="card"><h1 style="font-size:18px;margin:0 0 6px">Paciente de outra unidade</h1><p class="sub">Este paciente está cadastrado na unidade <b>' + esc(uo ? uo.sigla : '') + '</b> e só pode ser atendido por ela. Para atendê-lo na unidade atual, a unidade ' + esc(uo ? uo.sigla : 'de origem') + ' precisa solicitar a transferência e a gerência daqui aceitar.</p></div>'; return; }
-  const ocs = rs[6].error ? [] : (rs[6].data || []), concl = avs.some(a => a.status === 'concluida'), jaAvaliei = avs.some(a => a.status === 'concluida' && a.minha);
+  const ocs = (rs[6].error ? [] : (rs[6].data || [])).concat(rs[8] && !rs[8].error ? (rs[8].data || []).map(ctOcorrencia) : []).sort((a, b) => String(a.quando).localeCompare(String(b.quando))), concl = avs.some(a => a.status === 'concluida'), jaAvaliei = avs.some(a => a.status === 'concluida' && a.minha);
   const marc = (rs[3].error ? [] : rs[3].data || []).filter(g => g.status !== 'cancelado'), nAg = id2 => ((rs[4].data || []).find(x => x.id === id2) || {}).nome || '', nPr = id2 => ((rs[5].data || []).find(x => x.id === id2) || {}).nome || '';
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
   const vAt = p.status === 'Inativo' ? await sb.from('vendas').select('id').eq('paciente_id', id).eq('status', 'ativa').limit(1) : null, semContrato = !!vAt && !vAt.error && !(vAt.data || []).length;
@@ -2483,7 +2543,7 @@ async function pacFicha(id){
     + (p.resp_nome ? kv('Responsável', p.resp_nome + (p.resp_cpf ? ' · CPF ' + mCPF(p.resp_cpf) : '') + (p.resp_telefone ? ' · ' + mTel(p.resp_telefone) : ''), { w2: 1 }) : '')
     + kv('Canal de vendas', p.canal_venda, { sempre: 1 }) + kv('Unidade', un ? un.sigla + ' — ' + un.razao_social : '', { sempre: 1, w2: 1 }) + kv('Data do cadastro', dBR(p.data_cadastro), { sempre: 1 }) + kv('Observação', p.observacao, { w2: 1 }) + '</div></div>'
     + '<div class="card pfull"><div class="pabas" id="fi-tabs">' + (pode('financeiro.ver') ? '<button type="button" data-tab="fn">Financeiro</button>' : '') + '<button type="button" data-tab="oc">Ocorrências</button><button type="button" data-tab="av">Avaliações</button>' + (pode('pacientes.ver') && !p.anonimizado_em ? '<button type="button" data-tab="an" id="fi-tab-an">Anamnese</button>' : '') + (pode('documentacao.ver') && !p.anonimizado_em ? '<button type="button" data-tab="dc" id="fi-tab-dc">Documentação</button>' : '') + (pode('vendas.ver') && !p.anonimizado_em ? '<button type="button" data-tab="ct" id="fi-tab-ct">Contrato</button>' : '') + '</div>'
-    + '<div id="fi-oc" hidden></div>'
+    + '<div id="fi-oc" hidden>' + (pode('pacientes.ver') ? '<div class="tools"><button class="btn sm" type="button" id="fi-nocor">+ Nova ocorrência</button></div>' : '') + '<div id="fi-og"></div></div>'
     + '<div id="fi-an" hidden></div>'
     + '<div id="fi-dc" hidden></div>'
     + '<div id="fi-ct" hidden></div>'
@@ -2496,10 +2556,11 @@ async function pacFicha(id){
   const recarrega = () => { if (ROTA_ATIVA() === 'paciente') pacFicha(id); };
   const recarregaAv = () => { FI_TAB = 'av'; recarrega(); }; // quem mexe na avaliação continua vendo a aba Avaliações
   pacAnamnese(p, recarrega); pacPrivacidade(p, recarrega);
-  gradeF($('#fi-oc'), { vazio: 'Nenhuma ocorrência ainda.', dados: ocs.map((o, n) => Object.assign({ _n: n + 1 }, o)), cols: [
+  gradeF($('#fi-og'), { vazio: 'Nenhuma ocorrência ainda.', dados: ocs.map((o, n) => Object.assign({ _n: n + 1 }, o)), cols: [
     { t: '#', k: x => x._n, v: x => String(x._n) }, { t: 'Data', k: x => x.quando || '', v: x => dtHora(x.quando) }, { t: 'Ocorrência', v: x => x.titulo || '', h: x => '<b>' + esc(x.titulo) + '</b>' }, { t: 'Responsável', v: x => x.responsavel || '' },
     { t: 'Resultado', v: x => x.resultado || '', h: x => x.resultado === 'Apto' ? '<span class="pill on">Apto</span>' : x.resultado === 'Não apto' ? '<span class="pill off">Não apto</span>' : esc(x.resultado || '') },
     { t: 'Detalhes', v: x => x.detalhe || '', h: x => '<span style="white-space:normal;display:inline-block;min-width:220px">' + esc(x.detalhe || '') + '</span>' }] });
+  { const nb = $('#fi-nocor'); if (nb) nb.addEventListener('click', () => ocorrenciaDialogo(p.id, '', () => { FI_TAB = 'oc'; recarrega(); })); }
   const baixaF = pode('financeiro.baixar'), parcs = rs[7].error ? [] : (rs[7].data || []);
   const sitTxt = x => x.status === 'paga' ? 'Paga' : x.status === 'isenta' ? 'Isenta' : x.parcial ? (x.dias_atraso > 0 ? 'Saldo vencido' : 'Pago em parte') : x.dias_atraso > 0 ? 'Vencida' : 'A vencer';
   if ($('#fi-fng')) gradeF($('#fi-fng'), { vazio: p.status === 'Contenção' ? 'Nenhuma cobrança ainda. Use + Nova cobrança para lançar a consulta de manutenção.' : 'Nenhuma parcela ainda. Ela nasce quando o tratamento é iniciado.', dados: parcs, cols: [
@@ -3444,7 +3505,7 @@ function cobMsg(tpl, x, ex){
 }
 function cobAbasHtml(){
   const ver = pode('cobranca.ver') || pode('financeiro.ver'), con = pode('cobranca.contatar');
-  const t = [['regua', 'Régua de cobrança', ver], ['semag', 'Sem agendamento', con], ['faltas', 'Faltas', con], ['camp', 'Campanhas', con]].filter(a => a[2]);
+  const t = [['regua', 'Régua de cobrança', ver], ['semag', 'Sem agendamento', con], ['faltas', 'Faltas', con], ['camp', 'Campanhas', con], ['semcont', 'Sem contato', con]].filter(a => a[2]);
   return '<div class="tools" id="cb-nav" role="tablist" style="margin-top:4px">' + t.map(a => '<button class="btn ' + (CBX.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CBX.aba === a[0]) + '" data-cba="' + a[0] + '">' + a[1] + '</button>').join(' ') + '</div>';
 }
 function cobAbasLiga(){ $$('#cb-nav [data-cba]').forEach(b => b.addEventListener('click', () => { CBX.aba = b.dataset.cba; CBX.fila = null; cobCarregar(); })); }
@@ -3453,7 +3514,7 @@ async function cobOutra(){
   const rs = await Promise.all([sb.rpc('cobranca_config_ler'), sb.from('procedimentos').select('id,nome').eq('ativo', true).order('nome')]);
   const er = rs.map(r => r.error).find(Boolean); if (er) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; return; }
   CBX.cfg = rs[0].data; CBX.procs = rs[1].data || [];
-  if (CBX.aba === 'semag') return cbSemAg(); if (CBX.aba === 'faltas') return cbFaltas(); return cbCampanhas();
+  if (CBX.aba === 'semag') return cbSemAg(); if (CBX.aba === 'faltas') return cbFaltas(); if (CBX.aba === 'semcont') return cbSemContato(); return cbCampanhas();
 }
 
 /* ----- botão de envio, resultado e registro do contato (comum às três abas) ----- */
