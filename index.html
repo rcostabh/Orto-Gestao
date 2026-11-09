@@ -526,7 +526,21 @@ const dBR = d => d ? d.split('-').reverse().join('/') : '';
 const dig = s => String(s || '').replace(/\D/g, '');
 const mCPF = s => { const d = dig(s).slice(0, 11); return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2'); };
 const maskCPF = c => c ? '•••.•••.•••-' + String(c).slice(-2) : '', maskTel = t => { const d = dig(t || ''); return d ? '(' + d.slice(0, 2) + ') •••••-' + d.slice(-4) : ''; };
-const mTel = s => { const d = dig(s).slice(0, 11); if (d.length <= 2) return d ? '(' + d : ''; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
+/* Dentista nunca vê telefone nem e-mail do paciente: toda resposta do servidor passa por este filtro e troca os dados de contato por asteriscos */
+const semContato = () => !!EU && pode('prontuario.registrar') && !ehGer();
+const CONT_CHAVES = { telefone: '(**) *****-****', resp_telefone: '(**) *****-****', celular: '(**) *****-****', email: '********', resp_email: '********' };
+function limpaContato(x){
+  if (Array.isArray(x)) { x.forEach(limpaContato); return x; }
+  if (!x || typeof x !== 'object') return x;
+  const staff = 'sigla' in x || 'cro' in x || 'cargo' in x || 'razao_social' in x || 'perfil' in x || 'permissoes' in x || 'login' in x;
+  Object.keys(x).forEach(k => { const v = x[k]; if (!staff && k in CONT_CHAVES && v != null && v !== '' && typeof v !== 'object') x[k] = CONT_CHAVES[k]; else if (v && typeof v === 'object') limpaContato(v); });
+  return x;
+}
+async function fetchSemContato(url, opt){
+  const r = await fetch(url, opt); if (!semContato()) return r;
+  try { if (!/json/i.test(r.headers.get('content-type') || '')) return r; const j = await r.clone().json(); limpaContato(j); const h = new Headers(r.headers); h.delete('content-length'); h.delete('content-encoding'); return new Response(JSON.stringify(j), { status: r.status, statusText: r.statusText, headers: h }); } catch (_) { return r; }
+}
+const mTel = s => { if (/\*/.test(String(s || ''))) return '(**) *****-****'; const d = dig(s).slice(0, 11); if (d.length <= 2) return d ? '(' + d : ''; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
 const mCEP = s => { const d = dig(s).slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; };
 function cpfOk(p){
   if (!/^\d{11}$/.test(p) || /^(\d)\1{10}$/.test(p)) return false;
@@ -597,7 +611,7 @@ dlg.addEventListener('click', e => { if (e.target === dlg) fecharJanela(); });
 /* ---------- entrar e sair ---------- */
 async function iniciar(){
   if (!C.SUPABASE_URL || !C.SUPABASE_ANON_KEY || !window.supabase) { $('#v-conf').hidden = false; return; }
-  sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true }, global: { fetch: fetchSemContato } });
   const tkA = new URLSearchParams(location.search).get('anamnese'); if (tkA) return anamBoot(tkA);
   const { data } = await sb.auth.getSession();
   if (data && data.session) { if (!(await entrarNoApp())) { await sb.auth.signOut(); $('#v-login').hidden = false; $('#l-err').textContent = 'Seu acesso está inativo ou ainda não foi liberado.'; } }
@@ -852,6 +866,8 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.58.2', '2026-11-09', 'Paciente reativado (volta de inativo) começa um ciclo novo: o mesmo dentista que já o avaliou pode fazer a nova avaliação. A regra de outro dentista continua valendo dentro do mesmo ciclo.'],
+  ['0.58.1', '2026-11-09', 'Dentista não vê telefone nem e-mail do paciente em nenhuma tela: aparecem como asteriscos.'],
   ['0.58.0', '2026-11-09', 'Paciente inativo volta a ser encontrado na agenda: pode fazer nova avaliação (novo contrato) ou um procedimento clínico avulso.'],
   ['0.57.1', '2026-11-09', 'O botão Abrir painel de atendimento, na tela inicial, aparece só para o dentista.'],
   ['0.57.0', '2026-11-09', 'Nova ocorrência na ficha do paciente (ligação, WhatsApp, presencial...), com dia, hora e quem registrou; mensagens automáticas entram sozinhas no histórico; relatório Cobrança › Sem contato; e, na tela inicial da recepção, os cards de Documentação e Limpeza profunda em atraso (hoje ou semana).'],
@@ -1529,14 +1545,14 @@ async function pacAnamnese(p, recarrega){
     const url = anamLink(tk), un = (D.unidades || []).find(u => u.id === p.unidade_id), prim = (p.nome || '').split(' ')[0];
     const corpo = 'Olá, ' + prim + '!\n\nPara agilizar o seu atendimento' + (un ? ' na ' + un.razao_social : '') + ', preencha e assine a sua ficha de anamnese (histórico de saúde) por este link. Leva uns 5 minutos e vale por 14 dias:\n\n' + url + '\n\nObrigado!';
     abrirJanela('Link da anamnese', '<div class="db"><p style="margin:0">Envie este link ao paciente. Ele confirma o CPF, responde e assina pelo celular.</p><label class="field" for="an-url">Link<input id="an-url" readonly value="' + esc(url) + '"></label>'
-      + '<label class="field" for="an-mail">E-mail do paciente<input id="an-mail" type="email" maxlength="120" value="' + esc(email || p.email || '') + '" placeholder="paciente@exemplo.com"></label><p class="sub" style="margin:0">O botão “Abrir e-mail” abre o seu programa de e-mail com a mensagem pronta, e você só confere e envia.</p></div>'
+      + '<label class="field" for="an-mail">E-mail do paciente<input id="an-mail" type="email" maxlength="120" value="' + esc(semContato() ? '' : (email || p.email || '')) + '" placeholder="paciente@exemplo.com"></label><p class="sub" style="margin:0">O botão “Abrir e-mail” abre o seu programa de e-mail com a mensagem pronta, e você só confere e envia.</p></div>'
       + '<div class="sub" id="an-emsg" role="status" style="margin:0 20px 6px"></div><div class="df" style="flex-wrap:wrap">' + (emOn ? '<button class="btn" type="button" id="an-auto">Enviar e-mail agora</button>' : '') + '<button class="btn ghost" type="button" id="an-copia">Copiar link</button><button class="btn ghost" type="button" id="an-agora">Preencher agora neste aparelho</button><button class="btn ' + (emOn ? 'ghost' : '') + '" type="button" id="an-mailto">Abrir e-mail</button></div>');
     const au = $('#an-auto'); if (au) au.addEventListener('click', async () => { const em = $('#an-mail').value.trim(), m = $('#an-emsg'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { m.textContent = 'Digite um e-mail válido do paciente.'; return; } au.disabled = true; m.textContent = 'Enviando...'; const x = await chamar({ acao: 'anamnese', token: tk, para: em, site: location.origin + location.pathname.replace(/[^/]*$/, '') }, 'enviar-email'); au.disabled = false; m.textContent = x.erro ? x.erro : 'E-mail enviado para ' + em + '.'; });
     $('#an-copia').addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); toast('Link copiado.'); } catch (e) { $('#an-url').select(); toast('Copie o link selecionado.'); } });
     $('#an-agora').addEventListener('click', () => { window.open(url, '_blank'); });
     $('#an-mailto').addEventListener('click', () => { const em = $('#an-mail').value.trim(); if (!em || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Digite um e-mail válido do paciente.'); return; } location.href = 'mailto:' + encodeURIComponent(em) + '?subject=' + encodeURIComponent('Sua ficha de anamnese') + '&body=' + encodeURIComponent(corpo); });
   };
-  const nova = $('#an-nova'); if (nova) nova.addEventListener('click', async () => { nova.disabled = true; const x = await sb.rpc('anamnese_criar', { p_paciente: p.id, p_email: p.email || null }); nova.disabled = false; if (x.error) { toast(erroTxt(x.error)); return; } recarrega(); mostraLink(x.data, p.email); });
+  const nova = $('#an-nova'); if (nova) nova.addEventListener('click', async () => { nova.disabled = true; const x = await sb.rpc('anamnese_criar', { p_paciente: p.id, p_email: semContato() ? null : (p.email || null) }); nova.disabled = false; if (x.error) { toast(erroTxt(x.error)); return; } recarrega(); mostraLink(x.data, p.email); });
   $$('#fi-anam [data-al]').forEach(b => b.addEventListener('click', () => mostraLink(b.dataset.al, b.dataset.em)));
   $$('#fi-anam [data-ac]').forEach(b => b.addEventListener('click', async () => { const x = await sb.rpc('anamnese_cancelar', { p_id: Number(b.dataset.ac) }); if (x.error) { toast(erroTxt(x.error)); return; } toast('Link cancelado.'); recarrega(); }));
   $$('#fi-anam [data-av]').forEach(b => b.addEventListener('click', async () => {
@@ -2438,8 +2454,10 @@ function cadEndLigar(pf){
 }
 function cadEndLer(pf){
   const v = id => ($('#' + pf + '-' + id).value || '').trim();
-  return { email: v('email') || null, cep: dig(v('cep')) || null, logradouro: v('log') || null, numero: v('num') || null, complemento: v('comp') || null, bairro: v('bai') || null, cidade: v('cid') || null, uf: v('uf') || null,
+  const o = { email: v('email') || null, cep: dig(v('cep')) || null, logradouro: v('log') || null, numero: v('num') || null, complemento: v('comp') || null, bairro: v('bai') || null, cidade: v('cid') || null, uf: v('uf') || null,
     resp_nome: v('rn') || null, resp_cpf: dig(v('rc')) || null, resp_telefone: dig(v('rt')) || null };
+  if (semContato()) { delete o.email; delete o.resp_telefone; }
+  return o;
 }
 function cadEndErro(c){
   if (c.cep && c.cep.length < 8) return 'CEP incompleto.';
@@ -2492,6 +2510,7 @@ function pacForm(p, aoSalvar){
     if (!canal) { er.textContent = 'Escolha o canal de vendas.'; return; }
     if (canal === 'Promotor' && !$('#pc-prom').value) { er.textContent = 'Escolha o promotor que fez o apontamento.'; return; }
     const reg = { nome, nome_social: $('#pc-social').value.trim() || null, cpf: cpf || null, rg: $('#pc-rg').value.trim() || null, data_nascimento: nasc || null, telefone: tel || null, canal_venda: canal, unidade_id: un0, promotor_id: canal === 'Promotor' ? (Number($('#pc-prom').value) || null) : null, observacao: $('#pc-obs').value.trim() || null };
+    if (semContato()) delete reg.telefone;
     if (novo && $('#pc-sit').value === 'Contenção') reg.status = 'Contenção';
     if (!novo) { const ce = cadEndLer('pc'), me = cadEndErro(ce); if (me) { er.textContent = me; return; } Object.assign(reg, ce); }
     $$('#pc-form button[type=submit]').forEach(b => b.disabled = true);
@@ -2524,7 +2543,7 @@ async function pacFicha(id){
   const p = rs[0].data, avs = rs[1].data || []; D.unidades = rs[2].data;
   if (UN && p.unidade_id !== UN) { const uo = D.unidades.find(u => u.id === p.unidade_id);
     $('#area').innerHTML = '<div class="card"><h1 style="font-size:18px;margin:0 0 6px">Paciente de outra unidade</h1><p class="sub">Este paciente está cadastrado na unidade <b>' + esc(uo ? uo.sigla : '') + '</b> e só pode ser atendido por ela. Para atendê-lo na unidade atual, a unidade ' + esc(uo ? uo.sigla : 'de origem') + ' precisa solicitar a transferência e a gerência daqui aceitar.</p></div>'; return; }
-  const ocs = (rs[6].error ? [] : (rs[6].data || [])).concat(rs[8] && !rs[8].error ? (rs[8].data || []).map(ctOcorrencia) : []).sort((a, b) => String(a.quando).localeCompare(String(b.quando))), concl = avs.some(a => a.status === 'concluida'), jaAvaliei = avs.some(a => a.status === 'concluida' && a.minha);
+  const ocs = (rs[6].error ? [] : (rs[6].data || [])).concat(rs[8] && !rs[8].error ? (rs[8].data || []).map(ctOcorrencia) : []).sort((a, b) => String(a.quando).localeCompare(String(b.quando))), concl = avs.some(a => a.status === 'concluida' && a.ciclo_atual !== false), jaAvaliei = avs.some(a => a.status === 'concluida' && a.minha && a.ciclo_atual !== false);
   const marc = (rs[3].error ? [] : rs[3].data || []).filter(g => g.status !== 'cancelado'), nAg = id2 => ((rs[4].data || []).find(x => x.id === id2) || {}).nome || '', nPr = id2 => ((rs[5].data || []).find(x => x.id === id2) || {}).nome || '';
   tituloAba('paciente:' + id, (p.nome_social || p.nome).split(' ').slice(0, 2).join(' '));
   const vAt = p.status === 'Inativo' ? await sb.from('vendas').select('id').eq('paciente_id', id).eq('status', 'ativa').limit(1) : null, semContrato = !!vAt && !vAt.error && !(vAt.data || []).length;
@@ -3113,13 +3132,13 @@ async function vdVender(f){
     const plano = Number($('#vv-plano').value), dd = $('#vv-dd').value.split('|'), dia = Number($('#vv-dia').value), cpf = dig($('#vv-cpf').value), tel = dig($('#vv-tel').value), nasc = $('#vv-nasc').value;
     if (!cpf || !cpfOk(cpf)) { er.textContent = 'Informe um CPF válido.'; return; }
     if (!nasc || nasc > hoje()) { er.textContent = 'Informe a data de nascimento.'; return; }
-    if (tel.length < 10) { er.textContent = 'Informe o telefone com DDD.'; return; }
+    if (tel.length < 10 && !semContato()) { er.textContent = 'Informe o telefone com DDD.'; return; }
     const ce = cadEndLer('vv'), me = cadEndErro(ce); if (me) { er.textContent = me; return; }
     if (!ce.cep || !ce.logradouro || !ce.numero || !ce.bairro || !ce.cidade || !ce.uf) { er.textContent = 'Preencha o endereço completo: CEP, rua, número, bairro, cidade e UF.'; return; }
     if (!plano) { er.textContent = 'Escolha o tipo de tratamento.'; return; }
     if (!dd[0]) { er.textContent = 'Escolha o dia da semana e o dentista responsável.'; return; }
     if (!dia) { er.textContent = 'Escolha o dia do vencimento.'; return; }
-    const cad = Object.assign({ nome_social: $('#vv-social').value.trim() || null, cpf, rg: $('#vv-rg').value.trim() || null, data_nascimento: nasc, telefone: tel }, ce);
+    const cad = Object.assign({ nome_social: $('#vv-social').value.trim() || null, cpf, rg: $('#vv-rg').value.trim() || null, data_nascimento: nasc, telefone: tel }, ce); if (semContato()) delete cad.telefone;
     const b = $('#vv-ok'); b.disabled = true;
     const r = await sb.rpc('iniciar_tratamento', { p_paciente: f.paciente_id, p_plano: plano, p_dentista: Number(dd[0]), p_dia_semana: Number(dd[1]), p_dia_venc: dia, p_obs: $('#vv-obs').value.trim() || null, p_cad: cad });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
