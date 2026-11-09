@@ -210,38 +210,39 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 @media (max-width:900px){.ficha{grid-template-columns:minmax(0,1fr)}.topo{padding:6px 14px 0}}@media (max-width:599px), (max-width:1000px) and (max-height:559px){.topo{top:59px}}
 
 /* agenda */
-.agw{overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);max-height:calc(100vh - 260px);min-height:260px}
+.agw{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:calc(100vh - 150px);min-height:260px}
 .ag{display:grid;min-width:max-content}
 .ag>div{min-width:0}
-.ag .hc{position:sticky;top:0;z-index:3;background:var(--surface);padding:8px 8px 0;text-align:center;display:grid;gap:4px;align-content:start;border-left:1px solid var(--line)}
-.ag .hc .nm{background:var(--accent-soft);color:var(--accent-text);font-weight:700;border-radius:8px;padding:5px 8px;font-size:14px}
-.ag .hc .rs{font-size:12.5px;font-weight:600;text-transform:uppercase;line-height:1.25;min-height:32px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
-.ag .hc .dd{font-size:12.5px;color:var(--muted)}
-.ag .hc .ac{display:flex;gap:10px;justify-content:center;min-height:26px}
-.ag .hc .ac .link{padding:2px 4px;font-size:12px}
+.ag .hc{position:sticky;top:0;z-index:3;background:var(--surface);padding:4px 4px 0;text-align:center;display:grid;gap:2px;align-content:start;border-left:1px solid var(--line)}
+.ag .hc .nm{background:var(--accent-soft);color:var(--accent-text);font-weight:700;border-radius:5px;padding:2px 5px;font-size:10.5px}
+.ag .hc .rs{font-size:9px;font-weight:600;text-transform:uppercase;line-height:1.15;min-height:16px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.ag .hc .dd{font-size:9px;color:var(--muted)}
+.ag .hc .ac{display:flex;gap:6px;justify-content:center;min-height:14px}
+.ag .hc .ac .link{padding:0 3px;font-size:9px}
 .ag .hd{position:sticky;top:0;z-index:4;background:var(--surface)}
-.ag .dt{background:#4a4a4a;color:#fff;font-weight:700;font-size:13px;text-align:center;padding:4px;position:sticky;top:var(--hh,0px);z-index:3;border-left:1px solid #5a5a5a}
-.ag .hr{position:sticky;left:0;z-index:2;background:var(--surface);color:var(--muted);font-size:12.5px;text-align:right;padding:4px 8px 0 0;border-top:1px solid var(--line);height:30px}
-.ag .c{border-top:1px solid var(--line);border-left:1px solid var(--line);height:30px;font-size:11px;color:var(--muted);padding:6px 8px;overflow:hidden;white-space:nowrap}
+.ag .dt{background:#4a4a4a;color:#fff;font-weight:700;font-size:9.5px;text-align:center;padding:1px 2px;position:sticky;top:var(--hh,0px);z-index:3;border-left:1px solid #5a5a5a}
+.ag .hr{position:sticky;left:0;z-index:2;background:var(--surface);color:var(--muted);font-size:8.5px;line-height:1;text-align:right;padding:2px 5px 0 0;border-top:1px solid var(--line);height:15px}
+.ag .c{border-top:1px solid var(--line);border-left:1px solid var(--line);height:15px;font-size:7.5px;line-height:1;color:var(--muted);padding:3px 5px;overflow:hidden;white-space:nowrap}
 .ag .c.fora{background:#bdbdbd;color:#fff;font-weight:700;letter-spacing:.03em;text-transform:uppercase;border-top-color:#b0b0b0}
 .ag .c.alm{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 6px,var(--surface) 6px,var(--surface) 12px);color:var(--muted);font-weight:600}
 .ag .c.fecha{background:var(--surface-2);color:var(--muted);font-weight:600;white-space:normal;line-height:1.2}
 .ag .c.livre{cursor:pointer}.ag .c.livre:hover{background:var(--accent-soft)}
-.ag .a{position:relative;z-index:1;margin:1px 3px 0;border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:3px 8px;font:inherit;font-size:12px;line-height:1.25;color:#fff;text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:1px;min-width:0}
-.ag .a b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.ag .a{position:relative;z-index:1;margin:1px 2px 0;border:1px solid rgba(255,255,255,.22);border-radius:5px;padding:1px 5px;font:inherit;font-size:8.5px;line-height:1.12;color:#fff;text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ag .a b{font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .ag .a small{opacity:.88;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .ag .a:hover{filter:brightness(1.25)}.ag .a:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
-.atd{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:0 0 12px}
-.atc{text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-left:6px solid var(--ok);border-radius:16px;padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit;box-shadow:var(--shadow);min-width:0;transition:transform .15s var(--ease)}
+.atd{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px;margin:0 0 6px}
+.atc{text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:9px;padding:4px 9px;cursor:pointer;display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:1px 8px;font:inherit;box-shadow:var(--shadow);min-width:0;transition:transform .15s var(--ease)}
 .atc:hover{transform:translateY(-1px)}.atc[aria-pressed=true]{outline:3px solid var(--accent);outline-offset:1px}
 .atc.warn{border-left-color:#e0a000}.atc.crit{border-left-color:var(--red)}.atc.early{border-left-color:#1769d6}.atc.vazio{border-left-color:var(--line)}
-.atc .atl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.atc .atn{font-size:34px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums}.atc .atn small{font-size:13px;font-weight:500;color:var(--muted)}
-.atc .atm{font-size:13px}.atc .atm b{font-size:19px;font-variant-numeric:tabular-nums}.atc.crit .atm b{color:var(--red)}.atc.warn .atm b{color:var(--warn)}.atc.early .atm b{color:#1769d6}
+.atc .atl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.atc .atn{font-size:15px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums}.atc .atn small{font-size:9px;font-weight:500;color:var(--muted)}
+.atc .atm{font-size:9.5px}.atc .atm b{font-size:11.5px;font-variant-numeric:tabular-nums}.atc.crit .atm b{color:var(--red)}.atc.warn .atm b{color:var(--warn)}.atc.early .atm b{color:#1769d6}
 .atc small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atfil{margin:0 0 10px;display:flex;gap:10px;align-items:center}.agbar .chk{display:inline-flex;margin:0}.atfil{}.atq{margin:0 0 12px;padding:12px 16px}.atq summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.atl2{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:260px;overflow:auto}
-.atr{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 10px;background:var(--surface-2);border-radius:12px}
+.atfil{margin:0 0 10px;display:flex;gap:10px;align-items:center}.agbar .chk{display:inline-flex;margin:0}.atfil{}.atq{margin:0 0 6px;padding:5px 10px;font-size:12px}.atq summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.atq .btn{min-height:24px;height:24px;padding:0 9px;font-size:11px;border-radius:7px}.atq .pill{font-size:10px;padding:1px 7px}.atq .atp small{font-size:10px}.atq .ath{margin:6px 0 2px;font-size:10px}.atq .atr b,.atq .atp b{font-size:11.5px}
+#area .head:has(+ .agbar){margin-bottom:4px}#area .head:has(+ .agbar) h1{font-size:18px}.atl2{display:flex;flex-direction:column;gap:3px;margin-top:5px;max-height:90px;overflow:auto}
+.atr{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;padding:3px 7px;font-size:11px;background:var(--surface-2);border-radius:8px}
 .atr .atp{display:flex;flex-direction:column;min-width:0;flex:1 1 200px}.atr .atp small{color:var(--muted);font-size:12px}
 .ate{font-weight:700;font-variant-numeric:tabular-nums;font-size:13px}.ate.warn{color:var(--warn)}.ate.crit{color:var(--red)}.ate.early{color:#1769d6}.ate.ok{color:var(--ok)}
 .ath{font-size:13px;margin:14px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
@@ -276,8 +277,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .pcc .pf{display:flex;flex-wrap:wrap;gap:6px}
 .s-agendado{background:#111}.s-compareceu{background:#1b8a4b}.s-em_atendimento{background:#1769d6}.s-faltou{background:#d4271c}.s-concluido{background:#7a7a7a}
 .ag .a.cp{background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.09) 7px 14px)}
-.lgd{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 10px;font-size:12.5px;color:var(--muted)}
-.lgd i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(128,128,128,.4)}
+.lgd{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 6px;font-size:10px;color:var(--muted)}
+.lgd i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(128,128,128,.4)}
 .pk{display:grid;gap:2px;max-height:170px;overflow:auto;border:1.5px solid var(--line);border-radius:11px;padding:4px}
 .pk button{display:flex;justify-content:space-between;gap:10px;align-items:center;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;padding:8px 10px;border-radius:8px;cursor:pointer;text-align:left}
 .pk button:hover,.pk button[aria-pressed=true]{background:var(--accent-soft)}
@@ -286,8 +287,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .sd{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ag .c.fora{background:#3a3a3a;border-top-color:#444}}
 :root[data-theme="dark"] .ag .c.fora{background:#3a3a3a;border-top-color:#444}
-.agbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
-.agbar select,.agbar input[type=date]{font:400 14.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:11px;min-height:42px;padding:0 12px}
+.agbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.agbar select,.agbar input[type=date]{font:400 14.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 8px}
 .agbar .nav{display:flex;gap:6px;align-items:center}
 .agbar .nav button{min-width:42px}
 .agbar .dl{color:var(--muted);font-size:14px}.agbar .dl::first-letter{text-transform:uppercase}
@@ -866,6 +867,9 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.59.3', '2026-11-09', 'Agenda compacta: altura das linhas e fontes pela metade, e os cards da fila de espera com um terço do tamanho, para ver o máximo da agenda de uma vez.'],
+  ['0.59.2', '2026-11-09', 'Tolerância de falta passa de 15 para 45 minutos: o paciente só consta como falta depois de 45 minutos do horário marcado.'],
+  ['0.59.1', '2026-11-09', 'Cobrança: as listas da Régua de cobrança, Sem agendamento, Campanhas e Quem faltou passam a usar o grid padrão do sistema, com filtro por coluna e totais.'],
   ['0.59.0', '2026-11-09', 'Aviso sonoro para o dentista: campainha quando chega uma nova avaliação e sino suave quando chega um paciente para atendimento. Toca uma única vez por chegada, no instante em que o banco atualiza.'],
   ['0.58.2', '2026-11-09', 'Paciente reativado (volta de inativo) começa um ciclo novo: o mesmo dentista que já o avaliou pode fazer a nova avaliação. A regra de outro dentista continua valendo dentro do mesmo ciclo.'],
   ['0.58.1', '2026-11-09', 'Dentista não vê telefone nem e-mail do paciente em nenhuma tela: aparecem como asteriscos.'],
@@ -3503,34 +3507,43 @@ function cobTela(){
     + '<div class="card" style="padding:0;overflow:hidden"><div class="tools" style="padding:12px 14px 0"><div id="cb-abas" role="tablist">' + [['todas', 'Todas', d.length]].concat(REGUAS.map(r => [r[0], r[1], por(r[0]).length])).map(a => '<button class="btn ' + (CB.regua === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CB.regua === a[0]) + '" data-rg="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
     + '<input id="cb-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(CB.q) + '"></div>'
     + '<div class="tools cbv" style="padding:4px 14px 10px;gap:8px;align-items:end"><label class="field" for="cb-vi" style="margin:0">Parcela mais antiga vence entre<input id="cb-vi" type="date" value="' + esc(CB.vi) + '"></label><label class="field" for="cb-vf" style="margin:0">e<input id="cb-vf" type="date" value="' + esc(CB.vf) + '"></label><button class="btn ghost sm" type="button" id="cb-vl">Limpar datas</button></div>'
-    + '<div class="rlg" id="cb-tab"><table class="tb rl"><thead><tr><th>Paciente</th><th>Telefone</th><th>Status</th><th>Régua</th><th class="n">Parcelas em atraso</th><th class="n">Valor em atraso</th><th class="n">A vencer no mês</th><th>Vencimento mais antigo</th><th class="n">Dias de atraso</th><th>Último pagamento</th><th>Plano</th><th></th></tr></thead><tbody id="cb-body"></tbody><tfoot><tr id="cb-tot"></tr></tfoot></table></div></div>';
+    + '<div id="cb-tab"></div></div>';
   $('#cb-per').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#cb-err'); er.textContent = ''; const i = $('#cb-ini').value, f = $('#cb-fim').value;
     if (!i || !f) { er.textContent = 'Informe a data inicial e a final.'; return; } if (f < i) { er.textContent = 'A data final é anterior à inicial.'; return; }
     CB.ini = i; CB.fim = f; const b = $('#cb-ok'); b.disabled = true; await cobCarregar();
   });
   $('#cb-mes').addEventListener('click', () => { const l = mesLimites(); CB.ini = l[0]; CB.fim = l[1]; cobCarregar(); });
-  $$('[data-rg]').forEach(b => b.addEventListener('click', () => { CB.regua = CB.regua === b.dataset.rg && b.classList.contains('cbc1') ? 'todas' : b.dataset.rg; cobTela(); }));
+  $$('[data-rg]').forEach(b => b.addEventListener('click', () => { CB.regua = CB.regua === b.dataset.rg && b.classList.contains('cbc1') ? 'todas' : b.dataset.rg; CB.gf = []; cobTela(); }));
   $('#cb-q').addEventListener('input', e => { CB.q = e.target.value; cobCorpo(); });
   $('#cb-vi').addEventListener('change', e => { CB.vi = e.target.value; cobCorpo(); }); $('#cb-vf').addEventListener('change', e => { CB.vf = e.target.value; cobCorpo(); });
   $('#cb-vl').addEventListener('click', () => { CB.vi = CB.vf = ''; $('#cb-vi').value = ''; $('#cb-vf').value = ''; cobCorpo(); });
   cobCorpo(); cobAjusta(); cobAbasLiga();
 }
-function cobAjusta(){ const g = $('#cb-tab'); if (g) g.style.maxHeight = Math.max(260, window.innerHeight - g.getBoundingClientRect().top - 24) + 'px'; }
+const cobAlt = () => { const g = $('#cb-tab'); return g ? Math.max(260, Math.round(window.innerHeight - g.getBoundingClientRect().top - 24)) : 440; };
+function cobAjusta(){ const g = $('#cb-tab .rlg'); if (g) g.style.maxHeight = cobAlt() + 'px'; }
 window.addEventListener('resize', () => { try { cobAjusta(); } catch (e) {} });
 function cobCorpo(){
   const q = relNorm(CB.q.trim()); let l = CB.dados.filter(x => CB.regua === 'todas' || x.regua === CB.regua);
   if (q) l = l.filter(x => relNorm(x.paciente_nome).includes(q));
   if (CB.vi) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '') >= CB.vi); if (CB.vf) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '9999') <= CB.vf);
   const rg = k => REGUAS.find(r => r[0] === k), baixa = pode('financeiro.baixar');
-  $('#cb-body').innerHTML = l.length ? l.map(x => '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button></td><td>' + (x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : '—') + '</td><td>' + esc(x.status) + '</td>'
-    + '<td><span class="pill ' + rg(x.regua)[3] + '">' + rg(x.regua)[1] + '</span></td><td class="n">' + x.qtd_atraso + '</td><td class="n">' + reais(x.valor_atraso) + '</td><td class="n">' + reais(x.a_vencer_mes) + '</td><td>' + (x.venc_antigo ? dBR(x.venc_antigo) : '—') + '</td><td class="n">' + (x.dias_atraso > 0 ? x.dias_atraso : '—') + '</td>'
-    + '<td>' + (x.ultimo_pgto ? dBR(x.ultimo_pgto) + '<br><small style="color:var(--muted)">' + reais(x.ultimo_valor) + '</small>' : '—') + '</td><td>' + esc(x.plano) + '</td><td>' + (baixa ? '<button class="btn sm" type="button" data-rec="' + x.paciente_id + '">Receber</button>' : '') + '</td></tr>').join('')
-    : '<tr><td colspan="12" class="vazio">Nenhum paciente nesta régua.</td></tr>';
-  const sm = f => Math.round(l.reduce((t, x) => t + Number(f(x)), 0) * 100) / 100;
-  $('#cb-tot').innerHTML = '<td colspan="4">Totais · ' + l.length + (l.length === 1 ? ' paciente' : ' pacientes') + (l.length !== CB.dados.length ? ' de ' + CB.dados.length : '') + '</td><td class="n">' + l.reduce((t, x) => t + x.qtd_atraso, 0) + '</td><td class="n">' + reais(sm(x => x.valor_atraso)) + '</td><td class="n">' + reais(sm(x => x.a_vencer_mes)) + '</td><td colspan="5"></td>';
-  $$('#cb-body [data-pac]').forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
-  $$('#cb-body [data-rec]').forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.rec))));
+  const vd = d => d ? dBR(d) : '—';
+  gradeF($('#cb-tab'), { dados: l, f: CB.gf = CB.gf || [], vazio: 'Nenhum paciente nesta régua.', maxH: cobAlt(), cols: [
+    { t: 'Paciente', v: x => x.paciente_nome, h: x => '<button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button>' },
+    { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—', h: x => x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : '—' },
+    { t: 'Status', v: x => x.status },
+    { t: 'Régua', v: x => rg(x.regua)[1], h: x => '<span class="pill ' + rg(x.regua)[3] + '">' + rg(x.regua)[1] + '</span>' },
+    { t: 'Parcelas em atraso', r: 1, k: x => x.qtd_atraso, v: x => String(x.qtd_atraso) },
+    { t: 'Valor em atraso', n: 1, k: x => Number(x.valor_atraso), soma: x => x.valor_atraso, v: x => reais(x.valor_atraso) },
+    { t: 'A vencer no mês', n: 1, k: x => Number(x.a_vencer_mes), soma: x => x.a_vencer_mes, v: x => reais(x.a_vencer_mes) },
+    { t: 'Vencimento mais antigo', k: x => x.venc_antigo || '', v: x => vd(x.venc_antigo) },
+    { t: 'Dias de atraso', r: 1, k: x => x.dias_atraso, v: x => x.dias_atraso > 0 ? String(x.dias_atraso) : '—' },
+    { t: 'Último pagamento', k: x => x.ultimo_pgto || '', v: x => vd(x.ultimo_pgto), h: x => x.ultimo_pgto ? dBR(x.ultimo_pgto) + '<br><small style="color:var(--muted)">' + reais(x.ultimo_valor) + '</small>' : '—' },
+    { t: 'Plano', v: x => x.plano || '—' }],
+    acao: baixa ? x => '<button class="btn sm" type="button" data-rec="' + x.paciente_id + '">Receber</button>' : null,
+    liga: box => { $$('[data-pac]', box).forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
+      $$('[data-rec]', box).forEach(b => b.addEventListener('click', () => caixaPaciente(Number(b.dataset.rec)))); } });
 }
 
 /* ---------- COBRANÇA: abas Sem agendamento, Faltas e Campanhas (fila de WhatsApp de 1 toque) ---------- */
@@ -3594,7 +3607,7 @@ const cbCfgLiga = () => { const b = $('#cb-cfg'); if (b) b.addEventListener('cli
 
 /* ----- fila (lista do dia): serve para Sem agendamento e para cada campanha ----- */
 async function cbFila(cfg){
-  CBX.fila = { cfg, dados: [], q: '', ocultar: true, conv: null };
+  CBX.fila = { cfg, dados: [], q: '', ocultar: true, conv: null, gf: [] };
   $('#area').innerHTML = cbCabeca(cfg.sub) + '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.rpc('cobranca_publico', { p_unidade: UN, p_filtro: cfg.filtro }), sb.rpc('cobranca_contatos', { p_unidade: UN, p_de: somaDias(hoje(), -30), p_ate: hoje() })]);
   const er = rs.map(r => r.error).find(Boolean); if (er) { $('#area').innerHTML = cbCabeca(cfg.sub) + '<div class="card"><div class="err">' + esc(erroTxt(er)) + '</div></div>'; cobAbasLiga(); return; }
@@ -3611,12 +3624,12 @@ function cbFilaTela(){
     + '<details style="margin:0 0 12px"><summary style="cursor:pointer;font-weight:600;font-size:14px">Mensagem que será enviada</summary><p id="cb-msg" style="margin:8px 0 0;white-space:pre-wrap;font-size:14.5px"></p><p class="sub" style="margin:6px 0 0">O nome e os dados de cada paciente entram automaticamente.</p></details>'
     + '<div class="kpis" id="cb-kpis"></div><p class="sub" id="cb-conv" style="margin:0 0 12px"></p>'
     + '<div class="tools"><input id="cb-fq" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(F.q) + '"><label class="chk" style="flex:none"><input type="checkbox" id="cb-oc"' + (F.ocultar ? ' checked' : '') + '> Ocultar quem recebeu mensagem nos últimos ' + (CBX.cfg.cooldown_dias || 0) + ' dias</label></div>'
-    + '<div class="rlg" id="cb-ftab"><table class="tb rl"><thead><tr><th>Paciente</th><th>Telefone</th><th>WhatsApp</th><th>' + (cfg.col2 || 'Última visita') + '</th><th>Último contato</th><th>Enviar</th></tr></thead><tbody id="cb-fbody"></tbody></table></div></div>';
+    + '<div id="cb-ftab"></div></div>';
   $('#cb-msg').textContent = cfg.tpl;
   cobAbasLiga(); cbCfgLiga(); const vb = $('#cb-volta'); if (vb) vb.addEventListener('click', () => { CBX.fila = null; cbCampanhas(); });
   $('#cb-fq').addEventListener('input', e => { F.q = e.target.value; cbFilaCorpo(); }); $('#cb-oc').addEventListener('change', e => { F.ocultar = e.target.checked; cbFilaCorpo(); });
   const tpl = x => cobMsg(cfg.tpl, x, cfg.extra);
-  cbLigaEnvio($('#cb-fbody'), (pid, cid) => F.dados.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), cfg.origem, cfg.campanha, tpl, () => cbFilaCorpo());
+  cbLigaEnvio($('#cb-ftab'), (pid, cid) => F.dados.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), cfg.origem, cfg.campanha, tpl, () => cbFilaCorpo());
   cbFilaCorpo();
 }
 function cbOculto(x, F){
@@ -3630,12 +3643,15 @@ function cbFilaCorpo(){
   $('#cb-kpis').innerHTML = [['Na lista', d.length, ''], ['Contatados hoje', d.filter(hojeCt).length, 'ok'], ['Para contatar agora', liv.filter(x => !hojeCt(x)).length, liv.some(x => !hojeCt(x)) ? 'al' : 'ok'], ['Sem como contatar', d.filter(x => x.bloqueio).length, '']]
     .map(k => '<div class="kpi ' + k[2] + '"><span>' + k[0] + '</span><b>' + k[1] + '</b></div>').join('');
   const cv = F.conv; $('#cb-conv').textContent = cv && cv.n ? 'Últimos 30 dias: ' + cv.n + ' contato' + (cv.n === 1 ? '' : 's') + ', ' + cv.ok + ' paciente' + (cv.ok === 1 ? '' : 's') + ' com consulta marcada depois (' + Math.round(cv.ok / cv.n * 100) + '%).' : 'Ainda não há contatos registrados nos últimos 30 dias.';
-  $('#cb-fbody').innerHTML = vis.length ? vis.map(x => {
-    const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro, n = cbDias(x.ultima_visita);
-    const c2 = cfg.regua ? (x.regua ? '<span class="pill nu">' + esc((CB_REGUAS.find(r => r[0] === x.regua) || [0, x.regua])[1]) + '</span> ' + (x.valor_atraso != null ? reais(x.valor_atraso) : '') : '—')
-      : x.ultima_visita ? dBR(x.ultima_visita) + ' <small style="color:var(--muted)">há ' + n + ' d</small>' : '<span style="color:var(--muted)">Sem atendimento</span>';
-    return '<tr><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.nome) + '">' + esc(cbCap(x.nome)) + '</button><br><small style="color:var(--muted)">' + esc(x.status) + '</small></td><td>' + (x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.nome) : '—') + '</td><td><span class="pill ' + w[0] + '">' + w[1] + '</span></td><td>' + c2 + '</td><td>' + cbUltimo(x) + '</td><td>' + cbAcao(x, cobMsg(cfg.tpl, x, cfg.extra)) + '</td></tr>';
-  }).join('') : '<tr><td colspan="6" class="vazio">' + (d.length ? 'Todos os pacientes desta lista já receberam mensagem recentemente.' : (cfg.vazio || 'Nenhum paciente nesta lista. Bom sinal.')) + '</td></tr>';
+  const col2 = x => cfg.regua ? (x.regua ? (CB_REGUAS.find(r => r[0] === x.regua) || [0, x.regua])[1] : '—') : x.ultima_visita ? dBR(x.ultima_visita) : 'Sem atendimento';
+  gradeF($('#cb-ftab'), { dados: vis, f: F.gf = F.gf || [], vazio: d.length ? 'Todos os pacientes desta lista já receberam mensagem recentemente.' : (cfg.vazio || 'Nenhum paciente nesta lista. Bom sinal.'), maxH: 560, cols: [
+    { t: 'Paciente', v: x => cbCap(x.nome), h: x => '<button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.nome) + '">' + esc(cbCap(x.nome)) + '</button><br><small style="color:var(--muted)">' + esc(x.status) + '</small>' },
+    { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—', h: x => x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.nome) : '—' },
+    { t: 'WhatsApp', v: x => (CB_WPP[x.whatsapp] || CB_WPP.sem_registro)[1], h: x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro; return '<span class="pill ' + w[0] + '">' + w[1] + '</span>'; } },
+    { t: cfg.col2 || 'Última visita', k: x => cfg.regua ? (x.valor_atraso != null ? Number(x.valor_atraso) : 0) : (x.ultima_visita || ''), v: col2,
+      h: x => cfg.regua ? (x.regua ? '<span class="pill nu">' + esc(col2(x)) + '</span> ' + (x.valor_atraso != null ? reais(x.valor_atraso) : '') : '—') : x.ultima_visita ? dBR(x.ultima_visita) + ' <small style="color:var(--muted)">há ' + cbDias(x.ultima_visita) + ' d</small>' : '<span style="color:var(--muted)">Sem atendimento</span>' },
+    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo }],
+    acao: x => cbAcao(x, cobMsg(cfg.tpl, x, cfg.extra)) });
 }
 async function cbSemAg(){
   return cbFila({ origem: 'sem_agendamento', filtro: { sem_agendamento: true, com_visita: true, status: ['Ativo', 'Pré-Ativo', 'Contenção'] }, tpl: CBX.cfg.msg_semag,
@@ -3647,7 +3663,7 @@ async function cbSemAg(){
 const mesIni = (h, d) => { const a = Number(h.slice(0, 4)), m = Number(h.slice(5, 7)) + (d || 0), dt = new Date(a, m - 1, 1); return iso(dt); };
 const mesFim = ini => { const dt = dataLocal(ini); return iso(new Date(dt.getFullYear(), dt.getMonth() + 1, 0)); };
 async function cbFaltas(ini, fim){
-  const h = hoje(); if (!CBX.fl) CBX.fl = { ini: mesIni(h), fim: h, res: [], lista: [], q: '', so: true };
+  const h = hoje(); if (!CBX.fl) CBX.fl = { ini: mesIni(h), fim: h, res: [], lista: [], q: '', so: true, gf: [] };
   const L = CBX.fl; if (ini) { L.ini = ini; L.fim = fim; }
   $('#area').innerHTML = cbCabeca('Controle de faltas por dia e por mês, e a lista de quem faltou para chamar de volta e remarcar.') + '<div class="card"><p class="sub">Carregando...</p></div>';
   const rs = await Promise.all([sb.rpc('faltas_resumo', { p_unidade: UN, p_de: L.ini, p_ate: L.fim }), sb.rpc('faltas_cobranca', { p_unidade: UN, p_de: L.ini, p_ate: L.fim })]);
@@ -3666,20 +3682,27 @@ function cbFaltasTela(){
       + '</tbody><tfoot><tr><td>Total</td><td class="n">' + sm('agendados') + '</td><td class="n">' + comp + '</td><td class="n">' + fal + '</td><td class="n">' + (base ? Math.round(fal / base * 100) + '%' : '—') + '</td><td class="n">' + rec + '</td></tr></tfoot></table></div>' : '')
     + '<h3 style="margin:14px 0 8px;font-size:15px">Quem faltou</h3><div class="tools"><input id="fl-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(L.q) + '"><label class="chk" style="flex:none"><input type="checkbox" id="fl-so"' + (L.so ? ' checked' : '') + '> Só quem ainda não remarcou</label></div>'
     + '<details style="margin:0 0 10px"><summary style="cursor:pointer;font-weight:600;font-size:14px">Mensagem que será enviada</summary><p id="fl-msg" style="margin:8px 0 0;white-space:pre-wrap;font-size:14.5px"></p></details>'
-    + '<div class="rlg" id="fl-tab"><table class="tb rl"><thead><tr><th>Quando</th><th>Paciente</th><th>Procedimento</th><th>Dentista</th><th>Remarcado para</th><th>WhatsApp</th><th>Último contato</th><th>Enviar</th></tr></thead><tbody id="fl-body"></tbody></table></div></div>';
+    + '<div id="fl-tab"></div></div>';
   $('#fl-msg').textContent = CBX.cfg.msg_falta; cobAbasLiga(); cbCfgLiga();
   $$('#fl-pre [data-pre]').forEach(b => b.addEventListener('click', () => { const p = pre[Number(b.dataset.pre)]; cbFaltas(p[1], p[2]); }));
   $('#fl-form').addEventListener('submit', e => { e.preventDefault(); const i = $('#fl-ini').value, f = $('#fl-fim').value, er = $('#fl-err'); er.textContent = '';
     if (!i || !f) { er.textContent = 'Informe a data inicial e a final.'; return; } if (f < i) { er.textContent = 'A data final é anterior à inicial.'; return; } if (dataLocal(f) - dataLocal(i) > 120 * 86400000) { er.textContent = 'Escolha um período de até 120 dias.'; return; } cbFaltas(i, f); });
   $('#fl-q').addEventListener('input', e => { L.q = e.target.value; cbFaltasCorpo(); }); $('#fl-so').addEventListener('change', e => { L.so = e.target.checked; cbFaltasCorpo(); });
-  cbLigaEnvio($('#fl-body'), (pid, cid) => L.lista.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), 'falta', null, x => cobMsg(CBX.cfg.msg_falta, x), () => cbFaltasCorpo());
+  cbLigaEnvio($('#fl-tab'), (pid, cid) => L.lista.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), 'falta', null, x => cobMsg(CBX.cfg.msg_falta, x), () => cbFaltasCorpo());
   cbFaltasCorpo();
 }
 function cbFaltasCorpo(){
   const L = CBX.fl, q = relNorm(L.q.trim()), v = L.lista.filter(x => (!L.so || !x.remarcado_para) && (!q || relNorm(x.paciente_nome).includes(q)));
-  $('#fl-body').innerHTML = v.length ? v.map(x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro, hm = String(Math.floor(x.ini_min / 60)).padStart(2, '0') + ':' + String(x.ini_min % 60).padStart(2, '0'), a = Object.assign({}, x, { nome: x.paciente_nome });
-    return '<tr><td>' + dBR(x.data) + ' <small style="color:var(--muted)">' + hm + '</small></td><td><button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(cbCap(x.paciente_nome)) + '</button><br><small style="color:var(--muted)">' + (x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : 'Sem telefone') + '</small></td><td>' + esc(x.procedimento) + '</td><td>' + esc(x.dentista_nome || '—') + '</td><td>' + (x.remarcado_para ? '<span class="pill on">' + dBR(x.remarcado_para) + '</span>' : '<span class="pill off">Não remarcou</span>') + '</td><td><span class="pill ' + w[0] + '">' + w[1] + '</span></td><td>' + cbUltimo(x) + '</td><td>' + cbAcao(a, cobMsg(CBX.cfg.msg_falta, x)) + '</td></tr>'; }).join('')
-    : '<tr><td colspan="8" class="vazio">' + (L.lista.length ? 'Nenhuma falta com estes filtros.' : 'Nenhuma falta no período.') + '</td></tr>';
+  const hm = x => String(Math.floor(x.ini_min / 60)).padStart(2, '0') + ':' + String(x.ini_min % 60).padStart(2, '0');
+  gradeF($('#fl-tab'), { dados: v, f: L.gf = L.gf || [], vazio: L.lista.length ? 'Nenhuma falta com estes filtros.' : 'Nenhuma falta no período.', maxH: 560, cols: [
+    { t: 'Quando', k: x => x.data + String(x.ini_min).padStart(5, '0'), v: x => dBR(x.data) + ' ' + hm(x), h: x => dBR(x.data) + ' <small style="color:var(--muted)">' + hm(x) + '</small>' },
+    { t: 'Paciente', v: x => cbCap(x.paciente_nome), h: x => '<button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(cbCap(x.paciente_nome)) + '</button><br><small style="color:var(--muted)">' + (x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : 'Sem telefone') + '</small>' },
+    { t: 'Procedimento', v: x => x.procedimento || '—' },
+    { t: 'Dentista', v: x => x.dentista_nome || '—' },
+    { t: 'Remarcado para', k: x => x.remarcado_para || '', v: x => x.remarcado_para ? dBR(x.remarcado_para) : 'Não remarcou', h: x => x.remarcado_para ? '<span class="pill on">' + dBR(x.remarcado_para) + '</span>' : '<span class="pill off">Não remarcou</span>' },
+    { t: 'WhatsApp', v: x => (CB_WPP[x.whatsapp] || CB_WPP.sem_registro)[1], h: x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro; return '<span class="pill ' + w[0] + '">' + w[1] + '</span>'; } },
+    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo }],
+    acao: x => cbAcao(Object.assign({}, x, { nome: x.paciente_nome }), cobMsg(CBX.cfg.msg_falta, x)) });
 }
 
 /* ----- Campanhas ----- */
@@ -5414,7 +5437,7 @@ function agdDesenhar(){
     + '<div class="nav"><button class="btn ghost sm" type="button" id="g-ant" aria-label="Dia anterior">◀</button><button class="btn ghost sm" type="button" id="g-hoje">Hoje</button><button class="btn ghost sm" type="button" id="g-prox" aria-label="Próximo dia">▶</button></div>'
     + '<input type="date" id="g-data" value="' + esc(AG.data) + '" aria-label="Data"><span class="dl">' + esc(dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + '</span>'
     + '<button class="btn ghost sm" type="button" id="g-atual">Atualizar</button>' + (pode('agenda.substituir') ? '<button class="btn ghost sm" type="button" id="g-abrir">Abrir outra cadeira</button>' : '') + (soDent() ? '<label class="chk"><input type="checkbox" id="g-todos"' + (AG.todos ? ' checked' : '') + '> Toda a clínica</label>' : '') + '</div>'
-    + '<div class="lgd"><span><i style="background:#111"></i>Agendado</span><span><i style="background:#1b8a4b"></i>Compareceu</span><span><i style="background:#1769d6"></i>Em atendimento</span><span><i style="background:#d4271c"></i>Faltou (+15 min)</span><span><i style="background:#7a7a7a"></i>Concluído</span></div>'
+    + '<div class="lgd"><span><i style="background:#111"></i>Agendado</span><span><i style="background:#1b8a4b"></i>Compareceu</span><span><i style="background:#1769d6"></i>Em atendimento</span><span><i style="background:#d4271c"></i>Faltou (+45 min)</span><span><i style="background:#7a7a7a"></i>Concluído</span></div>'
     + '<div id="atd"></div><div id="g-corpo"><div class="card"><p class="sub">Carregando...</p></div></div>';
   const td = $('#g-todos'); if (td) td.addEventListener('change', () => { AG.todos = td.checked; atdAtualiza(); });
   atdAtualiza();
