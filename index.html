@@ -852,6 +852,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.58.0', '2026-11-09', 'Paciente inativo volta a ser encontrado na agenda: pode fazer nova avaliação (novo contrato) ou um procedimento clínico avulso.'],
   ['0.57.1', '2026-11-09', 'O botão Abrir painel de atendimento, na tela inicial, aparece só para o dentista.'],
   ['0.57.0', '2026-11-09', 'Nova ocorrência na ficha do paciente (ligação, WhatsApp, presencial...), com dia, hora e quem registrou; mensagens automáticas entram sozinhas no histórico; relatório Cobrança › Sem contato; e, na tela inicial da recepção, os cards de Documentação e Limpeza profunda em atraso (hoje ou semana).'],
   ['0.56.1', '2026-11-08', 'Os botões de atender avaliação (aviso do sino e tela Avaliações) aparecem só para o dentista; diretor e gerência não veem.'],
@@ -5469,7 +5470,7 @@ function agdAgendar(aid, m){
     + '<div class="err" id="n-err" role="alert"></div></div>'
     + '<div class="df"><button class="btn ghost" type="button" id="n-cancel">Cancelar</button><button class="btn" type="submit" id="n-ok">Agendar</button></div></form>');
   const tipo = () => $('input[name="n-tipo"]:checked').value;
-  const procsOk = () => !sel ? [] : AG.procs.filter(p => agCabe(p, c) && (sel.status === 'Prospecção' ? p.avaliacao : !p.avaliacao));
+  const procsOk = () => !sel ? [] : AG.procs.filter(p => agCabe(p, c) && (sel.status === 'Prospecção' ? p.avaliacao : sel.status === 'Inativo' ? true : !p.avaliacao));
   const duracao = () => { if (tipo() === 'compromisso') return Number($('#n-dur').value); const p = AG.procs.find(x => x.id === Number($('#n-proc').value)); return p ? p.duracao_min + Number($('#n-extra').value) : 0; };
   const resumo = () => { const d = duracao(); $('#n-resumo').textContent = d ? hmDe(m) + ' às ' + hmDe(m + d) + ' (' + minTxt(d) + ') · ' + c.nome + ' · ' + (c.dentista_nome || 'Agenda Geral') : ''; };
   const desenhaProc = () => {
