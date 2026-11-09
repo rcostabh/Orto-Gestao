@@ -866,6 +866,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.59.0', '2026-11-09', 'Aviso sonoro para o dentista: campainha quando chega uma nova avaliação e sino suave quando chega um paciente para atendimento. Toca uma única vez por chegada, no instante em que o banco atualiza.'],
   ['0.58.2', '2026-11-09', 'Paciente reativado (volta de inativo) começa um ciclo novo: o mesmo dentista que já o avaliou pode fazer a nova avaliação. A regra de outro dentista continua valendo dentro do mesmo ciclo.'],
   ['0.58.1', '2026-11-09', 'Dentista não vê telefone nem e-mail do paciente em nenhuma tela: aparecem como asteriscos.'],
   ['0.58.0', '2026-11-09', 'Paciente inativo volta a ser encontrado na agenda: pode fazer nova avaliação (novo contrato) ou um procedimento clínico avulso.'],
@@ -985,7 +986,7 @@ function trocarUnidade(id){
     if (id === UN) return;
     if (ABA) { try { await ABA.pronto; } catch (_) {} }
     UN = id; try { localStorage.setItem('og_un_' + (EU.id || EU.login), String(id)); } catch (_) {}
-    desenhaUn(); AV.vistos = null; AV.lista = []; avBuscar();
+    desenhaUn(); AV.vistos = null; AT.vistos = null; AV.lista = []; avBuscar(); atBuscar(); avVivo();
     const eraFicha = ABA && ABA.rota === 'paciente'; if (eraFicha) $('#area').replaceChildren();
     const resto = ABAS.filter(a => a.rota !== 'paciente'); ABAS.length = 0; ABAS.push(...resto);
     if (eraFicha) mostrar(ABAS.find(a => a.rota === 'prospects') || ABAS[0]); else renderAbas();
@@ -2648,22 +2649,48 @@ function avIniciarDialogo(p, aoFim){
 }
 
 /* ---------- avaliações para fazer: aviso na barra lateral do dentista do dia e da gerência ---------- */
-const AV = { lista: [], vistos: null, timer: null };
+const AV = { lista: [], vistos: null, timer: null, rt: null, tk: 0 }, AT = { vistos: null, tk: 0 };
+/* aviso sonoro do dentista: campainha (nova avaliação) e sino suave (paciente chegou para atendimento); toca 1 vez por chegada */
+const SOM = { ctx: null, fila: Promise.resolve() };
+function somLiberar(){ try { if (!SOM.ctx) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return; SOM.ctx = new A(); } if (SOM.ctx.state === 'suspended') SOM.ctx.resume(); } catch (_) {} }
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, somLiberar, { passive: true }));
+function somNota(f, t0, dur, vol, parciais){
+  const c = SOM.ctx; parciais.forEach(([m, g]) => { const o = c.createOscillator(), a = c.createGain(); o.type = 'sine'; o.frequency.value = f * m; a.gain.setValueAtTime(0.0001, t0); a.gain.linearRampToValueAtTime(vol * g, t0 + 0.006); a.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(a); a.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.05); });
+}
+function somToca(tipo){
+  if (window.__somLog) window.__somLog.push(tipo); if (!soDent()) return;
+  SOM.fila = SOM.fila.then(() => new Promise(fim => { try { somLiberar(); const c = SOM.ctx; if (c && c.state === 'running') { const t = c.currentTime + 0.05;
+    if (tipo === 'avaliacao') { const sino = [[1, 1], [2.76, 0.45], [5.4, 0.2]]; somNota(659.25, t, 1.5, 0.32, sino); somNota(523.25, t + 0.55, 1.9, 0.32, sino); }
+    else { [523.25, 659.25, 783.99].forEach((f, i) => somNota(f, t + i * 0.16, 0.9, 0.22, [[1, 1], [2, 0.18]])); } } } catch (_) {} setTimeout(fim, 2300); }));
+}
+async function atBuscar(){
+  if (!EU || !soDent() || !pode('atendimento.ver') || !UN) return;
+  const un = UN, tk = ++AT.tk, res = await sb.rpc('painel_atendimento', { p_unidade: un, p_todos: false });
+  if (res.error || !EU || tk !== AT.tk || un !== UN) return;
+  const l = (res.data || []).filter(x => x.status === 'compareceu' && x.categoria !== 'avaliacao'), novos = AT.vistos ? l.filter(x => !AT.vistos.has(x.id)) : [];
+  AT.vistos = new Set(l.map(x => x.id));
+  if (novos.length) { somToca('paciente'); toast('Paciente aguardando: ' + novos[0].paciente_nome + (novos.length > 1 ? ' (+' + (novos.length - 1) + ')' : '')); }
+}
+function avVivo(){
+  if (AV.rt) { try { sb.removeChannel(AV.rt); } catch (_) {} AV.rt = null; }
+  if (!UN || !avVe() || !sb) return; const un = UN; let t = null; const dispara = () => { clearTimeout(t); t = setTimeout(() => { avBuscar(); atBuscar(); }, 500); };
+  try { AV.rt = sb.channel('aviso-' + un).on('postgres_changes', { event: '*', schema: 'public', table: 'avaliacoes', filter: 'unidade_id=eq.' + un }, dispara).on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos', filter: 'unidade_id=eq.' + un }, dispara).subscribe(); } catch (_) {}
+}
 const souDent = () => !EU || EU.dentista !== false; // só quem está ligado a um dentista atende avaliações
 const avVe = () => pode('avaliacoes.atender') || pode('avaliacoes.ver_todas');
 function avIniciar(){
   avParar(); if (!avVe()) return;
-  $('#sino').hidden = false; AV.vistos = null; avBuscar();
-  AV.timer = setInterval(avBuscar, 20000);
+  $('#sino').hidden = false; AV.vistos = null; AT.vistos = null; avBuscar(); atBuscar(); avVivo();
+  AV.timer = setInterval(() => { avBuscar(); atBuscar(); }, 20000);
 }
-function avParar(){ clearInterval(AV.timer); AV.timer = null; AV.lista = []; AV.vistos = null; const s = $('#sino'); if (s) s.hidden = true; const pn = $('#painel'); if (pn) pn.hidden = true; }
+function avParar(){ clearInterval(AV.timer); AV.timer = null; AV.lista = []; AV.vistos = null; AT.vistos = null; if (AV.rt) { try { sb.removeChannel(AV.rt); } catch (_) {} AV.rt = null; } const s = $('#sino'); if (s) s.hidden = true; const pn = $('#painel'); if (pn) pn.hidden = true; }
 async function avBuscar(){
   if (!EU || !avVe()) return;
-  const res = await sb.rpc('avaliacoes_pendentes'); if (res.error || !EU) return; const data = (res.data || []).filter(x => x.unidade_id === UN);
+  const tk = ++AV.tk, res = await sb.rpc('avaliacoes_pendentes'); if (res.error || !EU || tk !== AV.tk) return; const data = (res.data || []).filter(x => x.unidade_id === UN);
   const novos = AV.vistos ? data.filter(x => x.status === 'aguardando' && !AV.vistos.has(x.id)) : [];
   const primeira = !AV.vistos; AV.vistos = new Set(data.map(x => x.id)); AV.lista = data;
   const aguard = data.filter(x => x.status === 'aguardando');
-  if (novos.length) { toast('Nova avaliação: ' + novos[0].paciente_nome + (novos.length > 1 ? ' (+' + (novos.length - 1) + ')' : '')); const s = $('#sino'); s.classList.remove('toca'); void s.offsetWidth; s.classList.add('toca'); }
+  if (novos.length) { toast('Nova avaliação: ' + novos[0].paciente_nome + (novos.length > 1 ? ' (+' + (novos.length - 1) + ')' : '')); const s = $('#sino'); s.classList.remove('toca'); void s.offsetWidth; s.classList.add('toca'); somToca('avaliacao'); }
   else if (primeira && aguard.length) toast(aguard.length === 1 ? 'Você tem 1 avaliação para fazer.' : 'Você tem ' + aguard.length + ' avaliações para fazer.');
   avDesenhar();
 }
