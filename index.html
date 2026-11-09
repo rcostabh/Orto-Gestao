@@ -852,6 +852,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.57.1', '2026-11-09', 'O botão Abrir painel de atendimento, na tela inicial, aparece só para o dentista.'],
   ['0.57.0', '2026-11-09', 'Nova ocorrência na ficha do paciente (ligação, WhatsApp, presencial...), com dia, hora e quem registrou; mensagens automáticas entram sozinhas no histórico; relatório Cobrança › Sem contato; e, na tela inicial da recepção, os cards de Documentação e Limpeza profunda em atraso (hoje ou semana).'],
   ['0.56.1', '2026-11-08', 'Os botões de atender avaliação (aviso do sino e tela Avaliações) aparecem só para o dentista; diretor e gerência não veem.'],
   ['0.56.0', '2026-11-07', 'Notas fiscais (NFS-e) com integração: seção Nota fiscal no cadastro da unidade (empresa, serviço, imposto, lote com os dias que a clínica escolher, todo dia ou só manual, % do Pix e token), tela Notas fiscais (emitidas, na fila, sem nota, gerar lote) e a opção Emitir nota agora ao receber. Cada pagamento só recebe uma nota.'],
@@ -1080,7 +1081,7 @@ function telaInicio(){
   const sem = !EU.acesso_total && !EU.permissoes.length;
   const dir = ehGer(), recep = !dir && pode('agenda.ver') && pode('agendamentos.recepcao'), cxr = !dir && pode('financeiro.baixar'), cxg = pode('caixa.abrir');
   $('#area').innerHTML = '<div class="head in-head"><div><h1>Olá, ' + esc(primeiro) + '!</h1><p class="sub">' + esc(EU.perfil || '') + '</p></div>'
-    + (pode('atendimento.ver') ? '<button class="btn" type="button" id="in-atend">Abrir painel de atendimento</button>' : '') + (pode('agenda.ver') ? '<button class="btn' + (pode('atendimento.ver') ? ' ghost' : '') + '" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
+    + (pode('atendimento.ver') && soDent() ? '<button class="btn" type="button" id="in-atend">Abrir painel de atendimento</button>' : '') + (pode('agenda.ver') ? '<button class="btn' + (pode('atendimento.ver') ? ' ghost' : '') + '" type="button" id="in-agenda">Abrir agenda de hoje</button>' : '') + '</div>'
     + (sem ? '<div class="card"><h2>Seu perfil ainda não tem telas liberadas</h2><p class="sub">Peça a um Diretor para liberar o que você precisa em Perfis de acesso.</p></div>' : '')
     + (recep ? '<div id="in-pend"></div>' : '') + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
     + (recep || cxr || cxg || dir ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
