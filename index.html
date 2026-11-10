@@ -518,6 +518,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .cx-an{display:flex;align-items:center;gap:10px;padding:0 4px 10px}.cx-an[hidden]{display:none}.cx-an img{height:84px;max-width:160px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
 .cx-rec{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 4px}.cx-rec .rd{width:11px;height:11px;border-radius:50%;background:var(--red);animation:chp 1s infinite}.cx-rec b{font-variant-numeric:tabular-nums;min-width:40px}.cx-rec .wv{flex:1;height:4px;border-radius:99px;background:repeating-linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px)}
 @keyframes chp{50%{opacity:.25}}
+#chat-btn .chn{position:absolute;top:-6px;right:-6px;margin:0}.sino.tem{border-color:var(--accent);color:var(--accent-text)}
 #side-btn{margin-right:2px}#side-btn .chn{position:absolute;top:-6px;right:-6px;margin:0}
 .side-tab,.side-hot,#side-btn{display:none}
 @media (min-width:901px){
@@ -574,9 +575,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
     <div class="modo" id="modo" hidden></div>
     <div class="topo"><button class="sino" id="side-btn" type="button" aria-label="Fixar o menu" title="Fixar o menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="abas" id="abas" role="tablist" aria-label="Janelas abertas"></div>
       <span class="fcx" id="ferr-cx" aria-live="polite" hidden></span>
-      <button class="sino" id="busca-rap" type="button" hidden aria-label="Pesquisar paciente" title="Pesquisar paciente"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
       <button class="sino" id="ferr-ag" type="button" hidden aria-label="Abrir agenda de hoje" title="Abrir agenda de hoje"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
       <button class="sino" id="ferr-np" type="button" hidden aria-label="Cadastrar novo prospect" title="Cadastrar novo prospect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="3.6"/><path d="M3.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6M19 7v6M16 10h6"/></svg></button>
+      <button class="sino" id="busca-rap" type="button" hidden aria-label="Pesquisar paciente" title="Pesquisar paciente"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+      <button class="sino" id="chat-btn" type="button" hidden aria-label="Chat interno" title="Chat interno"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.8V16A2.5 2.5 0 0 1 4 13.5z"/><path d="M8 9.5h8M8 12.5h5"/></svg></button>
       <button class="sino" id="sino" type="button" hidden aria-label="Avaliações para fazer" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0"/></svg><span class="bd" id="sino-n" hidden>0</span></button></div>
     <main class="main" id="area" tabindex="-1"></main>
   </div>
@@ -686,7 +688,7 @@ const dlg = $('#dlg');
 function abrirJanela(titulo, html){ $('#dlg-t').textContent = titulo; $('#dlg-c').innerHTML = html; if (!dlg.open) dlg.showModal(); }
 function fecharJanela(){ if (dlg.open) dlg.close(); }
 $('#dlg-x').addEventListener('click', fecharJanela);
-$('#busca-rap').addEventListener('click', () => pesqRapida()); $('#ferr-ag').addEventListener('click', () => abrirAgendaHoje()); $('#ferr-np').addEventListener('click', () => irPara('prospects').then(() => { if (ROTA_ATIVA() === 'prospects') pacForm(null); }));
+$('#busca-rap').addEventListener('click', () => pesqRapida()); $('#chat-btn').addEventListener('click', () => irPara('chat')); $('#ferr-ag').addEventListener('click', () => abrirAgendaHoje()); $('#ferr-np').addEventListener('click', () => irPara('prospects').then(() => { if (ROTA_ATIVA() === 'prospects') pacForm(null); }));
 dlg.addEventListener('click', e => { if (e.target === dlg) fecharJanela(); });
 
 /* ---------- entrar e sair ---------- */
@@ -974,7 +976,7 @@ function chatParar(){
   try { if (CH.rt) sb.removeChannel(CH.rt); if (CH.pr) sb.removeChannel(CH.pr); } catch (_) {}
   if (CH.rec) { CH.rec.enviar = false; try { CH.rec.mr.stop(); } catch (_) {} }
   Object.assign(CH, { eu: null, grupo: null, un: null, rt: null, pr: null, online: new Set(), pessoas: [], nl: {}, conv: null, msgs: [], urls: {}, anexo: null, sujo: false });
-  chBadge();
+  { const cb = $('#chat-btn'); if (cb) cb.hidden = true; } chBadge();
 }
 function chatReinicia(){ CH.pronto = chatIniciar(); return CH.pronto; }
 async function chatIniciar(){
@@ -984,7 +986,7 @@ async function chatIniciar(){
   if (cx.error || !c || !c.eu || tk !== CH.tk || un !== UN) return;
   const [pe, nl] = await Promise.all([sb.rpc('chat_pessoas', { p_unidade: un }), sb.rpc('chat_nao_lidas', { p_unidade: un })]);
   if (tk !== CH.tk) return;
-  CH.eu = c.eu; CH.grupo = c.grupo; CH.un = un; CH.pessoas = pe.data || []; chNL(nl.data || []);
+  CH.eu = c.eu; CH.grupo = c.grupo; CH.un = un; { const cb = $('#chat-btn'); if (cb) cb.hidden = false; } CH.pessoas = pe.data || []; chNL(nl.data || []);
   try {
     CH.rt = sb.channel('chat-msg-' + un).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensagens', filter: 'unidade_id=eq.' + un }, p => chChega(p.new)).subscribe();
     const pr = CH.pr = sb.channel('chat-pres-' + un, { config: { presence: { key: String(CH.eu) } } });
@@ -996,7 +998,8 @@ async function chatIniciar(){
 function chNL(rows){ CH.nl = {}; (rows || []).forEach(r => { if (Number(r.qtd) > 0) CH.nl[r.chave] = Number(r.qtd); }); chBadge(); }
 function chBadge(){
   const t = Object.values(CH.nl).reduce((a, b) => a + b, 0), txt = t > 99 ? '99+' : String(t);
-  $$('#menu [data-r="chat"], #side-tab, #side-btn').forEach(el => { const o = el.querySelector('.chn'); if (o) o.remove(); if (t) { const s = document.createElement('span'); s.className = 'chn'; s.textContent = txt; el.appendChild(s); } });
+  const cb = $('#chat-btn'); if (cb) cb.classList.toggle('tem', t > 0);
+  $$('#menu [data-r="chat"], #side-tab, #side-btn, #chat-btn').forEach(el => { const o = el.querySelector('.chn'); if (o) o.remove(); if (t) { const s = document.createElement('span'); s.className = 'chn'; s.textContent = txt; el.appendChild(s); } });
 }
 async function chLimpa(){
   let hoje = ''; try { hoje = new Date().toISOString().slice(0, 10); if (localStorage.getItem('og.chat.limpa') === hoje) return; localStorage.setItem('og.chat.limpa', hoje); } catch (_) {}
@@ -1016,6 +1019,7 @@ function chChega(m){
   if (eu) return;
   if (vendo && !document.hidden) { chLida(); return; }
   CH.nl[k] = (CH.nl[k] || 0) + 1; chBadge(); chLista();
+  { const cb = $('#chat-btn'); if (cb) { cb.classList.remove('toca'); void cb.offsetWidth; cb.classList.add('toca'); } }
   somToca('chat'); toast(m.de_nome + (m.canal !== 'dm' ? ' · ' + chNome(k) : '') + ': ' + chPreview(m));
 }
 function chVerifica(){ if (CH.sujo && chVendo()) { CH.sujo = false; chMsgs(); chLida(); } }
@@ -2784,7 +2788,7 @@ async function ferrCaixa(){
   const l = r.data || []; b.className = 'fcx' + (l.length ? ' on' : ''); b.textContent = l.length ? 'Caixa aberto · ' + l.map(x => x.responsavel_nome.split(' ')[0]).join(', ') : 'Nenhum caixa aberto';
 }
 if (window.__teste) window.__ferrCaixa = () => ferrCaixa();
-function buscaRapMostra(){ const r = ehRecep(); $('#busca-rap').hidden = !r; $('#ferr-ag').hidden = !(r && pode('agenda.ver')); $('#ferr-np').hidden = !(r && pode('pacientes.criar')); $('#ferr-cx').hidden = !r;
+function buscaRapMostra(){ const r = ehRecep(); $('#busca-rap').hidden = !(EU && !EU.fora && !EU.plataforma && pode('pacientes.ver')); $('#ferr-ag').hidden = !(r && pode('agenda.ver')); $('#ferr-np').hidden = !(r && pode('pacientes.criar')); $('#ferr-cx').hidden = !r;
   clearInterval(FERR_T); FERR_T = null; if (r) { ferrCaixa(); FERR_T = setInterval(ferrCaixa, 60000); } }
 function pesqRapida(){
   abrirJanela('Pesquisar paciente', '<div class="db bq"><input type="search" id="bq" placeholder="Nome, CPF, código ou telefone" aria-label="Pesquisar paciente por nome, CPF, código ou telefone" autocomplete="off"><div class="bq-r" id="bq-r"></div></div>');
