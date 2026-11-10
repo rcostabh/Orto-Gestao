@@ -1200,6 +1200,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.62.0', '2026-11-10', 'Recebimento pelo Asaas: cada unidade conecta a própria conta (Unidades › Asaas). Ao receber uma parcela, é possível cobrar por Pix, boleto, cartão ou link; o pagamento confirmado pelo Asaas dá baixa sozinho na parcela. No Financeiro: conferir pagamentos e gerar cobranças em lote. Botão do chat e lupa de pacientes ao lado do sino.'],
   ['0.61.0', '2026-11-10', 'Chat interno: conversas por setor (Geral, Recepção, Clínica, Divulgação, Gerência, Cobrança, Financeiro) e conversa privada entre funcionários da mesma unidade, com texto, emojis, imagens e áudios, indicação de quem está online e aviso sonoro. Tudo some sozinho após 90 dias. Barra lateral móvel: fica escondida e aparece ao aproximar o mouse da aba na borda esquerda (ou fixa pelo botão no topo à esquerda). Agenda da recepção um pouco maior.'],
   ['0.60.1', '2026-11-10', 'Recepção: ao lado da lupa de pesquisar paciente, no topo, ficam os atalhos Abrir agenda e Cadastrar novo prospect, e a indicação bem pequena de qual caixa está aberto (ou "Nenhum caixa aberto").'],
   ['0.60.0', '2026-11-10', 'Recepção: pesquisa rápida de paciente (ícone no topo e na tela inicial) por nome, CPF, código ou telefone, em todas as unidades. A ficha mostra na abertura se o paciente está inadimplente e se a limpeza profunda ou a documentação passaram de 4 meses. Paciente de outra unidade abre a ficha financeira somente leitura.'],
@@ -2177,6 +2178,98 @@ const nfLer = () => {
     dias_lote: $('#nf-todo').checked ? Array.from({ length: 31 }, (_, i) => i + 1) : [...new Set(n('nf-dias').split(/[^0-9]+/).filter(Boolean).map(Number).filter(d => d >= 1 && d <= 31))].sort((a, b) => a - b), pct_pix: dec('nf-pix'), formas_lote: $$('#nf-formas [data-f]').filter(x => x.checked).map(x => x.dataset.f) };
 };
 
+/* ---------- ASAAS (recebimento por Pix, boleto e cartão) ---------- */
+async function asApi(corpo){
+  const r = await sb.functions.invoke('asaas-api', { body: corpo });
+  let d = r.data;
+  if (r.error && !d) { try { d = await r.error.context.json(); } catch (_) {} }
+  if (!d) throw new Error(r.error ? 'Não foi possível falar com o servidor do Asaas. Confira se a função "asaas-api" foi criada.' : 'Resposta vazia do servidor.');
+  if (d.erro) throw new Error(d.erro);
+  return d;
+}
+async function asSecao(u){
+  const el = $('#as-sec'); if (!el) return;
+  const r = await sb.rpc('asaas_config_ler', { p_unidade: u.id }); if (r.error || !r.data) return;
+  const c = r.data; el.hidden = false;
+  el.innerHTML = '<div class="sec">Asaas</div>'
+    + '<div class="g2"><label class="chk"><input type="checkbox" id="as-ativo"' + (c.ativo ? ' checked' : '') + '> Receber pelo Asaas</label>'
+    + '<label class="field" for="as-amb">Ambiente<select id="as-amb"><option value="sandbox"' + (c.ambiente === 'sandbox' ? ' selected' : '') + '>Teste (sandbox)</option><option value="producao"' + (c.ambiente === 'producao' ? ' selected' : '') + '>Valendo (produção)</option></select></label></div>'
+    + '<label class="chk"><input type="checkbox" id="as-not"' + (c.notificar ? ' checked' : '') + '> O Asaas também avisa o paciente por e-mail e SMS</label>'
+    + '<label class="field" for="as-key">Chave de API' + (c.tem_chave ? ' <small>(já guardada; preencha só para trocar)</small>' : '') + '<input id="as-key" type="password" autocomplete="off" placeholder="' + (c.tem_chave ? '••••••••••••' : 'Cole a chave da conta Asaas da unidade') + '"></label>'
+    + '<div class="df"><div class="esq"><span class="pill ' + (c.webhook_ok ? 'on' : 'off') + '" id="as-st">' + (c.webhook_ok ? 'Avisos de pagamento ativos' : 'Avisos de pagamento pendentes') + '</span></div>'
+    + '<button class="btn ghost" type="button" id="as-test"' + (c.tem_chave ? '' : ' disabled') + '>Testar conexão</button><button class="btn ghost" type="button" id="as-hook"' + (c.tem_chave ? '' : ' disabled') + '>Ativar avisos de pagamento</button><button class="btn" type="button" id="as-save">Salvar Asaas</button></div>'
+    + '<div class="err" id="as-err" role="alert"></div>';
+  const er = $('#as-err'), trava = (b, on) => { b.disabled = on; };
+  $('#as-save').addEventListener('click', async e => {
+    er.textContent = ''; const b = e.currentTarget; trava(b, true);
+    const s = await sb.rpc('asaas_config_salvar', { p_unidade: u.id, p_ativo: $('#as-ativo').checked, p_ambiente: $('#as-amb').value, p_notificar: $('#as-not').checked, p_chave: $('#as-key').value.trim() || null });
+    trava(b, false); if (s.error) { er.textContent = erroTxt(s.error); return; }
+    toast('Asaas salvo.'); asSecao(u);
+  });
+  $('#as-test').addEventListener('click', async e => { er.textContent = ''; const b = e.currentTarget; trava(b, true); try { await asApi({ acao: 'testar', unidade_id: u.id }); toast('Conexão com o Asaas funcionando.'); } catch (x) { er.textContent = x.message; } trava(b, false); });
+  $('#as-hook').addEventListener('click', async e => { er.textContent = ''; const b = e.currentTarget; trava(b, true); try { await asApi({ acao: 'webhook', unidade_id: u.id }); toast('Avisos de pagamento ativados.'); asSecao(u); } catch (x) { er.textContent = x.message; trava(b, false); } });
+}
+const asAtiva = async un => { try { const r = await sb.rpc('asaas_ativa', { p_unidade: un }); return !r.error && r.data === true; } catch (_) { return false; } };
+async function asCopia(txt, msg){ try { await navigator.clipboard.writeText(txt); toast(msg || 'Copiado.'); } catch (_) { toast('Não foi possível copiar. Selecione e copie manualmente.'); } }
+const AS_ST = { pendente: ['Aguardando pagamento', 'warn'], vencida: ['Vencida', 'off'], paga: ['Paga', 'on'], cancelada: ['Cancelada', 'off'], estornada: ['Estornada', 'off'] };
+/* bloco dentro da janela "Receber" */
+async function asBloco(x, nome, aoFim){
+  const el = $('#rc-as'); if (!el || !pode('financeiro.baixar')) return;
+  const un = x.unidade_id || UN; if (!(await asAtiva(un))) return;
+  const rc = await sb.rpc('asaas_cobranca_parcela', { p_parcela: x.id }), c = rc.data;
+  if (!$('#rc-as')) return; el.hidden = false;
+  if (c && (c.status === 'pendente' || c.status === 'vencida')) {
+    el.innerHTML = '<div class="sec">Cobrança no Asaas</div><div class="df"><div class="esq"><span class="pill ' + AS_ST[c.status][1] + '">' + AS_ST[c.status][0] + '</span> <small>' + reais(c.valor) + ' · vence ' + dBR(c.vencimento) + '</small></div><button class="btn ghost" type="button" id="as-ver">Abrir cobrança</button></div>';
+    $('#as-ver').addEventListener('click', () => asMostrar(x, nome, aoFim));
+    return;
+  }
+  el.innerHTML = '<div class="sec">Cobrar pelo Asaas</div><div class="df" id="as-fm" style="flex-wrap:wrap;gap:8px">'
+    + [['PIX', 'Pix'], ['BOLETO', 'Boleto'], ['CREDIT_CARD', 'Cartão'], ['UNDEFINED', 'Link (paciente escolhe)']].map(f => '<button class="btn ghost sm" type="button" data-f="' + f[0] + '">' + f[1] + '</button>').join('') + '</div><div class="err" id="as-e" role="alert"></div>';
+  el.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', async () => {
+    $('#as-e').textContent = ''; el.querySelectorAll('[data-f]').forEach(z => z.disabled = true);
+    try { const d = await asApi({ acao: 'gerar', parcela_id: x.id, forma: b.dataset.f }); asMostrar(x, nome, aoFim, d.cobranca); refrescaTela(); }
+    catch (e) { const er = $('#as-e'); if (er) { er.textContent = e.message; el.querySelectorAll('[data-f]').forEach(z => z.disabled = false); } }
+  }));
+}
+async function asMostrar(x, nome, aoFim, pronta){
+  abrirJanela('Cobrança Asaas', '<div class="db"><p class="sub">Carregando...</p></div>');
+  let c = pronta;
+  if (!c) { try { const d = await asApi({ acao: 'detalhes', parcela_id: x.id }); if (d.pago) { fecharJanela(); toast('Pagamento confirmado. Baixa registrada.'); refrescaTela(); return; } c = d.cobranca; } catch (e) { $('#dlg-c').innerHTML = '<div class="db"><div class="err">' + esc(e.message) + '</div></div>'; return; } }
+  if (!c) { fecharJanela(); return; }
+  const link = c.link || c.boleto_url || '';
+  $('#dlg-c').innerHTML = '<div class="db"><p style="margin:0;font-size:16px"><b>' + esc(nome || '') + '</b></p>'
+    + (c.valor ? '<div class="kv dkv"><span>Valor</span><b>' + reais(c.valor) + '</b>' + (c.desconto > 0 ? '<span>Desconto até o vencimento</span><b>' + reais(c.desconto) + '</b>' : '') + '<span>Vencimento</span><b>' + dBR(c.vencimento) + '</b></div>' : '')
+    + (c.pix_qr ? '<div style="display:grid;place-items:center"><img alt="QR Code Pix" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--line)" src="data:image/png;base64,' + esc(c.pix_qr) + '"></div>' : '')
+    + (c.pix_payload ? '<label class="field" for="as-pix">Pix copia e cola<input id="as-pix" readonly value="' + esc(c.pix_payload) + '"></label><button class="btn ghost" type="button" id="as-cpix">Copiar código Pix</button>' : '')
+    + (c.linha_digitavel ? '<label class="field" for="as-lin">Linha digitável<input id="as-lin" readonly value="' + esc(c.linha_digitavel) + '"></label><button class="btn ghost" type="button" id="as-clin">Copiar linha digitável</button>' : '')
+    + (link ? '<div class="df" style="flex-wrap:wrap;gap:8px"><a class="btn ghost" href="' + esc(link) + '" target="_blank" rel="noopener">Abrir ' + (c.forma === 'BOLETO' ? 'boleto' : 'link de pagamento') + '</a><button class="btn ghost" type="button" id="as-clink">Copiar link</button></div>' : '')
+    + '<div class="err" id="as-e2" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"><button class="btn danger" type="button" id="as-canc">Cancelar cobrança</button></div><button class="btn ghost" type="button" id="as-conf">Conferir pagamento</button><button class="btn" type="button" id="as-fim">Fechar</button></div>';
+  const q = id => $('#' + id);
+  if (q('as-cpix')) q('as-cpix').addEventListener('click', () => asCopia(c.pix_payload, 'Código Pix copiado.'));
+  if (q('as-clin')) q('as-clin').addEventListener('click', () => asCopia(c.linha_digitavel, 'Linha digitável copiada.'));
+  if (q('as-clink')) q('as-clink').addEventListener('click', () => asCopia(link, 'Link copiado.'));
+  q('as-fim').addEventListener('click', () => { if (aoFim) aoFim(); else fecharJanela(); refrescaTela(); });
+  q('as-conf').addEventListener('click', async e => { const b = e.currentTarget; b.disabled = true; try { const d = await asApi({ acao: 'detalhes', parcela_id: x.id }); if (d.pago) { fecharJanela(); toast('Pagamento confirmado. Baixa registrada.'); refrescaTela(); return; } toast('Ainda não foi pago.'); } catch (er) { q('as-e2').textContent = er.message; } b.disabled = false; });
+  q('as-canc').addEventListener('click', async e => { const b = e.currentTarget; if (b.dataset.c !== '1') { b.dataset.c = '1'; b.textContent = 'Confirmar cancelamento'; return; } b.disabled = true; try { await asApi({ acao: 'cancelar', parcela_id: x.id }); fecharJanela(); toast('Cobrança cancelada no Asaas.'); refrescaTela(); } catch (er) { q('as-e2').textContent = er.message; b.disabled = false; } });
+}
+/* ferramentas no Financeiro: conferir pagamentos e gerar em lote */
+async function asFerramentas(){
+  const el = $('#fn-as'); if (!el || !UN || !pode('financeiro.baixar')) return;
+  if (!(await asAtiva(UN)) || !$('#fn-as')) return;
+  el.innerHTML = '<button class="btn ghost sm" type="button" id="as-sync">Conferir pagamentos Asaas</button><button class="btn ghost sm" type="button" id="as-lote">Gerar cobranças Asaas</button>';
+  $('#as-sync').addEventListener('click', async e => { const b = e.currentTarget; b.disabled = true; try { const d = await asApi({ acao: 'sincronizar', unidade_id: UN }); toast(d.baixadas ? d.baixadas + ' pagamento(s) confirmado(s) e baixado(s).' : 'Nenhum pagamento novo.'); if (d.baixadas) finCarregar(); } catch (er) { toast(er.message); } b.disabled = false; });
+  $('#as-lote').addEventListener('click', () => {
+    abrirJanela('Gerar cobranças Asaas', '<div class="db"><label class="field" for="as-ate">Parcelas em aberto que vencem até<input id="as-ate" type="date" value="' + somaDias(hoje(), 10) + '"></label><div class="err" id="as-le" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="as-lx">Voltar</button><button class="btn" type="button" id="as-lg">Gerar</button></div>');
+    $('#as-lx').addEventListener('click', fecharJanela);
+    $('#as-lg').addEventListener('click', async e => {
+      const b = e.currentTarget; b.disabled = true; $('#as-le').textContent = '';
+      try { const d = await asApi({ acao: 'lote', unidade_id: UN, ate: $('#as-ate').value }); fecharJanela(); toast(d.geradas + ' cobrança(s) gerada(s)' + (d.falhas ? ', ' + d.falhas + ' com problema (veja se faltam CPF/dados)' : '') + (d.restam ? '. Há mais parcelas: gere de novo.' : '.')); }
+      catch (er) { $('#as-le').textContent = er.message; b.disabled = false; }
+    });
+  });
+}
+
 /* ---------- UNIDADES ---------- */
 const DIAS = [[1, 'Segunda'], [2, 'Terça'], [3, 'Quarta'], [4, 'Quinta'], [5, 'Sexta'], [6, 'Sábado'], [0, 'Domingo']];
 const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
@@ -2227,6 +2320,7 @@ function uniForm(u){
     + '<div class="sec">Horário de funcionamento</div><div class="hor" id="u-hor">' + horas + '</div>'
     + (edita ? '<div><button class="link" type="button" id="u-rep">Repetir a segunda-feira de terça a sexta</button></div><p class="sub" style="margin:0">Se a clínica não para para o almoço, use "Sem almoço" no dia. Sem dentista na unidade não há atendimento, então o horário aqui é o de quando a clínica funciona.</p>' : '')
     + (!novo && pode('notas.ver') ? '<div id="nf-sec" hidden></div>' : '')
+    + (!novo && ehDir() ? '<div id="as-sec" hidden></div>' : '')
     + '<div class="err" id="u-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('unidades.inativar') ? '<button class="btn ' + (u.ativa ? 'danger' : 'ghost') + '" type="button" id="u-ina">' + (u.ativa ? 'Inativar unidade' : 'Reativar unidade') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="u-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="u-ok">Salvar</button>' : '') + '</div></form>');
@@ -2236,6 +2330,7 @@ function uniForm(u){
   $$('.h-sem').forEach(b => b.addEventListener('click', () => { const l = linhaDia(b.dataset.d); l.i.value = ''; l.v.value = ''; }));
   const rep = $('#u-rep'); if (rep) rep.addEventListener('click', () => { const s = linhaDia(1); for (let d = 2; d <= 5; d++) { const l = linhaDia(d); l.on.checked = s.on.checked; l.a.value = s.a.value; l.i.value = s.i.value; l.v.value = s.v.value; l.f.value = s.f.value; liga(l, s.on.checked); } });
   let NFC = null; if (!novo && pode('notas.ver')) nfSecao(u, edita).then(c => { NFC = c; });
+  if (!novo && ehDir()) asSecao(u);
   $('#u-cancel').addEventListener('click', fecharJanela);
   $('#u-tel').addEventListener('input', e => e.target.value = mTel(e.target.value));
   $('#u-cnpj').addEventListener('input', e => e.target.value = mCnpj(e.target.value));
@@ -3803,12 +3898,14 @@ function fnReceber(x, nome, aoFim){
     + '<div class="g2"><label class="field" for="rc-valor">Valor recebido agora *<span class="pw"><input id="rc-valor" inputmode="numeric" style="padding-left:40px" autocomplete="off" value="' + esc(moedaTxt(x.saldo)) + '"><span style="position:absolute;left:12px;top:11px;color:var(--muted);font-weight:600">R$</span></span></label>'
     + '<label class="field" for="rc-forma">Forma de pagamento *<select id="rc-forma"><option value="">Escolha...</option>' + FORMAS_PGTO.map(f => '<option>' + f + '</option>').join('') + '</select></label></div>'
     + '<div id="rc-resto" hidden><p style="margin:0;font-weight:700" id="rc-falta"></p><label class="field" for="rc-venc">O paciente paga o restante até *<input id="rc-venc" type="date" min="' + hoje() + '" max="' + somaDias(hoje(), 120) + '" value="' + somaDias(hoje(), 7) + '"></label></div>'
+    + '<div id="rc-as" hidden></div>'
     + '<div id="rc-nf" hidden><label class="chk"><input type="checkbox" id="rc-nfck"> O paciente pediu nota fiscal: emitir agora</label></div>'
     + '<div class="err" id="rc-err" role="alert"></div></div>'
     + '<div class="df"><button class="btn ghost" type="button" id="rc-cancel">Voltar</button><button class="btn" type="submit" id="rc-ok">Confirmar recebimento</button></div></form>');
   const calc = () => { const v = moedaNum($('#rc-valor').value) || 0, falta = Math.round((x.saldo - v) * 100) / 100; $('#rc-resto').hidden = !(v > 0 && falta > 0);
     $('#rc-falta').textContent = 'Pagamento parcial: ficará devendo ' + reais(falta) + ' nesta parcela.'; };
   nfAtiva().then(on => { const w = $('#rc-nf'); if (w && on) w.hidden = false; });
+  asBloco(x, nome, aoFim);
   calc(); $('#rc-valor').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); calc(); });
   $('#rc-cancel').addEventListener('click', () => { if (aoFim) aoFim(); else fecharJanela(); });
   $('#rc-form').addEventListener('submit', async e => {
@@ -3846,7 +3943,8 @@ function finLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Financeiro</h1><p class="sub">Parcelas dos pacientes em tratamento (últimos 11 meses e próximos 2). Paga até o vencimento: com desconto. Depois: valor cheio, sem juros. Use o funil de cada coluna para filtrar.</p></div></div>' + finVis()
     + '<div class="card">' + (dd.length >= 1000 ? '<div class="err" style="margin:0 0 10px" role="alert">Esta lista tem ' + dd.length + ' parcelas e pode estar cortada pelo limite do servidor (o padrão é 1.000 linhas). Os totais abaixo podem estar incompletos: aumente o limite “Max rows” em Settings › API do Supabase ou use o relatório por período.</div>' : '') + '<p style="margin:0 0 10px"><b>Vencidas:</b> ' + venc.length + ' · ' + reais(soma(venc)) + ' &nbsp; <b>A vencer:</b> ' + avenc.length + ' · ' + reais(soma(avenc)) + '</p>'
     + '<div class="tools"><div id="fn-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (FN.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (FN.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
-    + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"></div></div><div id="fn-lista"></div>';
+    + '<input id="fn-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FN.q) + '"><span id="fn-as" style="display:inline-flex;gap:8px;flex-wrap:wrap"></span></div></div><div id="fn-lista"></div>';
+  asFerramentas();
   const pinta = () => {
     const q = relNorm(FN.q.trim()); let l = FN.f === 'todos' ? dd : FN.f === 'pagas' ? pagas : FN.f === 'vencidas' ? venc : FN.f === 'avencer' ? avenc : ab;
     if (q) l = l.filter(x => relNorm(x.paciente_nome).includes(q));
