@@ -814,7 +814,7 @@ const IC = {
   clinico: '<path d="M7 4c-2 0-3.5 1.6-3.5 4 0 2 1 3.5 1.5 5.5S6 20 7.5 20 9 16 12 16s2.5 4 4.5 4c1.5 0 1.5-4 2.5-6.5s1.5-3.5 1.5-5.5c0-2.4-1.5-4-3.5-4-1.7 0-2.5 1-5 1S8.7 4 7 4z"/>'
 };
 IC.chat = '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.8V16A2.5 2.5 0 0 1 4 13.5z"/><path d="M8 9.5h8M8 12.5h5"/>';
-IC['clin-proc'] = IC['clin-mat'] = IC['clin-comp'] = IC['clin-cfg'] = IC.clinico;
+IC['clin-preco'] = IC['clin-proc'] = IC['clin-mat'] = IC['clin-comp'] = IC['clin-cfg'] = IC.clinico;
 const ico = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg>';
 const MENU = [
   { r: 'inicio', t: 'Início', p: null },
@@ -829,6 +829,7 @@ const MENU = [
   { g: 'Clínico', ic: 'clinico', itens: [
     { r: 'clinico', t: 'Orçamentos', p: 'clinico.ver' },
     { r: 'clin-proc', t: 'Procedimentos clínicos', p: 'clinico.ver' },
+    { r: 'clin-preco', t: 'Preços sugeridos', p: 'clinico.custos' },
     { r: 'clin-mat', t: 'Materiais', p: ['clinico.catalogo', 'clinico.custos'] },
     { r: 'clin-comp', t: 'Compras', p: 'clinico.catalogo' },
     { r: 'clin-cfg', t: 'Configuração do clínico', p: 'clinico.custos' } ] },
@@ -858,7 +859,7 @@ const MENU = [
     { r: 'transferencias', t: 'Transferências', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preços sugeridos', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   buscaRapMostra();
   let h = '';
@@ -893,6 +894,7 @@ const BUSCA_EXTRA = [
   { t: 'Parcelas e mensalidades', c: 'Financeiro', r: 'financeiro', p: 'financeiro.ver', k: 'vencimento atraso inadimplencia a receber' },
   { t: 'Campanhas e régua de cobrança', c: 'Cobrança › Mensagens e regras', r: 'cobranca', p: ['cobranca.ver', 'cobranca.contatar', 'financeiro.ver'], k: 'whatsapp mensagem atraso contato inativos reativar' },
   { t: 'Orçamento clínico', c: 'Clínico › Orçamentos', r: 'clinico', p: 'clinico.ver', k: 'clinico clinica orcamento protese implante restauracao financiamento juros desconto' },
+  { t: 'Preços sugeridos dos procedimentos clínicos (conferir e ajustar valores)', c: 'Clínico › Preços sugeridos', r: 'clin-preco', p: 'clinico.custos', k: 'clinico preco sugerido valor venda margem minima composicao custo material imposto comissao ajustar relatorio' },
   { t: 'Cadastro de procedimentos clínicos', c: 'Clínico › Procedimentos clínicos', r: 'clin-proc', p: 'clinico.ver', k: 'clinico servico procedimento valor minimo especialidade importar planilha csv margem preco ideal' },
   { t: 'Materiais e compras do clínico', c: 'Clínico › Materiais / Compras', r: 'clin-mat', p: ['clinico.catalogo', 'clinico.custos'], k: 'clinico material insumo protetico fornecedor nota fiscal estoque custo' },
   { t: 'Comunicação por WhatsApp', c: 'Comunicação › Enviar', r: 'comunicacao', p: ['cobranca.contatar', 'cobranca.campanhas'], k: 'whatsapp mensagem lembrete campanha enviar api modelos historico conexao meta recuperacao vencimento' },
@@ -1201,6 +1203,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.64.0', '2026-11-10', 'Clínico › Preços sugeridos: tela de conferência com a composição de cada procedimento (materiais, protético, impostos e cartão, comissões), o preço sugerido, o valor atual e a margem. O diretor ajusta os valores em lote, corrige de uma vez os que estão abaixo da margem e exporta tudo em CSV.'],
   ['0.63.0', '2026-11-10', 'Asaas: as cobranças podem nascer sozinhas todo dia, uma unidade por vez (Unidades › Asaas: gerar sozinho, quantos dias antes do vencimento). Parcelas que não viram cobrança, como as de paciente sem CPF, aparecem em Pendências do Asaas no Financeiro.'],
   ['0.62.2', '2026-11-10', 'Avisos na tela (como "salvo" ou "conexão funcionando") passam a aparecer também quando há uma janela aberta, que antes os escondia. Configuração do Asaas mostra o resultado do teste logo abaixo dos botões.'],
   ['0.62.1', '2026-11-10', 'Cadastro da unidade ganha o campo E-mail (obrigatório), usado também como contato nos avisos de pagamento do Asaas. Botões Testar conexão e Ativar avisos do Asaas passam a mostrar o resultado na tela.'],
@@ -1344,7 +1347,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -4384,7 +4387,7 @@ async function clinGarante(){
   const er = rs.map(r => r.error).find(Boolean); if (er) return er;
   CLX.cat = rs[0].data; CLX.cfg = rs[1].data; return null;
 }
-const CLROTA = { 'clinico': 'orc', 'clin-proc': 'serv', 'clin-mat': 'mat', 'clin-comp': 'comp', 'clin-cfg': 'cfg' };
+const CLROTA = { 'clinico': 'orc', 'clin-proc': 'serv', 'clin-mat': 'mat', 'clin-comp': 'comp', 'clin-cfg': 'cfg', 'clin-preco': 'prec' };
 async function clinCarregar(r0){
   if (r0 && CLROTA[r0]) CLX.aba = CLROTA[r0];
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
@@ -4397,11 +4400,12 @@ async function clinCarregar(r0){
 const CLTIT = { orc: ['Orçamentos clínicos', 'Orçamentos de tratamentos clínicos (restaurações, próteses, implantes e outros), negociação e financiamento.'],
   serv: ['Procedimentos clínicos', 'Cadastro dos procedimentos clínicos: especialidade, valor de tabela, valor mínimo e os materiais usados em cada um.'],
   mat: ['Materiais', 'Materiais e insumos (inclui o protético) que compõem o custo de cada procedimento.'], comp: ['Compras', 'Notas de compra que atualizam estoque e custo dos materiais.'],
+  prec: ['Preços sugeridos', 'Composição do preço de cada procedimento, conferência da margem e ajuste dos valores de venda.'],
   cfg: ['Configuração do clínico', 'Impostos, comissões, margem mínima e juros do financiamento.'] };
 function clinTela(){
   const t = CLTIT[CLX.aba] || CLTIT.orc;
   $('#area').innerHTML = '<div class="head"><div><h1>' + t[0] + '</h1><p class="sub">' + t[1] + '</p></div></div><div id="cl-body"></div>';
-  ({ orc: clinOrcTab, serv: clinServTab, mat: clinMatTab, comp: clinCompTab, cfg: clinCfgTab })[CLX.aba]();
+  ({ orc: clinOrcTab, serv: clinServTab, prec: clinPrecTab, mat: clinMatTab, comp: clinCompTab, cfg: clinCfgTab })[CLX.aba]();
 }
 /* ----- Orçamentos ----- */
 function clinOrcTab(){
@@ -4436,6 +4440,74 @@ function clinOrcTab(){
     np.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(busca, 250); }); }
   $('#co-st').addEventListener('change', e => { CLX.st = e.target.value; tab(); });
   $('#co-q').addEventListener('input', e => { CLX.q = e.target.value; tab(); });
+  tab();
+}
+/* ----- Preços sugeridos: composição, conferência e ajuste em lote ----- */
+function clinDecomp(s, P){
+  const c = CLX.cfg, ins = s.insumos || [];
+  const mat = ins.reduce((t, x) => t + (x.protetico ? 0 : x.qtd * x.custo_unit), 0), prot = ins.reduce((t, x) => t + (x.protetico ? x.qtd * x.custo_unit : 0), 0);
+  const imp = P * (c.imposto_pct + c.cartao_pct) / 100, com = Math.max(P - prot, 0) * (c.venda_pct + c.avaliacao_pct + c.execucao_pct) / 100;
+  return { mat: mat, prot: prot, imp: imp, com: com, margem: P > 0 ? (P - mat - prot - imp - com) / P : null };
+}
+function clinPrecTab(){
+  const b = $('#cl-body'), dir = ehDir(), mm = CLX.cfg.margem_min_pct, lista = CLX.cat.servicos.filter(s => s.ativo && s.valor != null);
+  CLX.pe = CLX.pe || {}; CLX.pq = CLX.pq || ''; CLX.pesp = CLX.pesp || ''; CLX.psit = CLX.psit || 'todos';
+  const esps = [...new Set(lista.map(s => s.especialidade).filter(Boolean))].sort();
+  const abaixo = s => s.preco_ideal != null && s.valor < s.preco_ideal, acima = s => s.preco_ideal != null && s.valor > s.preco_ideal;
+  const nAb = lista.filter(abaixo).length, nAc = lista.filter(acima).length, nOk = lista.length - nAb - nAc;
+  b.innerHTML = '<div class="kpis"><div class="kpi"><span>Procedimentos ativos</span><b>' + lista.length + '</b></div><div class="kpi' + (nAb ? ' al' : ' ok') + '"><span>Abaixo da margem mínima</span><b>' + nAb + '</b></div>'
+    + '<div class="kpi"><span>Acima do preço sugerido</span><b>' + nAc + '</b></div><div class="kpi"><span>No preço sugerido</span><b>' + nOk + '</b></div><div class="kpi"><span>Margem mínima</span><b>' + nTxt(mm, 2) + '%</b></div></div>'
+    + '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cp-q" style="margin:0;min-width:200px">Procedimento<input id="cp-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.pq) + '"></label>'
+    + '<label class="field" for="cp-e" style="margin:0">Especialidade<select id="cp-e"><option value="">Todas</option>' + esps.map(e => '<option' + (e === CLX.pesp ? ' selected' : '') + '>' + esc(e) + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="cp-s" style="margin:0">Situação<select id="cp-s">' + [['todos', 'Todos'], ['abaixo', 'Abaixo da margem'], ['acima', 'Acima do sugerido'], ['igual', 'No sugerido']].map(o => '<option value="' + o[0] + '"' + (o[0] === CLX.psit ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label>'
+    + (dir ? '<button class="btn ghost sm" type="button" id="cp-fix" style="margin-bottom:8px">Corrigir os abaixo da margem</button>' : '') + '<button class="btn ghost sm" type="button" id="cp-csv" style="margin-bottom:8px">Exportar CSV</button></div>'
+    + '<div id="cp-tab"></div><div class="tools" id="cp-bar" hidden style="margin-top:12px;align-items:center"><span id="cp-n" class="sub" style="margin:0"></span><button class="btn ghost sm" type="button" id="cp-desc">Descartar</button><button class="btn sm" type="button" id="cp-ok">Salvar alterações</button></div><div class="err" id="cp-err" role="alert"></div></div>';
+  const sit = s => s.preco_ideal == null ? 'x' : s.valor < s.preco_ideal ? 'abaixo' : s.valor > s.preco_ideal ? 'acima' : 'igual';
+  const filtra = () => lista.filter(s => (!CLX.pq || clNorm(s.nome).includes(clNorm(CLX.pq))) && (!CLX.pesp || s.especialidade === CLX.pesp) && (CLX.psit === 'todos' || sit(s) === CLX.psit));
+  const margemTd = (s, v) => { const m = clinDecomp(s, v).margem; return m == null ? '—' : '<span class="pill ' + (m * 100 + 0.0001 < mm ? 'off' : 'on') + '">' + pctTxt(m) + '</span>'; };
+  const barra = () => {
+    const n = Object.keys(CLX.pe).length; $('#cp-bar').hidden = !n; $('#cp-n').textContent = n + (n === 1 ? ' alteração não salva' : ' alterações não salvas');
+  };
+  const tab = () => {
+    const l = filtra();
+    $('#cp-tab').innerHTML = !l.length ? '<div class="vazio">Nenhum procedimento com esses filtros.</div>' : '<div class="rlg" style="max-height:600px"><table class="tb rl"><thead><tr><th>Procedimento</th><th class="n" title="Materiais, sem o protético">Materiais</th><th class="n">Protético</th><th class="n" title="Impostos e taxa do cartão, sobre o preço sugerido">Impostos e cartão</th><th class="n" title="Comissões sobre o preço sugerido menos o protético">Comissões</th>'
+      + '<th class="n">Preço sugerido</th><th class="n">Valor atual</th><th class="n">Margem atual</th>' + (dir ? '<th class="n">Novo valor</th><th></th>' : '') + '</tr></thead><tbody>'
+      + l.map(s => { const d = clinDecomp(s, s.preco_ideal || 0), ed = CLX.pe[s.id], v = ed != null ? ed : s.valor, a = abaixo(s);
+        return '<tr data-s="' + s.id + '"' + (ed != null ? ' style="background:var(--surface-2)"' : '') + '><td><b>' + esc(s.nome) + '</b>' + (s.especialidade ? '<div class="sub" style="margin:0">' + esc(s.especialidade) + '</div>' : '') + '</td>'
+          + (s.preco_ideal == null ? '<td class="n" colspan="4">Sem preço possível com os percentuais atuais</td>' : '<td class="n">' + brl(d.mat) + '</td><td class="n">' + brl(d.prot) + '</td><td class="n">' + brl(d.imp) + '</td><td class="n">' + brl(d.com) + '</td><td class="n"><b>' + brl(s.preco_ideal) + '</b></td>')
+          + '<td class="n">' + brl(s.valor) + '</td><td class="n" data-mg>' + margemTd(s, v) + '</td>'
+          + (dir ? '<td class="n"><input data-v inputmode="numeric" aria-label="Novo valor de ' + esc(s.nome) + '" style="width:110px;text-align:right" value="' + esc(moedaTxt(v)) + '"></td><td>' + (s.preco_ideal != null && v !== s.preco_ideal ? '<button class="btn ghost sm" type="button" data-u>Usar sugerido</button>' : '') + '</td>' : '') + '</tr>'; }).join('')
+      + '</tbody></table></div>';
+    $$('#cp-tab [data-s]').forEach(tr => {
+      const s = lista.find(x => x.id === Number(tr.dataset.s)), inp = $('[data-v]', tr);
+      if (inp) inp.addEventListener('input', e => {
+        e.target.value = mMoeda(e.target.value); const v = moedaNum(e.target.value);
+        if (v == null || v === s.valor) delete CLX.pe[s.id]; else CLX.pe[s.id] = v;
+        $('[data-mg]', tr).innerHTML = margemTd(s, v == null ? s.valor : v); tr.style.background = CLX.pe[s.id] != null ? 'var(--surface-2)' : ''; inp.style.borderColor = v != null && s.preco_ideal != null && v < s.preco_ideal ? 'var(--red)' : ''; barra();
+      });
+      const u = $('[data-u]', tr); if (u) u.addEventListener('click', () => { if (s.preco_ideal === s.valor) delete CLX.pe[s.id]; else CLX.pe[s.id] = s.preco_ideal; tab(); });
+    });
+    barra();
+  };
+  $('#cp-q').addEventListener('input', e => { CLX.pq = e.target.value; tab(); });
+  $('#cp-e').addEventListener('change', e => { CLX.pesp = e.target.value; tab(); });
+  $('#cp-s').addEventListener('change', e => { CLX.psit = e.target.value; tab(); });
+  $('#cp-csv').addEventListener('click', () => {
+    const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"', n2 = x => x == null ? '' : (Math.round(x * 100) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, useGrouping: false });
+    const lin = filtra().map(s => { const d = clinDecomp(s, s.preco_ideal || 0); return [s.nome, s.especialidade || '', n2(d.mat), n2(d.prot), n2(d.imp), n2(d.com), n2(s.preco_ideal), n2(s.valor), s.valor > 0 && clinDecomp(s, s.valor).margem != null ? n2(clinDecomp(s, s.valor).margem * 100) : ''].map(q).join(';'); });
+    baixaArquivo('precos-sugeridos.csv', '﻿' + ['Procedimento', 'Especialidade', 'Materiais', 'Protético', 'Impostos e cartão', 'Comissões', 'Preço sugerido', 'Valor atual', 'Margem atual (%)'].map(q).join(';') + '\r\n' + lin.join('\r\n'), 'text/csv;charset=utf-8');
+  });
+  if (dir) {
+    $('#cp-fix').addEventListener('click', () => { const l = lista.filter(abaixo); if (!l.length) { toast('Nenhum procedimento abaixo da margem.'); return; } l.forEach(s => { CLX.pe[s.id] = s.preco_ideal; }); tab(); toast(l.length + ' valor(es) ajustado(s) para o sugerido. Confira e salve.'); });
+    $('#cp-desc').addEventListener('click', () => { CLX.pe = {}; tab(); });
+    $('#cp-ok').addEventListener('click', async () => {
+      const er = $('#cp-err'); er.textContent = ''; const itens = Object.keys(CLX.pe).map(id => ({ id: Number(id), valor: CLX.pe[id] })); if (!itens.length) return;
+      const ruim = itens.find(i => { const s = lista.find(x => x.id === i.id); return s && s.preco_ideal != null && i.valor < s.preco_ideal; });
+      if (ruim) { const s = lista.find(x => x.id === ruim.id); er.textContent = s.nome + ': o valor não pode ser menor que o preço sugerido (' + brl(s.preco_ideal) + ').'; return; }
+      const bt = $('#cp-ok'); bt.disabled = true; const r = await sb.rpc('clin_precos_salvar', { p: itens }); bt.disabled = false;
+      if (r.error) { er.textContent = erroTxt(r.error); return; } CLX.pe = {}; toast(r.data + (r.data === 1 ? ' valor atualizado.' : ' valores atualizados.')); CLX.cat = null; clinCarregar();
+    });
+  }
   tab();
 }
 /* ----- Serviços ----- */
