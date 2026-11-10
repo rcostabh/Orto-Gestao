@@ -1200,6 +1200,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.62.1', '2026-11-10', 'Cadastro da unidade ganha o campo E-mail (obrigatório), usado também como contato nos avisos de pagamento do Asaas. Botões Testar conexão e Ativar avisos do Asaas passam a mostrar o resultado na tela.'],
   ['0.62.0', '2026-11-10', 'Recebimento pelo Asaas: cada unidade conecta a própria conta (Unidades › Asaas). Ao receber uma parcela, é possível cobrar por Pix, boleto, cartão ou link; o pagamento confirmado pelo Asaas dá baixa sozinho na parcela. No Financeiro: conferir pagamentos e gerar cobranças em lote. Botão do chat e lupa de pacientes ao lado do sino.'],
   ['0.61.0', '2026-11-10', 'Chat interno: conversas por setor (Geral, Recepção, Clínica, Divulgação, Gerência, Cobrança, Financeiro) e conversa privada entre funcionários da mesma unidade, com texto, emojis, imagens e áudios, indicação de quem está online e aviso sonoro. Tudo some sozinho após 90 dias. Barra lateral móvel: fica escondida e aparece ao aproximar o mouse da aba na borda esquerda (ou fixa pelo botão no topo à esquerda). Agenda da recepção um pouco maior.'],
   ['0.60.1', '2026-11-10', 'Recepção: ao lado da lupa de pesquisar paciente, no topo, ficam os atalhos Abrir agenda e Cadastrar novo prospect, e a indicação bem pequena de qual caixa está aberto (ou "Nenhum caixa aberto").'],
@@ -2200,14 +2201,16 @@ async function asSecao(u){
     + '<button class="btn ghost" type="button" id="as-test"' + (c.tem_chave ? '' : ' disabled') + '>Testar conexão</button><button class="btn ghost" type="button" id="as-hook"' + (c.tem_chave ? '' : ' disabled') + '>Ativar avisos de pagamento</button><button class="btn" type="button" id="as-save">Salvar Asaas</button></div>'
     + '<div class="err" id="as-err" role="alert"></div>';
   const er = $('#as-err'), trava = (b, on) => { b.disabled = on; };
+  const falha = x => { er.textContent = x.message; er.scrollIntoView({ block: 'nearest' }); toast(x.message.length > 110 ? x.message.slice(0, 107) + '...' : x.message); };
+  const rod = async (b, txt, fn) => { er.textContent = ''; const t0 = b.textContent; b.textContent = txt; trava(b, true); try { await fn(); } catch (x) { falha(x); } b.textContent = t0; trava(b, false); };
   $('#as-save').addEventListener('click', async e => {
     er.textContent = ''; const b = e.currentTarget; trava(b, true);
     const s = await sb.rpc('asaas_config_salvar', { p_unidade: u.id, p_ativo: $('#as-ativo').checked, p_ambiente: $('#as-amb').value, p_notificar: $('#as-not').checked, p_chave: $('#as-key').value.trim() || null });
-    trava(b, false); if (s.error) { er.textContent = erroTxt(s.error); return; }
+    trava(b, false); if (s.error) { falha(new Error(erroTxt(s.error))); return; }
     toast('Asaas salvo.'); asSecao(u);
   });
-  $('#as-test').addEventListener('click', async e => { er.textContent = ''; const b = e.currentTarget; trava(b, true); try { await asApi({ acao: 'testar', unidade_id: u.id }); toast('Conexão com o Asaas funcionando.'); } catch (x) { er.textContent = x.message; } trava(b, false); });
-  $('#as-hook').addEventListener('click', async e => { er.textContent = ''; const b = e.currentTarget; trava(b, true); try { await asApi({ acao: 'webhook', unidade_id: u.id }); toast('Avisos de pagamento ativados.'); asSecao(u); } catch (x) { er.textContent = x.message; trava(b, false); } });
+  $('#as-test').addEventListener('click', e => rod(e.currentTarget, 'Testando...', async () => { await asApi({ acao: 'testar', unidade_id: u.id }); toast('Conexão com o Asaas funcionando.'); }));
+  $('#as-hook').addEventListener('click', e => rod(e.currentTarget, 'Ativando...', async () => { await asApi({ acao: 'webhook', unidade_id: u.id }); toast('Avisos de pagamento ativados.'); asSecao(u); }));
 }
 const asAtiva = async un => { try { const r = await sb.rpc('asaas_ativa', { p_unidade: un }); return !r.error && r.data === true; } catch (_) { return false; } };
 async function asCopia(txt, msg){ try { await navigator.clipboard.writeText(txt); toast(msg || 'Copiado.'); } catch (_) { toast('Não foi possível copiar. Selecione e copie manualmente.'); } }
@@ -2313,6 +2316,7 @@ function uniForm(u){
     '<form id="u-form" novalidate><div class="db"><div class="sec">Identificação</div>'
     + '<div class="g2">' + fld('u-razao', 'Razão social', u && u.razao_social, 'maxlength="120"' + ro) + fld('u-sigla', 'Sigla <small>(2 a 8 letras ou números)</small>', u && u.sigla, 'maxlength="8" autocapitalize="characters"' + ro) + '</div>'
     + '<div class="g2">' + fld('u-cnpj', 'CNPJ', mCnpj(u && u.cnpj), 'inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00"' + ro) + fld('u-tel', 'Telefone', mTel(u && u.telefone), 'inputmode="tel" maxlength="15"' + ro) + '</div>'
+    + '<div class="g2">' + fld('u-email', 'E-mail da unidade', u && u.email, 'type="email" inputmode="email" maxlength="120" autocomplete="off" placeholder="contato@clinica.com.br"' + ro) + '</div>'
     + '<div class="sec">Endereço</div>'
     + '<div class="g3">' + fld('u-cep', 'CEP', mCEP(u && u.cep), 'inputmode="numeric" maxlength="9"' + ro) + fld('u-log', 'Rua / Avenida', u && u.logradouro, ro) + fld('u-num', 'Número', u && u.numero, 'maxlength="10"' + ro) + '</div>'
     + '<div class="sub" id="u-cepmsg" style="margin:-6px 0 0" aria-live="polite"></div><div class="g3">' + fld('u-comp', 'Complemento', u && u.complemento, ro) + fld('u-bai', 'Bairro', u && u.bairro, ro) + fld('u-cid', 'Cidade', u && u.cidade, ro) + '</div>'
@@ -2358,9 +2362,10 @@ function uniForm(u){
     if (!/^[A-Z0-9]{2,8}$/.test(sigla)) { er.textContent = 'A sigla precisa ter de 2 a 8 letras ou números.'; return; }
     if (dig(v('u-cnpj')) && !cnpjOk(v('u-cnpj'))) { er.textContent = 'CNPJ inválido. Confira os 14 números.'; return; }
     if (dig(v('u-tel')).length < 10) { er.textContent = 'Informe o telefone com DDD.'; return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('u-email'))) { er.textContent = 'Informe um e-mail válido para a unidade.'; return; }
     if (!v('u-log') || !v('u-num') || !v('u-cid') || !v('u-uf')) { er.textContent = 'Preencha rua, número, cidade e UF.'; return; }
     if (!Object.keys(horario).length) { er.textContent = 'Marque pelo menos um dia de funcionamento.'; return; }
-    const reg = { razao_social: v('u-razao'), cnpj: dig(v('u-cnpj')) || null, sigla, telefone: dig(v('u-tel')), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
+    const reg = { razao_social: v('u-razao'), cnpj: dig(v('u-cnpj')) || null, sigla, telefone: dig(v('u-tel')), email: v('u-email').toLowerCase(), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
     const b = $('#u-ok'); b.disabled = true;
     const { error } = novo ? await sb.from('unidades').insert(reg) : await sb.from('unidades').update(reg).eq('id', u.id);
     if (!error && !novo && NFC) { const r = await sb.rpc('nf_config_salvar', { p_unidade: u.id, p_cfg: nfLer(), p_token: ($('#nf-token').value || '').trim() || null }); if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; } }
