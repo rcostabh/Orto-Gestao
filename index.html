@@ -1201,6 +1201,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.63.0', '2026-11-10', 'Asaas: as cobranças podem nascer sozinhas todo dia, uma unidade por vez (Unidades › Asaas: gerar sozinho, quantos dias antes do vencimento). Parcelas que não viram cobrança, como as de paciente sem CPF, aparecem em Pendências do Asaas no Financeiro.'],
   ['0.62.2', '2026-11-10', 'Avisos na tela (como "salvo" ou "conexão funcionando") passam a aparecer também quando há uma janela aberta, que antes os escondia. Configuração do Asaas mostra o resultado do teste logo abaixo dos botões.'],
   ['0.62.1', '2026-11-10', 'Cadastro da unidade ganha o campo E-mail (obrigatório), usado também como contato nos avisos de pagamento do Asaas. Botões Testar conexão e Ativar avisos do Asaas passam a mostrar o resultado na tela.'],
   ['0.62.0', '2026-11-10', 'Recebimento pelo Asaas: cada unidade conecta a própria conta (Unidades › Asaas). Ao receber uma parcela, é possível cobrar por Pix, boleto, cartão ou link; o pagamento confirmado pelo Asaas dá baixa sozinho na parcela. No Financeiro: conferir pagamentos e gerar cobranças em lote. Botão do chat e lupa de pacientes ao lado do sino.'],
@@ -2198,6 +2199,8 @@ async function asSecao(u){
     + '<div class="g2"><label class="chk"><input type="checkbox" id="as-ativo"' + (c.ativo ? ' checked' : '') + '> Receber pelo Asaas</label>'
     + '<label class="field" for="as-amb">Ambiente<select id="as-amb"><option value="sandbox"' + (c.ambiente === 'sandbox' ? ' selected' : '') + '>Teste (sandbox)</option><option value="producao"' + (c.ambiente === 'producao' ? ' selected' : '') + '>Valendo (produção)</option></select></label></div>'
     + '<label class="chk"><input type="checkbox" id="as-not"' + (c.notificar ? ' checked' : '') + '> O Asaas também avisa o paciente por e-mail e SMS</label>'
+    + '<div class="g2"><label class="chk"><input type="checkbox" id="as-auto"' + (c.auto_gerar ? ' checked' : '') + '> Gerar as cobranças sozinho todo dia</label>'
+    + '<label class="field" for="as-dias">Dias antes do vencimento<input id="as-dias" inputmode="numeric" maxlength="2" value="' + (c.auto_dias || 7) + '"></label></div>'
     + '<label class="field" for="as-key">Chave de API' + (c.tem_chave ? ' <small>(já guardada; preencha só para trocar)</small>' : '') + '<input id="as-key" type="password" autocomplete="off" placeholder="' + (c.tem_chave ? '••••••••••••' : 'Cole a chave da conta Asaas da unidade') + '"></label>'
     + '<div class="df"><div class="esq"><span class="pill ' + (c.webhook_ok ? 'on' : 'off') + '" id="as-st">' + (c.webhook_ok ? 'Avisos de pagamento ativos' : 'Avisos de pagamento pendentes') + '</span></div>'
     + '<button class="btn ghost" type="button" id="as-test"' + (c.tem_chave ? '' : ' disabled') + '>Testar conexão</button><button class="btn ghost" type="button" id="as-hook"' + (c.tem_chave ? '' : ' disabled') + '>Ativar avisos de pagamento</button><button class="btn" type="button" id="as-save">Salvar Asaas</button></div>'
@@ -2207,7 +2210,7 @@ async function asSecao(u){
   const okm = $('#as-ok'), rod = async (b, txt, fn) => { er.textContent = ''; okm.textContent = ''; const t0 = b.textContent; b.textContent = txt; trava(b, true); try { await fn(); } catch (x) { falha(x); } b.textContent = t0; trava(b, false); };
   $('#as-save').addEventListener('click', async e => {
     er.textContent = ''; const b = e.currentTarget; trava(b, true);
-    const s = await sb.rpc('asaas_config_salvar', { p_unidade: u.id, p_ativo: $('#as-ativo').checked, p_ambiente: $('#as-amb').value, p_notificar: $('#as-not').checked, p_chave: $('#as-key').value.trim() || null });
+    const s = await sb.rpc('asaas_config_salvar', { p_unidade: u.id, p_ativo: $('#as-ativo').checked, p_ambiente: $('#as-amb').value, p_notificar: $('#as-not').checked, p_chave: $('#as-key').value.trim() || null, p_auto: $('#as-auto').checked, p_auto_dias: parseInt($('#as-dias').value, 10) || 0 });
     trava(b, false); if (s.error) { falha(new Error(erroTxt(s.error))); return; }
     toast('Asaas salvo.'); asSecao(u);
   });
@@ -2258,11 +2261,18 @@ async function asMostrar(x, nome, aoFim, pronta){
   q('as-conf').addEventListener('click', async e => { const b = e.currentTarget; b.disabled = true; try { const d = await asApi({ acao: 'detalhes', parcela_id: x.id }); if (d.pago) { fecharJanela(); toast('Pagamento confirmado. Baixa registrada.'); refrescaTela(); return; } toast('Ainda não foi pago.'); } catch (er) { q('as-e2').textContent = er.message; } b.disabled = false; });
   q('as-canc').addEventListener('click', async e => { const b = e.currentTarget; if (b.dataset.c !== '1') { b.dataset.c = '1'; b.textContent = 'Confirmar cancelamento'; return; } b.disabled = true; try { await asApi({ acao: 'cancelar', parcela_id: x.id }); fecharJanela(); toast('Cobrança cancelada no Asaas.'); refrescaTela(); } catch (er) { q('as-e2').textContent = er.message; b.disabled = false; } });
 }
+/* parcelas que não puderam virar cobrança (falta CPF etc.) */
+function asPendencias(l){
+  abrirJanela('Pendências do Asaas', '<div class="db"><div class="lista">' + l.map(x => '<div class="row f" style="cursor:default"><div><b>' + esc(x.paciente) + '</b><div class="m">' + esc(x.motivo) + '</div></div><div class="m">' + dBR(x.vencimento) + '<br>' + reais(x.valor) + '</div><div><button class="btn ghost sm" type="button" data-p="' + x.paciente_id + '">Abrir paciente</button></div></div>').join('') + '</div></div><div class="df"><button class="btn" type="button" id="as-px">Fechar</button></div>');
+  $('#as-px').addEventListener('click', fecharJanela);
+  $$('#dlg-c [data-p]').forEach(b => b.addEventListener('click', () => { fecharJanela(); abrirPaciente(Number(b.dataset.p)); }));
+}
 /* ferramentas no Financeiro: conferir pagamentos e gerar em lote */
 async function asFerramentas(){
   const el = $('#fn-as'); if (!el || !UN || !pode('financeiro.baixar')) return;
   if (!(await asAtiva(UN)) || !$('#fn-as')) return;
-  el.innerHTML = '<button class="btn ghost sm" type="button" id="as-sync">Conferir pagamentos Asaas</button><button class="btn ghost sm" type="button" id="as-lote">Gerar cobranças Asaas</button>';
+  el.innerHTML = '<button class="btn ghost sm" type="button" id="as-sync">Conferir pagamentos Asaas</button><button class="btn ghost sm" type="button" id="as-lote">Gerar cobranças Asaas</button><button class="btn ghost sm" type="button" id="as-pend" hidden></button>';
+  sb.rpc('asaas_falhas_lista', { p_unidade: UN }).then(r => { const l = r.data || [], b = $('#as-pend'); if (!b || r.error || !l.length) return; b.hidden = false; b.textContent = 'Pendências do Asaas (' + l.length + ')'; b.addEventListener('click', () => asPendencias(l)); });
   $('#as-sync').addEventListener('click', async e => { const b = e.currentTarget; b.disabled = true; try { const d = await asApi({ acao: 'sincronizar', unidade_id: UN }); toast(d.baixadas ? d.baixadas + ' pagamento(s) confirmado(s) e baixado(s).' : 'Nenhum pagamento novo.'); if (d.baixadas) finCarregar(); } catch (er) { toast(er.message); } b.disabled = false; });
   $('#as-lote').addEventListener('click', () => {
     abrirJanela('Gerar cobranças Asaas', '<div class="db"><label class="field" for="as-ate">Parcelas em aberto que vencem até<input id="as-ate" type="date" value="' + somaDias(hoje(), 10) + '"></label><div class="err" id="as-le" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="as-lx">Voltar</button><button class="btn" type="button" id="as-lg">Gerar</button></div>');
