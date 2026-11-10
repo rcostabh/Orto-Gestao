@@ -632,7 +632,8 @@ function cpfOk(p){
 }
 let tt, tt2;
 function toast(m){
-  const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); clearTimeout(tt2);
+  const t = $('#toast'), dl = document.getElementById('dlg'), host = dl && dl.open ? dl : document.body; if (t.parentNode !== host) host.appendChild(t); /* janela aberta cobre o resto da tela: o aviso vai para dentro dela */
+  t.textContent = m; t.hidden = false; clearTimeout(tt); clearTimeout(tt2);
   requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('v')));
   tt = setTimeout(() => { t.classList.remove('v'); tt2 = setTimeout(() => { t.hidden = true; }, 380); }, 3800);
 }
@@ -1200,6 +1201,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.62.2', '2026-11-10', 'Avisos na tela (como "salvo" ou "conexão funcionando") passam a aparecer também quando há uma janela aberta, que antes os escondia. Configuração do Asaas mostra o resultado do teste logo abaixo dos botões.'],
   ['0.62.1', '2026-11-10', 'Cadastro da unidade ganha o campo E-mail (obrigatório), usado também como contato nos avisos de pagamento do Asaas. Botões Testar conexão e Ativar avisos do Asaas passam a mostrar o resultado na tela.'],
   ['0.62.0', '2026-11-10', 'Recebimento pelo Asaas: cada unidade conecta a própria conta (Unidades › Asaas). Ao receber uma parcela, é possível cobrar por Pix, boleto, cartão ou link; o pagamento confirmado pelo Asaas dá baixa sozinho na parcela. No Financeiro: conferir pagamentos e gerar cobranças em lote. Botão do chat e lupa de pacientes ao lado do sino.'],
   ['0.61.0', '2026-11-10', 'Chat interno: conversas por setor (Geral, Recepção, Clínica, Divulgação, Gerência, Cobrança, Financeiro) e conversa privada entre funcionários da mesma unidade, com texto, emojis, imagens e áudios, indicação de quem está online e aviso sonoro. Tudo some sozinho após 90 dias. Barra lateral móvel: fica escondida e aparece ao aproximar o mouse da aba na borda esquerda (ou fixa pelo botão no topo à esquerda). Agenda da recepção um pouco maior.'],
@@ -2199,18 +2201,18 @@ async function asSecao(u){
     + '<label class="field" for="as-key">Chave de API' + (c.tem_chave ? ' <small>(já guardada; preencha só para trocar)</small>' : '') + '<input id="as-key" type="password" autocomplete="off" placeholder="' + (c.tem_chave ? '••••••••••••' : 'Cole a chave da conta Asaas da unidade') + '"></label>'
     + '<div class="df"><div class="esq"><span class="pill ' + (c.webhook_ok ? 'on' : 'off') + '" id="as-st">' + (c.webhook_ok ? 'Avisos de pagamento ativos' : 'Avisos de pagamento pendentes') + '</span></div>'
     + '<button class="btn ghost" type="button" id="as-test"' + (c.tem_chave ? '' : ' disabled') + '>Testar conexão</button><button class="btn ghost" type="button" id="as-hook"' + (c.tem_chave ? '' : ' disabled') + '>Ativar avisos de pagamento</button><button class="btn" type="button" id="as-save">Salvar Asaas</button></div>'
-    + '<div class="err" id="as-err" role="alert"></div>';
+    + '<div class="sub" id="as-ok" role="status" style="color:var(--ok);font-weight:600"></div><div class="err" id="as-err" role="alert"></div>';
   const er = $('#as-err'), trava = (b, on) => { b.disabled = on; };
   const falha = x => { er.textContent = x.message; er.scrollIntoView({ block: 'nearest' }); toast(x.message.length > 110 ? x.message.slice(0, 107) + '...' : x.message); };
-  const rod = async (b, txt, fn) => { er.textContent = ''; const t0 = b.textContent; b.textContent = txt; trava(b, true); try { await fn(); } catch (x) { falha(x); } b.textContent = t0; trava(b, false); };
+  const okm = $('#as-ok'), rod = async (b, txt, fn) => { er.textContent = ''; okm.textContent = ''; const t0 = b.textContent; b.textContent = txt; trava(b, true); try { await fn(); } catch (x) { falha(x); } b.textContent = t0; trava(b, false); };
   $('#as-save').addEventListener('click', async e => {
     er.textContent = ''; const b = e.currentTarget; trava(b, true);
     const s = await sb.rpc('asaas_config_salvar', { p_unidade: u.id, p_ativo: $('#as-ativo').checked, p_ambiente: $('#as-amb').value, p_notificar: $('#as-not').checked, p_chave: $('#as-key').value.trim() || null });
     trava(b, false); if (s.error) { falha(new Error(erroTxt(s.error))); return; }
     toast('Asaas salvo.'); asSecao(u);
   });
-  $('#as-test').addEventListener('click', e => rod(e.currentTarget, 'Testando...', async () => { await asApi({ acao: 'testar', unidade_id: u.id }); toast('Conexão com o Asaas funcionando.'); }));
-  $('#as-hook').addEventListener('click', e => rod(e.currentTarget, 'Ativando...', async () => { await asApi({ acao: 'webhook', unidade_id: u.id }); toast('Avisos de pagamento ativados.'); asSecao(u); }));
+  $('#as-test').addEventListener('click', e => rod(e.currentTarget, 'Testando...', async () => { await asApi({ acao: 'testar', unidade_id: u.id }); okm.textContent = 'Conexão com o Asaas funcionando.'; toast('Conexão com o Asaas funcionando.'); }));
+  $('#as-hook').addEventListener('click', e => rod(e.currentTarget, 'Ativando...', async () => { await asApi({ acao: 'webhook', unidade_id: u.id }); toast('Avisos de pagamento ativados.'); await asSecao(u); const o2 = $('#as-ok'); if (o2) o2.textContent = 'Avisos de pagamento ativados.'; }));
 }
 const asAtiva = async un => { try { const r = await sb.rpc('asaas_ativa', { p_unidade: un }); return !r.error && r.data === true; } catch (_) { return false; } };
 async function asCopia(txt, msg){ try { await navigator.clipboard.writeText(txt); toast(msg || 'Copiado.'); } catch (_) { toast('Não foi possível copiar. Selecione e copie manualmente.'); } }
