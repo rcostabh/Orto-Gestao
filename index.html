@@ -162,6 +162,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .cred{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px 10px;background:var(--surface-2);border-radius:12px;padding:14px;font-size:15px}.cred span{color:var(--muted)}.cred b{font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
 /* abas */
 .col{min-width:0}
+
+.fcx{margin:0 8px 8px auto;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.fcx:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.55}.fcx.on{color:var(--ok)}.fcx.on:before{background:var(--ok);opacity:1}
 .topo{position:sticky;top:0;z-index:15;display:flex;align-items:flex-end;gap:8px;background:var(--bg);border-bottom:1px solid var(--line);padding:8px clamp(16px,3vw,36px) 0}
 .abas{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:thin}
 .aba{display:flex;align-items:center;gap:2px;flex:0 0 auto;max-width:220px;background:var(--surface-2);border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;color:var(--muted);font:500 13.5px var(--font)}
@@ -510,7 +512,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
     <div class="bar"><button type="button" id="abre" aria-label="Abrir menu">☰</button><b id="bar-t"></b></div>
     <div class="modo" id="modo" hidden></div>
     <div class="topo"><div class="abas" id="abas" role="tablist" aria-label="Janelas abertas"></div>
+      <span class="fcx" id="ferr-cx" aria-live="polite" hidden></span>
       <button class="sino" id="busca-rap" type="button" hidden aria-label="Pesquisar paciente" title="Pesquisar paciente"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+      <button class="sino" id="ferr-ag" type="button" hidden aria-label="Abrir agenda de hoje" title="Abrir agenda de hoje"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
+      <button class="sino" id="ferr-np" type="button" hidden aria-label="Cadastrar novo prospect" title="Cadastrar novo prospect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="3.6"/><path d="M3.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6M19 7v6M16 10h6"/></svg></button>
       <button class="sino" id="sino" type="button" hidden aria-label="Avaliações para fazer" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0"/></svg><span class="bd" id="sino-n" hidden>0</span></button></div>
     <main class="main" id="area" tabindex="-1"></main>
   </div>
@@ -550,7 +555,8 @@ function limpaContato(x){
   return x;
 }
 async function fetchSemContato(url, opt){
-  const r = await fetch(url, opt); if (!semContato()) return r;
+  const r = await fetch(url, opt); if (/\/rpc\/(abrir|fechar)_caixa/.test(String(url && url.url || url))) setTimeout(() => { try { ferrCaixa(); } catch (_) {} }, 700);
+  if (!semContato()) return r;
   try { if (!/json/i.test(r.headers.get('content-type') || '')) return r; const j = await r.clone().json(); limpaContato(j); const h = new Headers(r.headers); h.delete('content-length'); h.delete('content-encoding'); return new Response(JSON.stringify(j), { status: r.status, statusText: r.statusText, headers: h }); } catch (_) { return r; }
 }
 const mTel = s => { if (/\*/.test(String(s || ''))) return '(**) *****-****'; const d = dig(s).slice(0, 11); if (d.length <= 2) return d ? '(' + d : ''; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
@@ -619,7 +625,7 @@ const dlg = $('#dlg');
 function abrirJanela(titulo, html){ $('#dlg-t').textContent = titulo; $('#dlg-c').innerHTML = html; if (!dlg.open) dlg.showModal(); }
 function fecharJanela(){ if (dlg.open) dlg.close(); }
 $('#dlg-x').addEventListener('click', fecharJanela);
-$('#busca-rap').addEventListener('click', () => pesqRapida());
+$('#busca-rap').addEventListener('click', () => pesqRapida()); $('#ferr-ag').addEventListener('click', () => abrirAgendaHoje()); $('#ferr-np').addEventListener('click', () => irPara('prospects').then(() => { if (ROTA_ATIVA() === 'prospects') pacForm(null); }));
 dlg.addEventListener('click', e => { if (e.target === dlg) fecharJanela(); });
 
 /* ---------- entrar e sair ---------- */
@@ -881,6 +887,7 @@ const btnMenu = i => '<button class="item" type="button" data-r="' + i.r + '">' 
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.60.1', '2026-11-10', 'Recepção: ao lado da lupa de pesquisar paciente, no topo, ficam os atalhos Abrir agenda e Cadastrar novo prospect, e a indicação bem pequena de qual caixa está aberto (ou "Nenhum caixa aberto").'],
   ['0.60.0', '2026-11-10', 'Recepção: pesquisa rápida de paciente (ícone no topo e na tela inicial) por nome, CPF, código ou telefone, em todas as unidades. A ficha mostra na abertura se o paciente está inadimplente e se a limpeza profunda ou a documentação passaram de 4 meses. Paciente de outra unidade abre a ficha financeira somente leitura.'],
   ['0.59.3', '2026-11-09', 'Agenda compacta: altura das linhas e fontes pela metade, e os cards da fila de espera com um terço do tamanho, para ver o máximo da agenda de uma vez.'],
   ['0.59.2', '2026-11-09', 'Tolerância de falta passa de 15 para 45 minutos: o paciente só consta como falta depois de 45 minutos do horário marcado.'],
@@ -989,7 +996,7 @@ function defUn(todas){
   const m = (todas || []).filter(u => u.ativa && (EU.acesso_total || (EU.unidades || []).includes(u.id)));
   MINHAS.length = 0; MINHAS.push(...m);
   if (!MINHAS.some(u => u.id === UN)) { let sv = null; try { sv = Number(localStorage.getItem('og_un_' + (EU.id || EU.login))); } catch (_) {} UN = (MINHAS.find(u => u.id === sv) || MINHAS[0] || {}).id || null; }
-  desenhaUn();
+  desenhaUn(); if (typeof ferrCaixa === 'function') ferrCaixa();
 }
 function desenhaUn(){
   const el = $('#und'), nm = u => esc(u.sigla) + ' — ' + esc(u.razao_social);
@@ -1005,7 +1012,7 @@ function trocarUnidade(id){
     if (id === UN) return;
     if (ABA) { try { await ABA.pronto; } catch (_) {} }
     UN = id; try { localStorage.setItem('og_un_' + (EU.id || EU.login), String(id)); } catch (_) {}
-    desenhaUn(); AV.vistos = null; AT.vistos = null; AV.lista = []; avBuscar(); atBuscar(); avVivo();
+    desenhaUn(); AV.vistos = null; AT.vistos = null; AV.lista = []; avBuscar(); atBuscar(); avVivo(); ferrCaixa();
     const eraFicha = ABA && ABA.rota === 'paciente'; if (eraFicha) $('#area').replaceChildren();
     const resto = ABAS.filter(a => a.rota !== 'paciente'); ABAS.length = 0; ABAS.push(...resto);
     if (eraFicha) mostrar(ABAS.find(a => a.rota === 'prospects') || ABAS[0]); else renderAbas();
@@ -1123,7 +1130,7 @@ function telaInicio(){
     + (recep ? '<div id="in-pend"></div>' : '') + '<div id="in-conv"></div><div id="in-cx"></div>' + (dir ? '<div id="in-dash"></div>' : '<div id="in-fal"></div>')
     + (recep || cxr || cxg || dir ? '' : '<div class="tres">' + [['cobranca', 'Cobrança', 'Parcelas, recebimentos e inadimplência.']]
       .map(c => '<div class="card">' + ico(c[0]) + '<h2>' + c[1] + '</h2><p class="sub">' + c[2] + '</p><span class="pill wr" style="justify-self:start">em construção</span></div>').join('') + '</div>');
-  const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); });
+  const ag = $('#in-agenda'); if (ag) ag.addEventListener('click', abrirAgendaHoje);
   const ib = $('#in-busca'); if (ib) ib.addEventListener('click', pesqRapida);
   const ia = $('#in-atend'); if (ia) ia.addEventListener('click', () => irPara('atendimento'));
   convitesCarrega();
@@ -2459,7 +2466,15 @@ async function pacLista(reinicia){
 async function pacMais(){ if (PAC.busy) return; PAC.busy = true; try { await pacLista(false); } finally { PAC.busy = false; } }
 /* ---------- PESQUISA RÁPIDA DE PACIENTE (recepção) ---------- */
 const ehRecep = () => !!EU && !ehGer() && pode('pacientes.ver') && pode('agenda.ver') && pode('agendamentos.recepcao');
-function buscaRapMostra(){ const b = $('#busca-rap'); if (b) b.hidden = !ehRecep(); }
+const abrirAgendaHoje = () => { AG.data = hoje(); irPara('agenda').then(() => { if (ROTA_ATIVA() === 'agenda' && AG.cols && $('#g-corpo')) agdDesenhar(); }); };
+let FERR_T = null;
+async function ferrCaixa(){
+  const b = $('#ferr-cx'); if (!b || !ehRecep() || !UN) return; const un = UN, r = await sb.rpc('caixa_aberto_unidade', { p_unidade: un }); if (r.error || un !== UN || !$('#ferr-cx')) return;
+  const l = r.data || []; b.className = 'fcx' + (l.length ? ' on' : ''); b.textContent = l.length ? 'Caixa aberto · ' + l.map(x => x.responsavel_nome.split(' ')[0]).join(', ') : 'Nenhum caixa aberto';
+}
+if (window.__teste) window.__ferrCaixa = () => ferrCaixa();
+function buscaRapMostra(){ const r = ehRecep(); $('#busca-rap').hidden = !r; $('#ferr-ag').hidden = !(r && pode('agenda.ver')); $('#ferr-np').hidden = !(r && pode('pacientes.criar')); $('#ferr-cx').hidden = !r;
+  clearInterval(FERR_T); FERR_T = null; if (r) { ferrCaixa(); FERR_T = setInterval(ferrCaixa, 60000); } }
 function pesqRapida(){
   abrirJanela('Pesquisar paciente', '<div class="db bq"><input type="search" id="bq" placeholder="Nome, CPF, código ou telefone" aria-label="Pesquisar paciente por nome, CPF, código ou telefone" autocomplete="off"><div class="bq-r" id="bq-r"></div></div>');
   const inp = $('#bq'), box = $('#bq-r'); let t = null, tk = 0, lista = [];
