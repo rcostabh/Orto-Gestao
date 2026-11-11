@@ -291,7 +291,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .pcc:hover{transform:translateY(-2px);border-color:var(--accent)}.pcc:focus-visible{outline:3px solid var(--accent);outline-offset:2px}.pcc.off{opacity:.55}
 .pcc .pl{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}.pcc .pn{font-size:16px;font-weight:650;line-height:1.25;overflow-wrap:anywhere}.pcc .pd{display:flex;align-items:baseline;gap:4px;align-self:end}.pcc .pd b{font-size:32px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.pcc .pd span{font-size:13px;color:var(--muted);margin-right:4px}
 .pcc .pf{display:flex;flex-wrap:wrap;gap:6px}
-.s-agendado{background:#111}.s-compareceu{background:#1b8a4b}.s-em_atendimento{background:#1769d6}.s-faltou{background:#d4271c}.s-concluido{background:#7a7a7a}
+.s-agendado{background:#111;--st:#111}.s-compareceu{background:#1b8a4b;--st:#1b8a4b}.s-em_atendimento{background:#1769d6;--st:#1769d6}.s-faltou{background:#d4271c;--st:#d4271c}.s-concluido{background:#7a7a7a;--st:#7a7a7a}
+.ag .a.pc{background:var(--pcb);color:var(--pcf);border-color:rgba(0,0,0,.18);box-shadow:inset 6px 0 0 var(--st)}.ag .a.pc small{opacity:.9}
+.cpk{display:grid;gap:10px}.cpk .cpl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.cpk .sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--line,#d9d9d9);cursor:pointer;padding:0}.cpk .sw[aria-pressed=true]{outline:3px solid var(--accent);outline-offset:1px}.cpk input[type=color]{width:40px;height:30px;padding:0;border:1px solid var(--line,#d9d9d9);border-radius:8px;background:none;cursor:pointer}.cpk .amo{border-radius:6px;padding:6px 10px;font-size:12px;line-height:1.2;box-shadow:inset 6px 0 0 #1b8a4b;max-width:260px}.cpk .amo b{display:block}.cpk .cpt{font-size:12px;color:var(--muted,#666);min-width:48px}
+.corch{display:inline-block;min-width:44px;text-align:center;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;border:1px solid rgba(0,0,0,.15)}
 .ag .a.cp{background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.09) 7px 14px)}
 .pdz{display:flex;gap:6px;align-items:center;margin:0 0 6px}.pdc{display:inline-flex;gap:6px;align-items:center;font:600 11px var(--font);color:var(--ink);background:var(--surface-2);border:1.5px solid var(--line);border-radius:999px;padding:3px 9px;cursor:pointer}.pdc b{background:var(--accent);color:#fff;border-radius:999px;min-width:17px;padding:0 5px;text-align:center;font-size:10.5px}.pdc.on{border-color:var(--accent);background:var(--accent-soft)}.pdc:disabled{opacity:.5;cursor:default}.pdc:disabled b{background:var(--muted)}
 .ag.hlon .a:not(.hl){opacity:.28}.ag .a.hl{outline:3px solid #ff9a00;outline-offset:1px;box-shadow:0 0 0 5px rgba(255,154,0,.28);z-index:6}
@@ -1211,6 +1214,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.71.0', '2026-11-11', 'Agenda: cada procedimento pode ter cor de caixa e cor de fonte, definidas no cadastro de Procedimentos (com prévia). Na agenda do dia, o horário aparece com essas cores e uma faixa lateral mostra a situação (agendado, compareceu, em atendimento, faltou, concluído). Sem cor definida, vale a cor da situação como antes.'],
   ['0.70.0', '2026-11-11', 'Recepção: o perfil de recepcionista volta a abrir na tela Início (com os cartões de documentação, limpeza profunda, caixa e faltas), mesmo que o perfil tenha a permissão de Atendimento. Dentistas continuam abrindo no Atendimento.'],
   ['0.69.0', '2026-11-11', 'Recepção: no topo da agenda aparece uma faixa pequena com quantos pacientes do dia estão com documentação e limpeza profunda em atraso. Clicar no cartão destaca na agenda os horários desses pacientes. Ao confirmar a chegada de um deles, abre um aviso para oferecer o serviço; depois de confirmar a oferta, a presença é marcada, a oferta fica registrada na ficha e a tela volta para a agenda. Procedimentos passa a usar o grid padrão.'],
   ['0.68.0', '2026-11-11', 'HOF (harmonização) dentro do Clínico: cada procedimento tem uma linha (Clínico geral ou HOF) e o percentual do dentista que executa vale por linha. Cada dentista pode ter a sua comissão no HOF, e a configuração do Clínico traz o padrão do HOF para a composição do preço. Procedimentos e Preço mínimo ganham a linha, e Financeiro › Recebimentos passa a separar o HOF do Clínico.'],
@@ -6099,12 +6103,14 @@ function prcLista(){
     $('#pr-n').textContent = l.length + (l.length === 1 ? ' procedimento' : ' procedimentos');
     const ord = Object.keys(PROC_LOC), o = l.slice().sort((a, b) => ord.indexOf(a.local) - ord.indexOf(b.local) || a.nome.localeCompare(b.nome, 'pt-BR'));
     gradeCad($('#pr-lista'), 'prc', o, [{ t: 'Procedimento', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' }, { t: 'Tipo de cadeira', v: p => PROC_LOC[p.local] },
-      { t: 'Tempo', r: 1, v: p => minTxt(p.duracao_min), k: p => p.duracao_min, soma: p => 0 }, { t: 'Avaliação', v: p => p.avaliacao ? 'Sim' : 'Não' },
+      { t: 'Cor na agenda', v: p => p.cor_fundo ? p.cor_fundo : 'Padrão', h: p => p.cor_fundo ? '<span class="corch" style="background:' + esc(p.cor_fundo) + ';color:' + esc(p.cor_fonte || '#ffffff') + '">Aa</span>' : '<span style="color:var(--muted,#666)">Padrão</span>' }, { t: 'Tempo', r: 1, v: p => minTxt(p.duracao_min), k: p => p.duracao_min, soma: p => 0 }, { t: 'Avaliação', v: p => p.avaliacao ? 'Sim' : 'Não' },
       { t: 'Situação', v: p => p.ativo ? 'Ativo' : 'Inativo', h: p => '<span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span>' }], p => prcForm(p), 'Nenhum procedimento.');
   };
   $('#pr-q').addEventListener('input', desenha); desenha();
   const n = $('#pr-novo'); if (n) n.addEventListener('click', () => prcForm(null));
 }
+const PROC_CORES = ['#1769d6', '#1b8a4b', '#d4271c', '#ff6a00', '#8e44ad', '#0f9d9a', '#e84393', '#f2c200', '#7a7a7a', '#111111'];
+const prcFonteAuto = hex => { const n = parseInt(hex.slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)); return l > 150 ? '#111111' : '#ffffff'; };
 function prcForm(p){
   const novo = !p, edita = novo ? pode('procedimentos.criar') : pode('procedimentos.editar'), ro = edita ? '' : ' disabled';
   const durs = []; for (let m = 15; m <= 240; m += 15) durs.push(m);
@@ -6114,11 +6120,29 @@ function prcForm(p){
     + '<div class="g2"><label class="field" for="pr-dur">Tempo *<select id="pr-dur"' + ro + '>' + durs.map(m => '<option value="' + m + '"' + ((p ? p.duracao_min : 15) === m ? ' selected' : '') + '>' + minTxt(m) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pr-loc">Tipo de cadeira *<select id="pr-loc"' + ro + '>' + Object.keys(PROC_LOC).map(k => '<option value="' + k + '"' + ((p ? p.local : 'auxiliar') === k ? ' selected' : '') + '>' + PROC_LOC[k] + '</option>').join('') + '</select></label></div>'
     + '<label class="chk" id="pr-avl"><input type="checkbox" id="pr-av"' + (p && p.avaliacao ? ' checked' : '') + ro + '> É uma avaliação</label>'
+    + '<div class="cpk" id="pr-cor"><b style="font-size:13px">Cores na agenda</b>'
+    + '<div class="cpl"><span class="cpt">Caixa</span>' + PROC_CORES.map(c => '<button type="button" class="sw" data-f="' + c + '" style="background:' + c + '" aria-label="Caixa ' + c + '" aria-pressed="false"' + ro + '></button>').join('') + '<input type="color" id="pr-cf" aria-label="Escolher cor da caixa"' + ro + '></div>'
+    + '<div class="cpl"><span class="cpt">Fonte</span><button type="button" class="sw" data-t="#ffffff" style="background:#fff" aria-label="Fonte branca" aria-pressed="false"' + ro + '></button><button type="button" class="sw" data-t="#111111" style="background:#111" aria-label="Fonte preta" aria-pressed="false"' + ro + '></button><input type="color" id="pr-ct" aria-label="Escolher cor da fonte"' + ro + '>'
+    + '<button type="button" class="btn ghost" id="pr-cpad"' + ro + '>Usar cor do status</button></div>'
+    + '<div class="cpl"><span class="cpt">Prévia</span><div class="amo" id="pr-amo"><b>09:00 Maria Souza</b><span>Procedimento · Agendado</span></div></div></div>'
     + '<div class="err" id="pr-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('procedimentos.inativar') ? '<button class="btn ' + (p.ativo ? 'danger' : 'ghost') + '" type="button" id="pr-ina">' + (p.ativo ? 'Inativar' : 'Reativar') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="pr-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="pr-ok">Salvar</button>' : '') + '</div></form>');
   const loc = () => { const g = $('#pr-loc').value === 'geral'; $('#pr-avl').hidden = !g; if (!g) $('#pr-av').checked = false; };
   loc(); $('#pr-loc').addEventListener('change', loc);
+  const COR = { f: p && p.cor_fundo || null, t: p && p.cor_fonte || null };
+  const corDesenha = () => {
+    const amo = $('#pr-amo'); amo.style.background = COR.f || '#111'; amo.style.color = COR.t || '#fff'; amo.firstChild.textContent = '09:00 Maria Souza';
+    amo.lastChild.textContent = ($('#pr-nome').value.trim() || 'Procedimento') + ' · Agendado';
+    $$('#pr-cor [data-f]').forEach(b => b.setAttribute('aria-pressed', String(COR.f === b.dataset.f))); $$('#pr-cor [data-t]').forEach(b => b.setAttribute('aria-pressed', String((COR.t || '#ffffff') === b.dataset.t && !!COR.f)));
+    if (COR.f) $('#pr-cf').value = COR.f; if (COR.t) $('#pr-ct').value = COR.t;
+  };
+  $$('#pr-cor [data-f]').forEach(b => b.addEventListener('click', () => { COR.f = b.dataset.f; if (!COR.t) COR.t = prcFonteAuto(COR.f); corDesenha(); }));
+  $$('#pr-cor [data-t]').forEach(b => b.addEventListener('click', () => { if (!COR.f) COR.f = '#111111'; COR.t = b.dataset.t; corDesenha(); }));
+  $('#pr-cf').addEventListener('input', e => { COR.f = e.target.value; COR.t = prcFonteAuto(COR.f); corDesenha(); });
+  $('#pr-ct').addEventListener('input', e => { if (!COR.f) COR.f = '#111111'; COR.t = e.target.value; corDesenha(); });
+  $('#pr-cpad').addEventListener('click', () => { COR.f = null; COR.t = null; corDesenha(); });
+  $('#pr-nome').addEventListener('input', corDesenha); corDesenha();
   $('#pr-cancel').addEventListener('click', fecharJanela);
   const ina = $('#pr-ina'); if (ina) ina.addEventListener('click', async () => {
     if (ina.dataset.c !== '1') { ina.dataset.c = '1'; ina.textContent = 'Confirmar'; return; }
@@ -6131,7 +6155,7 @@ function prcForm(p){
     const er = $('#pr-err'); er.textContent = '';
     const nome = $('#pr-nome').value.trim().replace(/\s+/g, ' ');
     if (!nome) { er.textContent = 'Dê um nome ao procedimento.'; return; }
-    const reg = { nome, duracao_min: Number($('#pr-dur').value), local: $('#pr-loc').value, avaliacao: $('#pr-av').checked };
+    const reg = { nome, duracao_min: Number($('#pr-dur').value), local: $('#pr-loc').value, avaliacao: $('#pr-av').checked, cor_fundo: COR.f, cor_fonte: COR.f ? (COR.t || prcFonteAuto(COR.f)) : null };
     const b = $('#pr-ok'); b.disabled = true;
     const r = novo ? await sb.from('procedimentos').insert(reg) : await sb.from('procedimentos').update(reg).eq('id', p.id);
     b.disabled = false;
@@ -6298,13 +6322,13 @@ async function agdCorpo(){
   if (!h) { AG.cols = null; corpo.innerHTML = '<div class="card"><div class="vazio">A unidade ' + esc(un.sigla) + ' não funciona em ' + NOMES_DIA[dt.getDay()] + '.</div></div>'; return; }
   const tk = ++AG.tk;
   const rs = await Promise.all([sb.rpc('agenda_do_dia', { p_unidade: un.id, p_data: AG.data }), sb.rpc('agendamentos_do_dia', { p_unidade: un.id, p_data: AG.data }),
-    sb.from('agendas').select('id,principal').eq('unidade_id', un.id), sb.from('procedimentos').select('*').eq('ativo', true).order('nome'), sb.rpc('feriado_do_dia', { p_unidade: un.id, p_data: AG.data })]);
+    sb.from('agendas').select('id,principal').eq('unidade_id', un.id), sb.from('procedimentos').select('*').eq('ativo', true).order('nome'), sb.rpc('feriado_do_dia', { p_unidade: un.id, p_data: AG.data }), sb.from('procedimentos').select('id,cor_fundo,cor_fonte')]);
   if (tk !== AG.tk || !$('#g-corpo')) return;
   AG.fer = rs[4].error ? null : (rs[4].data || null);
   if (rs[0].error) { corpo.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(rs[0].error)) + '</div></div>'; return; }
   const prin = new Set((rs[2].data || []).filter(a => a.principal).map(a => a.id));
   const cols = (rs[0].data || []).map(c => ({ ...c, principal: prin.has(c.agenda_id) }));
-  AG.cols = cols; AG.ags = rs[1].error ? [] : (rs[1].data || []); AG.procs = rs[3].data || [];
+  AG.cols = cols; AG.ags = rs[1].error ? [] : (rs[1].data || []); AG.procs = rs[3].data || []; AG.cores = {}; ((rs[5] && !rs[5].error && rs[5].data) || []).forEach(x => { if (x.cor_fundo) AG.cores[x.id] = x; });
   const marc = AG.ags.filter(x => x.status !== 'cancelado').length;
   if (AG.fer && !marc) { AG.cols = null; corpo.innerHTML = '<div class="card"><div class="vazio"><b>Feriado: ' + esc(AG.fer) + '.</b><br>A clínica está fechada neste dia e não há atendimento.</div></div>'; return; }
   const bfer = AG.fer ? '<div class="err" style="margin-bottom:10px"><b>Feriado: ' + esc(AG.fer) + '.</b> A clínica está fechada e a agenda não aceita novos agendamentos. Há ' + marc + ' agendamento(s) neste dia: remarque os pacientes para outra data.</div>' : '';
@@ -6355,7 +6379,8 @@ function agdGrade(cols, h, dt, ags){
     const i = cols.findIndex(c => c.agenda_id === a.agenda_id), n = a.dur_min / 15, r = rw(a.ini_min);
     if (i < 0 || r < 3 || a.ini_min + a.dur_min > fe + 30) return;
     const nome = a.tipo === 'paciente' ? a.paciente_nome : a.titulo, proc = a.tipo === 'paciente' ? a.procedimento_nome : 'Compromisso';
-    g += '<button type="button" class="a s-' + a.status + (a.tipo === 'compromisso' ? ' cp' : '') + '" style="grid-row:' + r + ' / span ' + n + ';grid-column:' + (i + 2) + '" data-ag="' + a.id + '" title="' + esc(hmDe(a.ini_min) + ' · ' + nome + ' · ' + proc + ' · ' + ST_AG[a.status]) + '"><b>' + hmDe(a.ini_min) + ' ' + esc(nome) + '</b>'
+    const pcr = a.tipo === 'paciente' && AG.cores && AG.cores[a.procedimento_id], pcs = pcr && pcr.cor_fundo ? ';--pcb:' + pcr.cor_fundo + ';--pcf:' + (pcr.cor_fonte || '#ffffff') : '';
+    g += '<button type="button" class="a s-' + a.status + (a.tipo === 'compromisso' ? ' cp' : '') + (pcs ? ' pc' : '') + '" style="grid-row:' + r + ' / span ' + n + ';grid-column:' + (i + 2) + pcs + '" data-ag="' + a.id + '" title="' + esc(hmDe(a.ini_min) + ' · ' + nome + ' · ' + proc + ' · ' + ST_AG[a.status]) + '"><b>' + hmDe(a.ini_min) + ' ' + esc(nome) + '</b>'
       + (n > 1 ? '<small>' + esc(proc) + ' · ' + ST_AG[a.status] + '</small>' : '') + '</button>';
   });
   return g;
