@@ -687,7 +687,7 @@ const pode = p => !!EU && (EU.acesso_total || EU.permissoes.includes(p));
 const waIc = (tel, nome) => { const d = dig(tel || ''); if (d.length < 10) return ''; return '<a class="wa-ic" href="https://wa.me/' + waNum(tel) + '" target="_blank" rel="noopener" title="Chamar' + (nome ? ' ' + esc(nome) : '') + ' no WhatsApp" aria-label="Chamar' + (nome ? ' ' + esc(nome) : '') + ' no WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#25d366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#fff" d="M8.6 7.5c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.5l-.5.6c.8 1.5 1.9 2.4 3.3 3l.6-.7c.1-.2.4-.2.6-.1l1.6.8c.2.1.3.3.2.6-.2.9-1 1.4-1.9 1.3-2.9-.4-5.3-2.7-6-5.5-.1-.8.5-1.7 1-2.6z"/></svg></a>'; };
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.wa-ic')) e.stopPropagation(); }, true);
 const ehGer = () => !!EU && !EU.fora && !EU.plataforma && (!!EU.acesso_total || EU.perfil === 'Gerente');
-const ehAtend = () => !!EU && !EU.fora && !EU.plataforma && pode('atendimento.ver') && !ehGer();
+const ehAtend = () => !!EU && !EU.fora && !EU.plataforma && pode('atendimento.ver') && !ehGer() && !(pode('agendamentos.recepcao') && !pode('prontuario.registrar'));
 const inicioRota = () => EU && EU.fora ? 'p-grupos' : (ehAtend() ? 'atendimento' : 'inicio');
 const ehDir = () => !!EU && !!EU.acesso_total && !EU.fora && !EU.plataforma;
 
@@ -1211,6 +1211,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.70.0', '2026-11-11', 'Recepção: o perfil de recepcionista volta a abrir na tela Início (com os cartões de documentação, limpeza profunda, caixa e faltas), mesmo que o perfil tenha a permissão de Atendimento. Dentistas continuam abrindo no Atendimento.'],
   ['0.69.0', '2026-11-11', 'Recepção: no topo da agenda aparece uma faixa pequena com quantos pacientes do dia estão com documentação e limpeza profunda em atraso. Clicar no cartão destaca na agenda os horários desses pacientes. Ao confirmar a chegada de um deles, abre um aviso para oferecer o serviço; depois de confirmar a oferta, a presença é marcada, a oferta fica registrada na ficha e a tela volta para a agenda. Procedimentos passa a usar o grid padrão.'],
   ['0.68.0', '2026-11-11', 'HOF (harmonização) dentro do Clínico: cada procedimento tem uma linha (Clínico geral ou HOF) e o percentual do dentista que executa vale por linha. Cada dentista pode ter a sua comissão no HOF, e a configuração do Clínico traz o padrão do HOF para a composição do preço. Procedimentos e Preço mínimo ganham a linha, e Financeiro › Recebimentos passa a separar o HOF do Clínico.'],
   ['0.67.0', '2026-11-10', 'Financeiro › Recebimentos: acompanhamento por período, com o recebido por dia separado em venda e cobrança e em ortodontia e clínico. Dá para comparar um período com outro (mês com mês, mesmo mês do ano passado ou datas livres), ver a média por dia, o ticket médio e o resultado de cada produto e serviço, destacando o que parou, caiu ou cresceu, e exportar para planilha.'],
