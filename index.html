@@ -1214,6 +1214,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.73.0', '2026-11-11', 'Agenda: a cor da fonte do horário muda conforme a situação (agendado, faltou, aguardando, em atendimento, concluído). As cores são escolhidas em Procedimentos › Cores por situação, com prévia sobre as caixas de cada procedimento; a cor da caixa continua sendo a do procedimento. A prévia no cadastro do procedimento mostra as cinco situações.'],
   ['0.72.0', '2026-11-11', 'Procedimentos com sub-procedimentos: no cadastro do procedimento (ex.: Urgência) digite as opções, uma por linha; ao agendar, escolher o tipo passa a ser obrigatório (Corte de fio, Dor ou incômodo, Orientação, Recolagem de Braquete, Recolocação de Elastic, Recolocação de Fio, Recolocação de Borrachinha). O tipo aparece no horário da agenda e na ficha do agendamento.'],
   ['0.71.0', '2026-11-11', 'Agenda: cada procedimento pode ter cor de caixa e cor de fonte, definidas no cadastro de Procedimentos (com prévia). Na agenda do dia, o horário aparece com essas cores e uma faixa lateral mostra a situação (agendado, compareceu, em atendimento, faltou, concluído). Sem cor definida, vale a cor da situação como antes.'],
   ['0.70.0', '2026-11-11', 'Recepção: o perfil de recepcionista volta a abrir na tela Início (com os cartões de documentação, limpeza profunda, caixa e faltas), mesmo que o perfil tenha a permissão de Atendimento. Dentistas continuam abrindo no Atendimento.'],
@@ -6091,13 +6092,13 @@ async function prcCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const r = await sb.from('procedimentos').select('*').order('nome');
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
-  D.procs = r.data; prcLista();
+  D.procs = r.data; await stCarrega(); prcLista();
 }
 const PROC_LOC = { geral: 'Agenda Geral', principal: 'Cadeira principal', auxiliar: 'Cadeiras auxiliares', todas: 'Todas as cadeiras, menos a Geral' };
 const prcDur = m => m < 60 ? '<b>' + m + '</b><span>min</span>' : '<b>' + Math.floor(m / 60) + '</b><span>h</span>' + (m % 60 ? ' <b>' + (m % 60) + '</b><span>min</span>' : '');
 function prcLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Procedimentos</h1></div>'
-    + (pode('procedimentos.criar') ? '<button class="btn" type="button" id="pr-novo">+ Novo procedimento</button>' : '') + '</div>'
+    + '<div class="tools">' + (pode('procedimentos.editar') ? '<button class="btn ghost" type="button" id="pr-st">Cores por situação</button>' : '') + (pode('procedimentos.criar') ? '<button class="btn" type="button" id="pr-novo">+ Novo procedimento</button>' : '') + '</div></div>'
     + '<div class="pcbar"><input type="search" id="pr-q" placeholder="Buscar procedimento" aria-label="Buscar procedimento" autocomplete="off"><span class="pill nu" id="pr-n"></span></div><div class="card" style="padding:0;overflow:hidden" id="pr-lista"></div>';
   const desenha = () => {
     const q = semAcento($('#pr-q').value.trim()), l = D.procs.filter(p => !q || semAcento(p.nome).includes(q));
@@ -6109,9 +6110,34 @@ function prcLista(){
   };
   $('#pr-q').addEventListener('input', desenha); desenha();
   const n = $('#pr-novo'); if (n) n.addEventListener('click', () => prcForm(null));
+  const bs = $('#pr-st'); if (bs) bs.addEventListener('click', prcStatusForm);
 }
+const ST_ORDEM = ['agendado', 'faltou', 'compareceu', 'em_atendimento', 'concluido'];
+const ST_FUNDO = { agendado: '#111111', compareceu: '#1b8a4b', em_atendimento: '#1769d6', faltou: '#d4271c', concluido: '#7a7a7a' };
+const ST_PAD = { agendado: '#ffffff', faltou: '#ff9e9e', compareceu: '#ffe066', em_atendimento: '#7df9ff', concluido: '#d0d0d0' };
+let ST_COR = { ...ST_PAD };
+const stCarrega = async () => { const r = await sb.rpc('agenda_cores_ler'); if (!r.error && r.data) ST_COR = { ...ST_PAD, ...r.data }; };
 const PROC_CORES = ['#1769d6', '#1b8a4b', '#d4271c', '#ff6a00', '#8e44ad', '#0f9d9a', '#e84393', '#f2c200', '#7a7a7a', '#111111'];
-const prcFonteAuto = hex => { const n = parseInt(hex.slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)); return l > 150 ? '#111111' : '#ffffff'; };
+function prcStatusForm(){
+  const base = [...new Set((D.procs || []).filter(x => x.ativo && x.cor_fundo).map(x => x.cor_fundo))].slice(0, 6), caixas = base.length ? base : ['#1769d6', '#8e44ad', '#0f9d9a'];
+  const C = { ...ST_COR };
+  abrirJanela('Cores por situação',
+    '<form id="st-form" novalidate><div class="db"><div style="display:grid;gap:10px">'
+    + ST_ORDEM.map(k => '<div class="stl" data-k="' + k + '" style="display:grid;grid-template-columns:150px 44px 1fr;gap:10px;align-items:center"><b>' + ({ agendado: 'Agendado', faltou: 'Faltou (passou a tolerância)', compareceu: 'Aguardando (compareceu)', em_atendimento: 'Em atendimento', concluido: 'Concluído' })[k] + '</b>'
+      + '<input type="color" class="stc" value="' + C[k] + '" aria-label="Cor da fonte: ' + ST_AG[k] + '" style="width:44px;height:32px;padding:0;border:1px solid var(--line,#d9d9d9);border-radius:8px;background:none"><div class="stp" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>').join('')
+    + '</div><div class="err" id="st-err" role="alert"></div></div>'
+    + '<div class="df"><div class="esq"><button class="btn ghost" type="button" id="st-pad">Restaurar padrão</button></div><button class="btn ghost" type="button" id="st-cancel">Cancelar</button><button class="btn" type="submit" id="st-ok">Salvar</button></div></form>');
+  const des = () => $$('#st-form .stl').forEach(l => { const k = l.dataset.k; l.querySelector('.stp').innerHTML = caixas.map(c => '<span class="corch" style="background:' + c + ';color:' + C[k] + ';box-shadow:inset 5px 0 0 ' + ST_FUNDO[k] + ';padding-left:14px">09:00 Maria</span>').join(''); });
+  $$('#st-form .stc').forEach(i => i.addEventListener('input', () => { C[i.closest('.stl').dataset.k] = i.value; des(); }));
+  $('#st-pad').addEventListener('click', () => { Object.assign(C, ST_PAD); $$('#st-form .stc').forEach(i => { i.value = C[i.closest('.stl').dataset.k]; }); des(); });
+  $('#st-cancel').addEventListener('click', fecharJanela); des();
+  $('#st-form').addEventListener('submit', async e => {
+    e.preventDefault(); const b = $('#st-ok'); b.disabled = true;
+    const r = await sb.rpc('agenda_cores_salvar', { p_cores: C }); b.disabled = false;
+    if (r.error) { $('#st-err').textContent = erroTxt(r.error); return; }
+    ST_COR = { ...C }; fecharJanela(); toast('Cores salvas.');
+  });
+}
 function prcForm(p){
   const novo = !p, edita = novo ? pode('procedimentos.criar') : pode('procedimentos.editar'), ro = edita ? '' : ' disabled';
   const durs = []; for (let m = 15; m <= 240; m += 15) durs.push(m);
@@ -6124,26 +6150,24 @@ function prcForm(p){
     + '<label class="field" for="pr-sub">Sub-procedimentos <small>(um por linha; se houver, é obrigatório escolher ao agendar)</small><textarea id="pr-sub" rows="4" maxlength="800" placeholder="Ex.: Corte de fio"' + ro + '>' + esc(((p && p.subprocedimentos) || []).join('\n')) + '</textarea></label>'
     + '<div class="cpk" id="pr-cor"><b style="font-size:13px">Cores na agenda</b>'
     + '<div class="cpl"><span class="cpt">Caixa</span>' + PROC_CORES.map(c => '<button type="button" class="sw" data-f="' + c + '" style="background:' + c + '" aria-label="Caixa ' + c + '" aria-pressed="false"' + ro + '></button>').join('') + '<input type="color" id="pr-cf" aria-label="Escolher cor da caixa"' + ro + '></div>'
-    + '<div class="cpl"><span class="cpt">Fonte</span><button type="button" class="sw" data-t="#ffffff" style="background:#fff" aria-label="Fonte branca" aria-pressed="false"' + ro + '></button><button type="button" class="sw" data-t="#111111" style="background:#111" aria-label="Fonte preta" aria-pressed="false"' + ro + '></button><input type="color" id="pr-ct" aria-label="Escolher cor da fonte"' + ro + '>'
-    + '<button type="button" class="btn ghost" id="pr-cpad"' + ro + '>Usar cor do status</button></div>'
-    + '<div class="cpl"><span class="cpt">Prévia</span><div class="amo" id="pr-amo"><b>09:00 Maria Souza</b><span>Procedimento · Agendado</span></div></div></div>'
+    + '<div class="cpl"><button type="button" class="btn ghost" id="pr-cpad"' + ro + '>Usar cor da situação (sem cor própria)</button></div>'
+
+    + '<div class="cpl"><span class="cpt">Prévia</span><div id="pr-amo" style="display:grid;gap:6px;flex:1;min-width:220px"></div></div></div>'
     + '<div class="err" id="pr-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('procedimentos.inativar') ? '<button class="btn ' + (p.ativo ? 'danger' : 'ghost') + '" type="button" id="pr-ina">' + (p.ativo ? 'Inativar' : 'Reativar') + '</button>' : '') + '</div>'
     + '<button class="btn ghost" type="button" id="pr-cancel">' + (edita ? 'Cancelar' : 'Fechar') + '</button>' + (edita ? '<button class="btn" type="submit" id="pr-ok">Salvar</button>' : '') + '</div></form>');
   const loc = () => { const g = $('#pr-loc').value === 'geral'; $('#pr-avl').hidden = !g; if (!g) $('#pr-av').checked = false; };
   loc(); $('#pr-loc').addEventListener('change', loc);
-  const COR = { f: p && p.cor_fundo || null, t: p && p.cor_fonte || null };
+  const COR = { f: p && p.cor_fundo || null };
   const corDesenha = () => {
-    const amo = $('#pr-amo'); amo.style.background = COR.f || '#111'; amo.style.color = COR.t || '#fff'; amo.firstChild.textContent = '09:00 Maria Souza';
-    amo.lastChild.textContent = ($('#pr-nome').value.trim() || 'Procedimento') + ' · Agendado';
-    $$('#pr-cor [data-f]').forEach(b => b.setAttribute('aria-pressed', String(COR.f === b.dataset.f))); $$('#pr-cor [data-t]').forEach(b => b.setAttribute('aria-pressed', String((COR.t || '#ffffff') === b.dataset.t && !!COR.f)));
-    if (COR.f) $('#pr-cf').value = COR.f; if (COR.t) $('#pr-ct').value = COR.t;
+    const nm = $('#pr-nome').value.trim() || 'Procedimento';
+    $('#pr-amo').innerHTML = ST_ORDEM.map(k => '<div class="amo" style="max-width:none;background:' + (COR.f || ST_FUNDO[k]) + ';color:' + (COR.f ? ST_COR[k] : '#fff') + ';box-shadow:inset 6px 0 0 ' + ST_FUNDO[k] + '"><b>09:00 Maria Souza</b><span>' + esc(nm) + ' · ' + ST_AG[k] + '</span></div>').join('');
+    $$('#pr-cor [data-f]').forEach(b => b.setAttribute('aria-pressed', String(COR.f === b.dataset.f)));
+    if (COR.f) $('#pr-cf').value = COR.f;
   };
-  $$('#pr-cor [data-f]').forEach(b => b.addEventListener('click', () => { COR.f = b.dataset.f; if (!COR.t) COR.t = prcFonteAuto(COR.f); corDesenha(); }));
-  $$('#pr-cor [data-t]').forEach(b => b.addEventListener('click', () => { if (!COR.f) COR.f = '#111111'; COR.t = b.dataset.t; corDesenha(); }));
-  $('#pr-cf').addEventListener('input', e => { COR.f = e.target.value; COR.t = prcFonteAuto(COR.f); corDesenha(); });
-  $('#pr-ct').addEventListener('input', e => { if (!COR.f) COR.f = '#111111'; COR.t = e.target.value; corDesenha(); });
-  $('#pr-cpad').addEventListener('click', () => { COR.f = null; COR.t = null; corDesenha(); });
+  $$('#pr-cor [data-f]').forEach(b => b.addEventListener('click', () => { COR.f = b.dataset.f; corDesenha(); }));
+  $('#pr-cf').addEventListener('input', e => { COR.f = e.target.value; corDesenha(); });
+  $('#pr-cpad').addEventListener('click', () => { COR.f = null; corDesenha(); });
   $('#pr-nome').addEventListener('input', corDesenha); corDesenha();
   $('#pr-cancel').addEventListener('click', fecharJanela);
   const ina = $('#pr-ina'); if (ina) ina.addEventListener('click', async () => {
@@ -6159,7 +6183,7 @@ function prcForm(p){
     if (!nome) { er.textContent = 'Dê um nome ao procedimento.'; return; }
     const subs = [...new Set($('#pr-sub').value.split('\n').map(x => x.trim().replace(/\s+/g, ' ')).filter(Boolean))].slice(0, 20);
     if (subs.some(x => x.length > 60)) { er.textContent = 'Cada sub-procedimento deve ter até 60 letras.'; return; }
-    const reg = { nome, duracao_min: Number($('#pr-dur').value), local: $('#pr-loc').value, avaliacao: $('#pr-av').checked, cor_fundo: COR.f, cor_fonte: COR.f ? (COR.t || prcFonteAuto(COR.f)) : null, subprocedimentos: subs.length ? subs : null };
+    const reg = { nome, duracao_min: Number($('#pr-dur').value), local: $('#pr-loc').value, avaliacao: $('#pr-av').checked, cor_fundo: COR.f, cor_fonte: null, subprocedimentos: subs.length ? subs : null };
     const b = $('#pr-ok'); b.disabled = true;
     const r = novo ? await sb.from('procedimentos').insert(reg) : await sb.from('procedimentos').update(reg).eq('id', p.id);
     b.disabled = false;
@@ -6326,13 +6350,13 @@ async function agdCorpo(){
   if (!h) { AG.cols = null; corpo.innerHTML = '<div class="card"><div class="vazio">A unidade ' + esc(un.sigla) + ' não funciona em ' + NOMES_DIA[dt.getDay()] + '.</div></div>'; return; }
   const tk = ++AG.tk;
   const rs = await Promise.all([sb.rpc('agenda_do_dia', { p_unidade: un.id, p_data: AG.data }), sb.rpc('agendamentos_do_dia', { p_unidade: un.id, p_data: AG.data }),
-    sb.from('agendas').select('id,principal').eq('unidade_id', un.id), sb.from('procedimentos').select('*').eq('ativo', true).order('nome'), sb.rpc('feriado_do_dia', { p_unidade: un.id, p_data: AG.data }), sb.from('procedimentos').select('id,cor_fundo,cor_fonte')]);
+    sb.from('agendas').select('id,principal').eq('unidade_id', un.id), sb.from('procedimentos').select('*').eq('ativo', true).order('nome'), sb.rpc('feriado_do_dia', { p_unidade: un.id, p_data: AG.data }), sb.from('procedimentos').select('id,cor_fundo,cor_fonte'), sb.rpc('agenda_cores_ler')]);
   if (tk !== AG.tk || !$('#g-corpo')) return;
   AG.fer = rs[4].error ? null : (rs[4].data || null);
   if (rs[0].error) { corpo.innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(rs[0].error)) + '</div></div>'; return; }
   const prin = new Set((rs[2].data || []).filter(a => a.principal).map(a => a.id));
   const cols = (rs[0].data || []).map(c => ({ ...c, principal: prin.has(c.agenda_id) }));
-  AG.cols = cols; AG.ags = rs[1].error ? [] : (rs[1].data || []); AG.procs = rs[3].data || []; AG.cores = {}; ((rs[5] && !rs[5].error && rs[5].data) || []).forEach(x => { if (x.cor_fundo) AG.cores[x.id] = x; });
+  AG.cols = cols; AG.ags = rs[1].error ? [] : (rs[1].data || []); AG.procs = rs[3].data || []; if (rs[6] && !rs[6].error && rs[6].data) ST_COR = { ...ST_PAD, ...rs[6].data }; AG.cores = {}; ((rs[5] && !rs[5].error && rs[5].data) || []).forEach(x => { if (x.cor_fundo) AG.cores[x.id] = x; });
   const marc = AG.ags.filter(x => x.status !== 'cancelado').length;
   if (AG.fer && !marc) { AG.cols = null; corpo.innerHTML = '<div class="card"><div class="vazio"><b>Feriado: ' + esc(AG.fer) + '.</b><br>A clínica está fechada neste dia e não há atendimento.</div></div>'; return; }
   const bfer = AG.fer ? '<div class="err" style="margin-bottom:10px"><b>Feriado: ' + esc(AG.fer) + '.</b> A clínica está fechada e a agenda não aceita novos agendamentos. Há ' + marc + ' agendamento(s) neste dia: remarque os pacientes para outra data.</div>' : '';
@@ -6383,7 +6407,7 @@ function agdGrade(cols, h, dt, ags){
     const i = cols.findIndex(c => c.agenda_id === a.agenda_id), n = a.dur_min / 15, r = rw(a.ini_min);
     if (i < 0 || r < 3 || a.ini_min + a.dur_min > fe + 30) return;
     const nome = a.tipo === 'paciente' ? a.paciente_nome : a.titulo, proc = a.tipo === 'paciente' ? a.procedimento_nome + (a.subprocedimento ? ' › ' + a.subprocedimento : '') : 'Compromisso';
-    const pcr = a.tipo === 'paciente' && AG.cores && AG.cores[a.procedimento_id], pcs = pcr && pcr.cor_fundo ? ';--pcb:' + pcr.cor_fundo + ';--pcf:' + (pcr.cor_fonte || '#ffffff') : '';
+    const pcr = a.tipo === 'paciente' && AG.cores && AG.cores[a.procedimento_id], pcs = pcr && pcr.cor_fundo ? ';--pcb:' + pcr.cor_fundo + ';--pcf:' + (ST_COR[a.status] || '#ffffff') : '';
     g += '<button type="button" class="a s-' + a.status + (a.tipo === 'compromisso' ? ' cp' : '') + (pcs ? ' pc' : '') + '" style="grid-row:' + r + ' / span ' + n + ';grid-column:' + (i + 2) + pcs + '" data-ag="' + a.id + '" title="' + esc(hmDe(a.ini_min) + ' · ' + nome + ' · ' + proc + ' · ' + ST_AG[a.status]) + '"><b>' + hmDe(a.ini_min) + ' ' + esc(nome) + (n === 1 && a.subprocedimento ? ' · ' + esc(a.subprocedimento) : '') + '</b>'
       + (n > 1 ? '<small>' + esc(proc) + ' · ' + ST_AG[a.status] + '</small>' : '') + '</button>';
   });
