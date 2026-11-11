@@ -198,12 +198,13 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .avc b{font-size:15px}.avc .m{color:var(--muted);font-size:13px}
 .avc .ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .card>.kv{display:grid;grid-template-columns:1fr auto;gap:6px 18px;align-items:baseline}.card>.kv span{color:var(--muted)}.card>.kv b{text-align:right;font-variant-numeric:tabular-nums}
+.rl.ga td{white-space:normal;vertical-align:top}.rl.ga td.n{white-space:nowrap}
 #mx-res{display:grid;grid-template-columns:1fr auto;gap:4px 16px;margin-top:10px;align-items:baseline}#mx-res span{color:var(--muted)}#mx-res b{text-align:right;font-variant-numeric:tabular-nums}
 /* ficha do paciente */
 .ficha{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .pdados{padding:14px 18px}
 .ficha .kv{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 20px;align-items:start}
-.ficha .kp{min-width:0;display:flex;flex-direction:column;gap:3px}.ficha .kp.w2{grid-column:span 2}
+.ficha .kv b{text-align:left}.ficha .kp{min-width:0;display:flex;flex-direction:column;gap:3px}.ficha .kp.w2{grid-column:span 2}
 .ficha .kp span{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .ficha .kp b{font-size:13px;font-weight:500;overflow-wrap:anywhere;line-height:1.35}
 @media (max-width:1180px){.ficha .kv{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -5588,6 +5589,43 @@ function gradeCorpo(box, cfg, corpo){
   if (cfg.clique) $$('tbody tr[data-i]', box).forEach(tr => { const go = () => cfg.clique(cfg.dados[Number(tr.dataset.i)]); tr.addEventListener('click', e => { if (!e.target.closest('button,a')) go(); }); tr.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }); });
   if (cfg.liga) cfg.liga(box);
 }
+
+/* ---------- GRID PADRÃO em todas as tabelas: cabeçalho fixo, funil por coluna e totais (mesmo visual de Pacientes e prospects) ---------- */
+const GA_FUNIL = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
+function gaMoeda(t){ const m = /^([−-]?)\s*R\$\s*([−-]?)\s*([\d.]*\d),(\d{2})$/.exec(String(t).replace(/\s+/g, ' ').trim()); return m ? (m[1] || m[2] ? -1 : 1) * Number(m[3].replace(/\./g, '') + '.' + m[4]) : null; }
+function gradeAuto(t){
+  if (t.dataset.ga) return; t.dataset.ga = '1';
+  if (t.classList.contains('it') || t.closest('[data-nogrid]') || t.querySelector('.fx') || t.closest('#rl-pop')) return;
+  const hr = t.tHead && t.tHead.rows[0], tb = t.tBodies[0]; if (!hr || !tb || t.tBodies.length > 1) return;
+  const rows = [...tb.rows], nc = hr.cells.length;
+  if (!rows.length || rows.some(r => r.cells.length !== nc || [...r.cells].some(c => c.colSpan > 1 || c.rowSpan > 1))) return;
+  const R = { f: [], dados: rows }, mon = [], tem = [];
+  for (let i = 0; i < nc; i++) {
+    const cel = rows.map(r => r.cells[i]), txt = cel.map(c => c.textContent.trim()).filter(Boolean);
+    mon[i] = txt.length > 0 && txt.every(x => gaMoeda(x) != null);
+    tem[i] = hr.cells[i].textContent.trim() !== '' && !hr.cells[i].querySelector('input,button') && !cel.some(c => c.querySelector('input,button,select'));
+  }
+  const cols = [...hr.cells].map((th, i) => ({ t: th.textContent.trim(), v: r => r.cells[i].textContent.replace(/\s+/g, ' ').trim() }));
+  t.classList.add('tb', 'rl', 'ga'); const par = t.parentElement; let box;
+  if (par.classList.contains('rlg')) box = par;
+  else if (par.classList.contains('tw') && par.children.length === 1) { par.classList.remove('tw'); par.classList.add('rlg'); box = par; }
+  else { box = document.createElement('div'); box.className = 'rlg'; par.insertBefore(box, t); box.appendChild(t); }
+  if (!box.style.maxHeight) box.style.maxHeight = '520px';
+  [...hr.cells].forEach((th, i) => { const n = mon[i]; if (n) { th.classList.add('n'); rows.forEach(r => r.cells[i].classList.add('n')); }
+    if (tem[i]) th.innerHTML = '<span class="th">' + th.innerHTML + '<button type="button" class="fx" data-fx="' + i + '" aria-label="Filtrar ' + esc(cols[i].t) + '" aria-haspopup="dialog">' + GA_FUNIL + '</button></span>'; });
+  const tf = document.createElement('tfoot'); tf.innerHTML = '<tr></tr>'; t.appendChild(tf);
+  const foot = () => {
+    const vis = rows.filter(r => r.style.display !== 'none'), fi = mon.indexOf(true), filtrando = R.f.some(Boolean);
+    const lab = 'Totais · ' + vis.length + (vis.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + rows.length : '');
+    tf.firstChild.innerHTML = fi < 0 ? '<td colspan="' + nc + '">' + lab + '</td>' : '<td colspan="' + fi + '">' + lab + '</td>' + cols.slice(fi).map((c, k) => '<td' + (mon[fi + k] ? ' class="n">' + reais(Math.round(vis.reduce((s, r) => s + (gaMoeda(r.cells[fi + k].textContent) || 0), 0) * 100) / 100) : '>') + '</td>').join('');
+    $$('.fx', hr).forEach(b => b.classList.toggle('on', !!R.f[Number(b.dataset.fx)]));
+  };
+  const corpo = () => { rows.forEach(r => { r.style.display = cols.every((c, i) => !R.f[i] || R.f[i].has(c.v(r))) ? '' : 'none'; }); foot(); };
+  $$('.fx', hr).forEach(b => b.addEventListener('click', () => relPop(Number(b.dataset.fx), b, R, cols, corpo)));
+  ['wheel', 'touchmove'].forEach(ev => box.addEventListener(ev, relPopFecha, { passive: true }));
+  foot();
+}
+{ let gaT = 0; new MutationObserver(() => { clearTimeout(gaT); gaT = setTimeout(() => $$('#area table:not([data-ga]), dialog table:not([data-ga])').forEach(gradeAuto), 30); }).observe(document.body, { childList: true, subtree: true }); }
 
 /* ---------- CAIXA: abertura diária por responsável, painel do paciente, fechamento e conciliação ---------- */
 const CX = { f: 'hoje' };
