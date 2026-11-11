@@ -293,6 +293,9 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .pcc .pf{display:flex;flex-wrap:wrap;gap:6px}
 .s-agendado{background:#111}.s-compareceu{background:#1b8a4b}.s-em_atendimento{background:#1769d6}.s-faltou{background:#d4271c}.s-concluido{background:#7a7a7a}
 .ag .a.cp{background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.09) 7px 14px)}
+.pdz{display:flex;gap:6px;align-items:center;margin:0 0 6px}.pdc{display:inline-flex;gap:6px;align-items:center;font:600 11px var(--font);color:var(--ink);background:var(--surface-2);border:1.5px solid var(--line);border-radius:999px;padding:3px 9px;cursor:pointer}.pdc b{background:var(--accent);color:#fff;border-radius:999px;min-width:17px;padding:0 5px;text-align:center;font-size:10.5px}.pdc.on{border-color:var(--accent);background:var(--accent-soft)}.pdc:disabled{opacity:.5;cursor:default}.pdc:disabled b{background:var(--muted)}
+.ag.hlon .a:not(.hl){opacity:.28}.ag .a.hl{outline:3px solid #ff9a00;outline-offset:1px;box-shadow:0 0 0 5px rgba(255,154,0,.28);z-index:6}
+.ofl{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}.ofl li{display:flex;justify-content:space-between;gap:12px;align-items:baseline;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:16px}.ofl li span{color:var(--muted);font-size:13px}
 .lgd{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 6px;font-size:10px;color:var(--muted)}
 .lgd i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(128,128,128,.4)}
 .pk{display:grid;gap:2px;max-height:170px;overflow:auto;border:1.5px solid var(--line);border-radius:11px;padding:4px}
@@ -1208,6 +1211,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.69.0', '2026-11-11', 'Recepção: no topo da agenda aparece uma faixa pequena com quantos pacientes do dia estão com documentação e limpeza profunda em atraso. Clicar no cartão destaca na agenda os horários desses pacientes. Ao confirmar a chegada de um deles, abre um aviso para oferecer o serviço; depois de confirmar a oferta, a presença é marcada, a oferta fica registrada na ficha e a tela volta para a agenda. Procedimentos passa a usar o grid padrão.'],
   ['0.68.0', '2026-11-11', 'HOF (harmonização) dentro do Clínico: cada procedimento tem uma linha (Clínico geral ou HOF) e o percentual do dentista que executa vale por linha. Cada dentista pode ter a sua comissão no HOF, e a configuração do Clínico traz o padrão do HOF para a composição do preço. Procedimentos e Preço mínimo ganham a linha, e Financeiro › Recebimentos passa a separar o HOF do Clínico.'],
   ['0.67.0', '2026-11-10', 'Financeiro › Recebimentos: acompanhamento por período, com o recebido por dia separado em venda e cobrança e em ortodontia e clínico. Dá para comparar um período com outro (mês com mês, mesmo mês do ano passado ou datas livres), ver a média por dia, o ticket médio e o resultado de cada produto e serviço, destacando o que parou, caiu ou cresceu, e exportar para planilha.'],
   ['0.66.0', '2026-11-10', 'Clínico: a negociação aceita pagamento em várias formas (entrada em dinheiro, Pix, débito e um ou mais cartões, cada um com suas parcelas). Se os pagamentos cobrem o total, não há cronograma de execução: cada serviço é liberado quando o pagamento é confirmado. Se sobrar saldo, ele vai para o financiamento próprio. Ao confirmar, os links de Pix e cartão do Asaas já são gerados, e o plano mostra cada pagamento com Gerar link, Ver link e Receber.'],
@@ -6274,9 +6278,9 @@ function agdDesenhar(){
     + '<input type="date" id="g-data" value="' + esc(AG.data) + '" aria-label="Data"><span class="dl">' + esc(dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + '</span>'
     + '<button class="btn ghost sm" type="button" id="g-atual">Atualizar</button>' + (pode('agenda.substituir') ? '<button class="btn ghost sm" type="button" id="g-abrir">Abrir outra cadeira</button>' : '') + (soDent() ? '<label class="chk"><input type="checkbox" id="g-todos"' + (AG.todos ? ' checked' : '') + '> Toda a clínica</label>' : '') + '</div>'
     + '<div class="lgd"><span><i style="background:#111"></i>Agendado</span><span><i style="background:#1b8a4b"></i>Compareceu</span><span><i style="background:#1769d6"></i>Em atendimento</span><span><i style="background:#d4271c"></i>Faltou (+45 min)</span><span><i style="background:#7a7a7a"></i>Concluído</span></div>'
-    + '<div id="atd"></div><div id="g-corpo"><div class="card"><p class="sub">Carregando...</p></div></div>';
+    + '<div id="g-pend"></div><div id="atd"></div><div id="g-corpo"><div class="card"><p class="sub">Carregando...</p></div></div>';
   const td = $('#g-todos'); if (td) td.addEventListener('change', () => { AG.todos = td.checked; atdAtualiza(); });
-  atdAtualiza();
+  atdAtualiza(); agdPendCarrega();
   const troca = () => { agdDesenhar(); };
   $('#g-ant').addEventListener('click', () => { AG.data = somaDias(AG.data, -1); troca(); });
   $('#g-prox').addEventListener('click', () => { AG.data = somaDias(AG.data, 1); troca(); });
@@ -6316,7 +6320,7 @@ async function agdCorpo(){
   }));
   $$('[data-liv]').forEach(b => b.addEventListener('click', () => agdAgendar(Number(b.dataset.liv), Number(b.dataset.m))));
   $$('[data-ag]').forEach(b => b.addEventListener('click', () => agdDetalhe(Number(b.dataset.ag))));
-  agdAplicaFiltro();
+  agdAplicaFiltro(); agdAplicaHl(false);
 }
 function agdGrade(cols, h, dt, ags){
   const dd = String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'), rot = DIA_CURTO[dt.getDay()].toLowerCase() + ' ' + dd;
@@ -6642,6 +6646,43 @@ function prontImprimir(){
   $('#pi-p').addEventListener('click', () => { const f = $('#pi-doc'); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('Não foi possível abrir a impressão.'); } });
 }
 
+/* ---------- RECEPÇÃO: lembretes de oferta (documentação e limpeza profunda) no topo da agenda ---------- */
+const pdPodeVer = () => pode('agendamentos.recepcao') && !soDent() && pode('pacientes.ver');
+async function agdPendCarrega(){
+  const box = $('#g-pend'); if (!box) return; AG.pend = []; AG.hl = null;
+  if (!pdPodeVer()) { box.innerHTML = ''; return; }
+  const dia = AG.data, r = await sb.rpc('pendencias_clinicas', { p_unidade: AG.un, p_ini: dia, p_fim: dia, p_meses: 4 });
+  if (!$('#g-pend') || dia !== AG.data) return;
+  AG.pend = r.error ? [] : (r.data || []); agdPendDesenha(); agdAplicaHl(false);
+}
+function agdPendDesenha(){
+  const box = $('#g-pend'); if (!box) return; const n = f => (AG.pend || []).filter(x => x[f]).length;
+  box.innerHTML = '<div class="pdz" role="group" aria-label="Pacientes do dia para oferecer">' + [['doc', 'Documentação', 'doc_pend'], ['limp', 'Limpeza profunda', 'limp_pend']].map(k => '<button type="button" class="pdc' + (AG.hl === k[0] ? ' on' : '') + '" data-hl="' + k[0] + '"' + (n(k[2]) ? '' : ' disabled') + '>' + k[1] + '<b>' + n(k[2]) + '</b></button>').join('') + '</div>';
+  $$('#g-pend [data-hl]').forEach(b => b.addEventListener('click', () => { AG.hl = AG.hl === b.dataset.hl ? null : b.dataset.hl; agdPendDesenha(); agdAplicaHl(true); }));
+}
+function agdAplicaHl(rola){
+  const g = $('#g-grade'); if (!g) return; const fl = AG.hl === 'doc' ? 'doc_pend' : AG.hl === 'limp' ? 'limp_pend' : null, ids = new Set(fl ? (AG.pend || []).filter(x => x[fl]).map(x => x.paciente_id) : []);
+  g.classList.toggle('hlon', !!fl); let primeiro = null;
+  $$('[data-ag]', g).forEach(b => { const a = (AG.ags || []).find(x => x.id === Number(b.dataset.ag)), on = !!(fl && a && a.tipo === 'paciente' && ids.has(a.paciente_id)); b.classList.toggle('hl', on); if (on && !primeiro) primeiro = b; });
+  if (rola && primeiro) primeiro.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+}
+const agdPendDe = pid => AG.data === hoje() && pdPodeVer() ? (AG.pend || []).find(x => x.paciente_id === pid && (x.doc_pend || x.limp_pend)) : null;
+/* aviso na chegada do paciente: oferecer o que está em atraso; ao confirmar, marca o comparecimento e volta para a agenda */
+function agdAvisoOferta(a, pd){
+  const it = (t, ult, pend) => pend ? '<li><b>' + t + '</b><span>' + (ult ? 'Última em ' + dBR(ult) : 'Nunca fez') + '</span></li>' : '';
+  abrirJanela('Oferecer ao paciente', '<div class="db"><p style="margin:0;font-size:17px"><b>' + esc(a.paciente_nome) + '</b> chegou. Antes de seguir, ofereça:</p>'
+    + '<ul class="ofl">' + it('Documentação', pd.doc_ultima, pd.doc_pend) + it('Limpeza profunda', pd.limp_ultima, pd.limp_pend) + '</ul><div class="err" id="of-err" role="alert"></div></div>'
+    + '<div class="df"><button class="btn ghost" type="button" id="of-x">Voltar</button><button class="btn" type="button" id="of-ok">Já ofereci</button></div>');
+  $('#of-x').addEventListener('click', fecharJanela);
+  $('#of-ok').addEventListener('click', async e => {
+    const b = e.currentTarget; b.disabled = true; const r = await sb.rpc('agendamento_acao', { p_id: a.id, p_acao: 'compareceu' });
+    if (r.error) { $('#of-err').textContent = erroTxt(r.error); b.disabled = false; return; }
+    const lista = [pd.doc_pend ? 'documentação' : '', pd.limp_pend ? 'limpeza profunda' : ''].filter(Boolean).join(' e ');
+    try { await sb.rpc('contato_registrar', { p_paciente: a.paciente_id, p_canal: 'presencial', p_resultado: 'atendeu', p_descricao: 'Oferta na chegada: ' + lista + '.' }); } catch (_) { /* o registro da oferta não impede o comparecimento */ }
+    fecharJanela(); toast('Presença confirmada.'); agdCorpo(); atdAtualiza(); avBuscar();
+  });
+}
+
 /* ---------- um horário marcado: situação e ações ---------- */
 function agdDetalhe(id){
   const a = AG.ags.find(x => x.id === id); if (!a) return;
@@ -6675,7 +6716,7 @@ function agdDetalhe(id){
     fecharJanela(); toast(acao === 'cancelar' ? 'Agendamento cancelado.' : 'Situação atualizada.'); agdCorpo(); atdAtualiza(); if (acao === 'compareceu' || acao === 'desfazer') avBuscar();
     if ((acao === 'atender' || acao === 'iniciar-av') && soDent() && pode('prontuario.ver')) prontuarioAbrir(a.paciente_id, a.paciente_nome);
   };
-  $$('[data-acao]').forEach(b => b.addEventListener('click', () => agir(b.dataset.acao, b)));
+  $$('[data-acao]').forEach(b => b.addEventListener('click', () => { const pd = b.dataset.acao === 'compareceu' ? agdPendDe(a.paciente_id) : null; if (pd) agdAvisoOferta(a, pd); else agir(b.dataset.acao, b); }));
   $('#d-x').addEventListener('click', fecharJanela);
   const cn = $('#d-canc'); if (cn) cn.addEventListener('click', () => agdCancelar(a));
   const hs = $('#d-hist'); if (hs) hs.addEventListener('click', () => agdHistorico(a));
