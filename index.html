@@ -410,6 +410,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .cbrow .err:empty{display:none}.cbrow .err{margin-top:4px;font-size:12px}
 @media (max-width:760px){.cbq .cbk{grid-template-columns:1fr 1fr}.cbq .cbk3{grid-column:1/-1}}
 
+.rcf{padding:8px 12px}.rcf .tools{gap:6px 10px;align-items:flex-end;margin:0}.rcf .field{margin:0;font-size:11px;gap:2px}.rcf input,.rcf select{height:28px;min-height:0;padding:2px 8px;font-size:12px;border-radius:8px}.rcf input[type=checkbox]{height:auto;width:14px;padding:0}.rcf label[for=rc-cmp],.rcf label[for=rc-queda]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px;font-size:12px;height:28px;white-space:nowrap}.rcf input[type=checkbox]{margin:0}.rcf #rc-q{min-width:150px;width:170px}.rcf .err:empty{display:none}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 12px}
 .kpi{background:var(--surface-2);border-radius:14px;padding:11px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpi span{font-size:12.5px;color:var(--muted)} .kpi b{font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums} .kpi.al b{color:var(--red)} .kpi.ok b{color:var(--ok)}
@@ -2886,15 +2887,15 @@ async function recCarregar(){
   if (RC.un === null || (RC.un && !MINHAS.some(u => u.id === RC.un))) RC.un = UN;
   const multi = MINHAS.length > 1;
   $('#area').innerHTML = '<div class="head"><div><h1>Recebimentos</h1></div><button class="btn ghost" type="button" id="rc-csv">Exportar CSV</button></div>'
-    + '<div class="card"><div class="tools" style="align-items:end;flex-wrap:wrap">'
+    + '<div class="card rcf"><div class="tools">'
     + (multi ? '<label class="field" for="rc-un" style="margin:0">Unidade<select id="rc-un"><option value="0"' + (RC.un === 0 ? ' selected' : '') + '>Todas as minhas unidades</option>' + MINHAS.map(u => '<option value="' + u.id + '"' + (RC.un === u.id ? ' selected' : '') + '>' + esc(u.sigla || u.nome) + '</option>').join('') + '</select></label>' : '')
     + '<label class="field" for="rc-a0" style="margin:0">Período de<input id="rc-a0" type="date" value="' + RC.a[0] + '"></label><label class="field" for="rc-a1" style="margin:0">até<input id="rc-a1" type="date" value="' + RC.a[1] + '"></label>'
-    + '<label class="field" style="margin:0;flex-direction:row;align-items:center;gap:6px" for="rc-cmp"><input id="rc-cmp" type="checkbox"' + (RC.cmp ? ' checked' : '') + '> Comparar com</label>'
+    + '<label class="field" for="rc-cmp"><input id="rc-cmp" type="checkbox"' + (RC.cmp ? ' checked' : '') + '> Comparar com</label>'
     + '<span id="rc-bx" style="display:' + (RC.cmp ? 'contents' : 'none') + '"><label class="field" for="rc-b0" style="margin:0">De<input id="rc-b0" type="date" value="' + RC.b[0] + '"></label><label class="field" for="rc-b1" style="margin:0">até<input id="rc-b1" type="date" value="' + RC.b[1] + '"></label></span>'
-    + '<label class="field" for="rc-pre" style="margin:0">Atalho<select id="rc-pre"><option value="">Escolher...</option><option value="mes">Este mês × mês anterior</option><option value="passado">Mês passado × retrasado</option><option value="ano">Este mês × mesmo mês do ano passado</option><option value="30">Últimos 30 dias × 30 anteriores</option></select></label></div>'
-    + '<div class="tools" style="margin-top:10px;flex-wrap:wrap"><select id="rc-setor" aria-label="Venda ou cobrança"><option value="">Venda e cobrança</option><option value="venda">Só venda</option><option value="cobranca">Só cobrança</option></select>'
+    + '<label class="field" for="rc-pre" style="margin:0">Atalho<select id="rc-pre"><option value="">Escolher...</option><option value="mes">Este mês × mês anterior</option><option value="passado">Mês passado × retrasado</option><option value="ano">Este mês × mesmo mês do ano passado</option><option value="30">Últimos 30 dias × 30 anteriores</option></select></label>'
+    + '<select id="rc-setor" aria-label="Venda ou cobrança"><option value="">Venda e cobrança</option><option value="venda">Só venda</option><option value="cobranca">Só cobrança</option></select>'
     + '<select id="rc-area" aria-label="Área"><option value="">Ortodontia e clínico</option><option value="ortodontia">Só ortodontia</option><option value="clinico">Só clínico</option></select>'
-    + '<input id="rc-q" type="search" placeholder="Buscar produto ou serviço" aria-label="Buscar produto ou serviço" value="' + esc(RC.q) + '"><label class="field" style="margin:0;flex-direction:row;align-items:center;gap:6px" for="rc-queda"><input id="rc-queda" type="checkbox"' + (RC.queda ? ' checked' : '') + '> Só os que caíram mais de 10%</label></div><div class="err" id="rc-err"></div></div>'
+    + '<input id="rc-q" type="search" placeholder="Buscar produto ou serviço" aria-label="Buscar produto ou serviço" value="' + esc(RC.q) + '"><label class="field" for="rc-queda"><input id="rc-queda" type="checkbox"' + (RC.queda ? ' checked' : '') + '> Caíram mais de 10%</label></div><div class="err" id="rc-err"></div></div>'
     + '<div id="rc-kpis"></div><div class="card"><div class="sec">Por dia</div><div id="rc-graf"></div></div><div class="card"><div class="sec">Por produto e serviço</div><div id="rc-prod"></div></div><div class="card"><div class="sec">Dia a dia</div><div id="rc-dias"></div></div>';
   $('#rc-setor').value = RC.setor; $('#rc-area').value = RC.area;
   const err = t => { $('#rc-err').textContent = t || ''; };
