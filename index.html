@@ -197,6 +197,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .avc.meu{border-color:var(--accent)}
 .avc b{font-size:15px}.avc .m{color:var(--muted);font-size:13px}
 .avc .ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.card>.kv{display:grid;grid-template-columns:1fr auto;gap:6px 18px;align-items:baseline}.card>.kv span{color:var(--muted)}.card>.kv b{text-align:right;font-variant-numeric:tabular-nums}
+#mx-res{display:grid;grid-template-columns:1fr auto;gap:4px 16px;margin-top:10px;align-items:baseline}#mx-res span{color:var(--muted)}#mx-res b{text-align:right;font-variant-numeric:tabular-nums}
 /* ficha do paciente */
 .ficha{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .pdados{padding:14px 18px}
@@ -410,7 +412,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .cbrow .err:empty{display:none}.cbrow .err{margin-top:4px;font-size:12px}
 @media (max-width:760px){.cbq .cbk{grid-template-columns:1fr 1fr}.cbq .cbk3{grid-column:1/-1}}
 
-.rcf{padding:8px 12px}.rcf .tools{gap:6px 10px;align-items:flex-end;margin:0}.rcf .field{margin:0;font-size:11px;gap:2px}.rcf input,.rcf select{height:28px;min-height:0;padding:2px 8px;font-size:12px;border-radius:8px}.rcf input[type=checkbox]{height:auto;width:14px;padding:0}.rcf label[for=rc-cmp],.rcf label[for=rc-queda]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px;font-size:12px;height:28px;white-space:nowrap}.rcf input[type=checkbox]{margin:0}.rcf #rc-q{min-width:150px;width:170px}.rcf .err:empty{display:none}
+.rcf{padding:8px 12px}.rcf .tools{gap:6px 10px;align-items:flex-end;margin:0}.rcf .field{margin:0;font-size:11px;gap:2px}.rcf input,.rcf select{height:28px;min-height:0;padding:2px 8px;font-size:12px;border-radius:8px}.rcf input[type=checkbox]{height:auto;width:14px;padding:0}.rcf label[for=rc-cmp],.rcf label[for=rc-queda]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px;font-size:12px;height:28px;white-space:nowrap}.rcf input[type=checkbox]{margin:0}.rcf #rc-q{min-width:150px;width:170px}.rcf .err:empty{display:none}#rc-kpis .kpis{grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}#rc-kpis .kpi b{font-size:clamp(19px,5.4vw,24px)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 12px}
 .kpi{background:var(--surface-2);border-radius:14px;padding:11px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpi span{font-size:12.5px;color:var(--muted)} .kpi b{font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums} .kpi.al b{color:var(--red)} .kpi.ok b{color:var(--ok)}
@@ -1205,6 +1207,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.68.0', '2026-11-11', 'HOF (harmonização) dentro do Clínico: cada procedimento tem uma linha (Clínico geral ou HOF) e o percentual do dentista que executa vale por linha. Cada dentista pode ter a sua comissão no HOF, e a configuração do Clínico traz o padrão do HOF para a composição do preço. Procedimentos e Preço mínimo ganham a linha, e Financeiro › Recebimentos passa a separar o HOF do Clínico.'],
   ['0.67.0', '2026-11-10', 'Financeiro › Recebimentos: acompanhamento por período, com o recebido por dia separado em venda e cobrança e em ortodontia e clínico. Dá para comparar um período com outro (mês com mês, mesmo mês do ano passado ou datas livres), ver a média por dia, o ticket médio e o resultado de cada produto e serviço, destacando o que parou, caiu ou cresceu, e exportar para planilha.'],
   ['0.66.0', '2026-11-10', 'Clínico: a negociação aceita pagamento em várias formas (entrada em dinheiro, Pix, débito e um ou mais cartões, cada um com suas parcelas). Se os pagamentos cobrem o total, não há cronograma de execução: cada serviço é liberado quando o pagamento é confirmado. Se sobrar saldo, ele vai para o financiamento próprio. Ao confirmar, os links de Pix e cartão do Asaas já são gerados, e o plano mostra cada pagamento com Gerar link, Ver link e Receber.'],
   ['0.65.0', '2026-11-10', 'Clínico: o "preço sugerido" virou preço mínimo de venda. Ele é o valor de tabela menos o desconto máximo (padrão 10%, configurável em Clínico › Configuração), e nunca fica abaixo do piso da margem. A tela passou a se chamar Clínico › Preço mínimo de venda e mostra também o piso da margem; o "mín." da negociação usa o novo preço mínimo.'],
@@ -2673,7 +2676,7 @@ function denForm(d){
     + '<label class="chk"><input type="checkbox" id="d-outros"' + (!d || d.atende_outros ? ' checked' : '') + ro + '> Permitir atendimento de pacientes de outros doutores</label>'
     + '<label class="chk"><input type="checkbox" id="d-orto"' + (d && d.ortodontista ? ' checked' : '') + ro + '> Ortodontista <small style="color:var(--muted)">(só ortodontistas podem assumir cadeiras na agenda)</small></label>'
     + '<div class="g2"><label class="field" for="d-esp">Especialidade<select id="d-esp"' + ro + '><option value="">Não informada</option>' + ESPEC_DENT.map(x => '<option' + (d && d.especialidade === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></label>'
-    + (pode('clinico.custos') ? '<label class="field" for="d-com">Comissão do dentista (%)<input id="d-com" inputmode="decimal" placeholder="padrão do Clínico" value="' + esc(d && d.comissao_pct != null ? nTxt(d.comissao_pct, 2) : '') + '"' + ro + '><small style="color:var(--muted)">Vazio = usa a comissão de execução da configuração do Clínico.</small></label>' : '') + '</div>'
+    + (pode('clinico.custos') ? '<label class="field" for="d-com">Comissão do dentista (%)<input id="d-com" inputmode="decimal" placeholder="padrão do Clínico" value="' + esc(d && d.comissao_pct != null ? nTxt(d.comissao_pct, 2) : '') + '"' + ro + '><small style="color:var(--muted)">Vazio = usa a comissão de execução da configuração do Clínico.</small></label><label class="field" for="d-comh">Comissão no HOF (%)<input id="d-comh" inputmode="decimal" placeholder="padrão do HOF" value="' + esc(d && d.comissao_hof_pct != null ? nTxt(d.comissao_hof_pct, 2) : '') + '"' + ro + '><small style="color:var(--muted)">Vazio = usa a comissão do HOF da configuração do Clínico.</small></label>' : '') + '</div>'
     + '<label class="chk" id="d-clin-w"' + (d && d.especialidade === 'Ortodontia' ? '' : ' hidden') + '><input type="checkbox" id="d-clin"' + (d && d.faz_clinico ? ' checked' : '') + ro + '> Também faz clínico (atendimentos fora da ortodontia)</label>'
     + '<div class="field"><span>Unidades e dias em que atua</span><p class="sub" style="margin:0">Marque a unidade e, dentro dela, os dias da semana. Em cada dia, marque as cadeiras que este dentista assume. Cadeira sem dentista no dia fica fechada. Só aparecem os dias em que a unidade funciona.</p><div class="uns" id="d-uns">' + (D.unidades.filter(u => u.ativa || minhas.includes(u.id)).map(u => {
         const dias = (D.dd || []).filter(x => d && x.dentista_id === d.id && x.unidade_id === u.id).map(x => x.dia_semana), on = minhas.includes(u.id);
@@ -2749,6 +2752,7 @@ function denForm(d){
       atende_outros: $('#d-outros').checked, ortodontista: $('#d-orto').checked, especialidade: v('d-esp') || null, faz_clinico: v('d-esp') === 'Ortodontia' && $('#d-clin').checked, cep: dig(v('d-cep')) || null, logradouro: v('d-log') || null, numero: v('d-num') || null, complemento: v('d-comp') || null, bairro: v('d-bai') || null, cidade: v('d-cid') || null, uf: v('d-uf') || null,
       funcionario_id: v('d-func') ? Number(v('d-func')) : null };
     if ($('#d-com')) { const cv = v('d-com').replace(',', '.'); if (cv && !(Number(cv) >= 0 && Number(cv) < 90)) { er.textContent = 'A comissão deve ficar entre 0 e 90%.'; return; } reg.comissao_pct = cv ? Number(cv) : null; }
+    if ($('#d-comh')) { const hv = v('d-comh').replace(',', '.'); if (hv && !(Number(hv) >= 0 && Number(hv) < 90)) { er.textContent = 'A comissão no HOF deve ficar entre 0 e 90%.'; return; } reg.comissao_hof_pct = hv ? Number(hv) : null; }
     const b = $('#d-ok'); b.disabled = true;
     let r;
     if (!idSalvo) { r = await sb.from('dentistas').insert(reg).select('*').single(); if (!r.error) idSalvo = r.data.id; }
@@ -2840,7 +2844,7 @@ async function finPrevCarregar(){
 }
 /* ---------- FINANCEIRO: acompanhamento dos recebimentos (venda x cobrança, ortodontia x clínico, por produto, período contra período) ---------- */
 const RC = { un: null, a: null, b: null, cmp: true, setor: '', area: '', q: '', queda: false, A: null, B: null, fp: [], fd: [] };
-const rcAreaTxt = { ortodontia: 'Ortodontia', clinico: 'Clínico' };
+const rcAreaTxt = { ortodontia: 'Ortodontia', clinico: 'Clínico', hof: 'HOF' };
 function rcPreset(k){
   const h = hoje(), y = Number(h.slice(0, 4)), m = Number(h.slice(5, 7)) - 1, d = Number(h.slice(8, 10));
   const ult = (yy, mm) => new Date(yy, mm + 1, 0).getDate(), mk = (yy, mm, dd) => iso(new Date(yy, mm, Math.min(dd, ult(yy, mm))));
@@ -2855,7 +2859,7 @@ const rcSoma = (rows, fn) => r2(rows.reduce((s, x) => s + (!fn || fn(x) ? Number
 function rcTotais(R){
   const rows = (R && R.dias) || [];
   return { total: rcSoma(rows), venda: rcSoma(rows, x => x.setor === 'venda'), cobranca: rcSoma(rows, x => x.setor === 'cobranca'), sem: rcSoma(rows, x => x.setor === 'sem_tipo'),
-    orto: rcSoma(rows, x => x.area === 'ortodontia'), clin: rcSoma(rows, x => x.area === 'clinico'), qtd: rows.reduce((s, x) => s + Number(x.qtd || 0), 0) };
+    orto: rcSoma(rows, x => x.area === 'ortodontia'), clin: rcSoma(rows, x => x.area === 'clinico'), hof: rcSoma(rows, x => x.area === 'hof'), qtd: rows.reduce((s, x) => s + Number(x.qtd || 0), 0) };
 }
 const rcDelta = (a, b) => b ? (a - b) / Math.abs(b) : null;
 const rcSeta = f => f == null ? '' : '<em style="font-style:normal;font-size:12px;color:' + (f >= 0 ? 'var(--ok)' : 'var(--red)') + '">' + (f >= 0 ? '▲ ' : '▼ ') + pctTxt(Math.abs(f)) + '</em>';
@@ -2894,7 +2898,7 @@ async function recCarregar(){
     + '<span id="rc-bx" style="display:' + (RC.cmp ? 'contents' : 'none') + '"><label class="field" for="rc-b0" style="margin:0">De<input id="rc-b0" type="date" value="' + RC.b[0] + '"></label><label class="field" for="rc-b1" style="margin:0">até<input id="rc-b1" type="date" value="' + RC.b[1] + '"></label></span>'
     + '<label class="field" for="rc-pre" style="margin:0">Atalho<select id="rc-pre"><option value="">Escolher...</option><option value="mes">Este mês × mês anterior</option><option value="passado">Mês passado × retrasado</option><option value="ano">Este mês × mesmo mês do ano passado</option><option value="30">Últimos 30 dias × 30 anteriores</option></select></label>'
     + '<select id="rc-setor" aria-label="Venda ou cobrança"><option value="">Venda e cobrança</option><option value="venda">Só venda</option><option value="cobranca">Só cobrança</option></select>'
-    + '<select id="rc-area" aria-label="Área"><option value="">Ortodontia e clínico</option><option value="ortodontia">Só ortodontia</option><option value="clinico">Só clínico</option></select>'
+    + '<select id="rc-area" aria-label="Área"><option value="">Todas as áreas</option><option value="ortodontia">Só ortodontia</option><option value="clinico">Só clínico</option><option value="hof">Só HOF</option></select>'
     + '<input id="rc-q" type="search" placeholder="Buscar produto ou serviço" aria-label="Buscar produto ou serviço" value="' + esc(RC.q) + '"><label class="field" for="rc-queda"><input id="rc-queda" type="checkbox"' + (RC.queda ? ' checked' : '') + '> Caíram mais de 10%</label></div><div class="err" id="rc-err"></div></div>'
     + '<div id="rc-kpis"></div><div class="card"><div class="sec">Por dia</div><div id="rc-graf"></div></div><div class="card"><div class="sec">Por produto e serviço</div><div id="rc-prod"></div></div><div class="card"><div class="sec">Dia a dia</div><div id="rc-dias"></div></div>';
   $('#rc-setor').value = RC.setor; $('#rc-area').value = RC.area;
@@ -2912,7 +2916,7 @@ async function recCarregar(){
     const sub = (b, a, c) => tB ? '<small style="color:var(--muted)">' + brl(b) + ' ' + rcSeta(rcDelta(a, b)) + '</small>' : '';
     const kx = (t, a, b) => '<div class="kpi"><span>' + t + '</span><b>' + brl(a) + '</b>' + sub(b, a) + '</div>', kp = (t, k) => kx(t, tA[k], tB ? tB[k] : 0);
     const mA = dA.length ? tA.total / dA.length : 0, mB = tB && dB.length ? tB.total / dB.length : 0, tkA = tA.qtd ? tA.total / tA.qtd : 0, tkB = tB && tB.qtd ? tB.total / tB.qtd : 0;
-    $('#rc-kpis').innerHTML = '<div class="kpis">' + kp('Total recebido', 'total') + kp('Venda', 'venda') + kp('Cobrança', 'cobranca') + kp('Ortodontia', 'orto') + kp('Clínico', 'clin') + kx('Média por dia', mA, mB) + kx('Ticket médio', tkA, tkB) + (tA.sem > 0 || (tB && tB.sem > 0) ? kp('Sem tipo de lançamento', 'sem') : '') + '</div>';
+    $('#rc-kpis').innerHTML = '<div class="kpis">' + kp('Total recebido', 'total') + kp('Venda', 'venda') + kp('Cobrança', 'cobranca') + kp('Ortodontia', 'orto') + kp('Clínico', 'clin') + (tA.hof > 0 || (tB && tB.hof > 0) ? kp('HOF', 'hof') : '') + kx('Média por dia', mA, mB) + kx('Ticket médio', tkA, tkB) + (tA.sem > 0 || (tB && tB.sem > 0) ? kp('Sem tipo de lançamento', 'sem') : '') + '</div>';
     const sA = rcSerie(RC.A, dA, f), sB = RC.cmp ? rcSerie(RC.B, dB, f) : [], dot = (c, o) => '<i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + c + ';opacity:' + o + ';margin-right:6px"></i>';
     $('#rc-graf').innerHTML = rcGrafico(dA, sA, dB, sB) + '<div class="tools" style="margin-top:6px;gap:16px"><span>' + dot('var(--accent)', 1) + dBR(RC.a[0]) + ' a ' + dBR(RC.a[1]) + '</span>' + (RC.cmp ? '<span>' + dot('var(--muted)', 0.45) + dBR(RC.b[0]) + ' a ' + dBR(RC.b[1]) + '</span>' : '') + '</div>';
     const rowsP = R => { const m = {}; ((R && R.produtos) || []).filter(x => (!f.setor || x.setor === f.setor) && (!f.area || x.area === f.area)).forEach(x => { const k = x.produto + '|' + x.tipo + '|' + x.area, o = m[k] = m[k] || { produto: x.produto, tipo: x.tipo, area: x.area, valor: 0, qtd: 0 }; o.valor = r2(o.valor + Number(x.valor)); o.qtd += Number(x.qtd); }); return m; };
@@ -2928,10 +2932,10 @@ async function recCarregar(){
       { t: 'Variação', n: 1, v: x => x.dp == null ? '—' : (x.dp >= 0 ? '+' : '−') + pctTxt(Math.abs(x.dp)), soma: x => 0 }, { t: 'Situação', v: x => x.sit, h: x => '<span class="pill ' + (pill[x.sit] || 'nu') + '">' + x.sit + '</span>' });
     RC.lp = lp; RC.fp = [];
     gradeF($('#rc-prod'), { dados: lp, f: RC.fp, vazio: 'Nenhum recebimento neste período.', maxH: 520, cols: cols });
-    const lin = {}; ((RC.A && RC.A.dias) || []).forEach(x => { if (f.setor && x.setor !== f.setor) return; if (f.area && x.area !== f.area) return; const o = lin[x.d] = lin[x.d] || { venda: 0, cobranca: 0, orto: 0, clin: 0, total: 0 }, v = Number(x.valor); o.total += v; if (x.setor === 'venda') o.venda += v; else if (x.setor === 'cobranca') o.cobranca += v; if (x.area === 'ortodontia') o.orto += v; else o.clin += v; });
-    const ld = dA.map((d, i) => Object.assign({ d: d, tb: RC.cmp ? sB[i] : 0, db: RC.cmp ? dB[i] : '' }, { venda: 0, cobranca: 0, orto: 0, clin: 0, total: 0 }, lin[d] || {}));
+    const lin = {}; ((RC.A && RC.A.dias) || []).forEach(x => { if (f.setor && x.setor !== f.setor) return; if (f.area && x.area !== f.area) return; const o = lin[x.d] = lin[x.d] || { venda: 0, cobranca: 0, orto: 0, clin: 0, hof: 0, total: 0 }, v = Number(x.valor); o.total += v; if (x.setor === 'venda') o.venda += v; else if (x.setor === 'cobranca') o.cobranca += v; if (x.area === 'ortodontia') o.orto += v; else if (x.area === 'hof') o.hof += v; else o.clin += v; });
+    const ld = dA.map((d, i) => Object.assign({ d: d, tb: RC.cmp ? sB[i] : 0, db: RC.cmp ? dB[i] : '' }, { venda: 0, cobranca: 0, orto: 0, clin: 0, hof: 0, total: 0 }, lin[d] || {}));
     const dc = [{ t: 'Data', v: x => dBR(x.d) }, { t: 'Dia', v: x => dataLocal(x.d).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '') },
-      { t: 'Venda', n: 1, v: x => brl(x.venda), soma: x => x.venda }, { t: 'Cobrança', n: 1, v: x => brl(x.cobranca), soma: x => x.cobranca }, { t: 'Ortodontia', n: 1, v: x => brl(x.orto), soma: x => x.orto }, { t: 'Clínico', n: 1, v: x => brl(x.clin), soma: x => x.clin }, { t: 'Total', n: 1, v: x => brl(x.total), soma: x => x.total }];
+      { t: 'Venda', n: 1, v: x => brl(x.venda), soma: x => x.venda }, { t: 'Cobrança', n: 1, v: x => brl(x.cobranca), soma: x => x.cobranca }, { t: 'Ortodontia', n: 1, v: x => brl(x.orto), soma: x => x.orto }, { t: 'Clínico', n: 1, v: x => brl(x.clin), soma: x => x.clin }, { t: 'HOF', n: 1, v: x => brl(x.hof), soma: x => x.hof }, { t: 'Total', n: 1, v: x => brl(x.total), soma: x => x.total }];
     if (RC.cmp) dc.push({ t: 'Dia comparado', v: x => x.db ? dBR(x.db) : '' }, { t: 'Total comparado', n: 1, v: x => brl(x.tb), soma: x => x.tb });
     RC.fd = [];
     gradeF($('#rc-dias'), { dados: ld, f: RC.fd, maxH: 420, cols: dc });
@@ -4491,14 +4495,15 @@ function pxSim(avista, entrada, taxaPct, modo, valor){
   }
   return { n: n, pmt: pmt, ult: cron[n - 1].parcela, pv: pv, total: pago, juros: r2(pago - avista), lib: lib, cron: cron };
 }
-function clinCustoJs(insumos, preco, c){
+const clinEx = (c, linha) => linha === 'hof' && c.hof_execucao_pct != null ? c.hof_execucao_pct : c.execucao_pct;
+function clinCustoJs(insumos, preco, c, linha){
   const ins = insumos.reduce((s, x) => s + x.qtd * x.custo_unit, 0), prot = insumos.reduce((s, x) => s + (x.protetico ? x.qtd * x.custo_unit : 0), 0);
-  return r2(ins + preco * (c.imposto_pct + c.cartao_pct) / 100 + Math.max(preco - prot, 0) * (c.venda_pct + c.avaliacao_pct + c.execucao_pct) / 100);
+  return r2(ins + preco * (c.imposto_pct + c.cartao_pct) / 100 + Math.max(preco - prot, 0) * (c.venda_pct + c.avaliacao_pct + clinEx(c, linha)) / 100);
 }
 /* preço ideal: menor valor inteiro cuja margem atinge a margem mínima (mesma conta do banco) */
-function clinIdealJs(insumos, c){
+function clinIdealJs(insumos, c, linha){
   const ins = insumos.reduce((s, x) => s + x.qtd * x.custo_unit, 0), prot = insumos.reduce((s, x) => s + (x.protetico ? x.qtd * x.custo_unit : 0), 0);
-  const A = (c.imposto_pct + c.cartao_pct) / 100, B = (c.venda_pct + c.avaliacao_pct + c.execucao_pct) / 100, den = 1 - A - B - c.margem_min_pct / 100;
+  const A = (c.imposto_pct + c.cartao_pct) / 100, B = (c.venda_pct + c.avaliacao_pct + clinEx(c, linha)) / 100, den = 1 - A - B - c.margem_min_pct / 100;
   return den <= 0.0001 ? null : Math.ceil((ins - prot * B) / den - 1e-9);
 }
 async function clinGarante(){
@@ -4566,7 +4571,7 @@ function clinOrcTab(){
 function clinDecomp(s, P){
   const c = CLX.cfg, ins = s.insumos || [];
   const mat = ins.reduce((t, x) => t + (x.protetico ? 0 : x.qtd * x.custo_unit), 0), prot = ins.reduce((t, x) => t + (x.protetico ? x.qtd * x.custo_unit : 0), 0);
-  const imp = P * (c.imposto_pct + c.cartao_pct) / 100, com = Math.max(P - prot, 0) * (c.venda_pct + c.avaliacao_pct + c.execucao_pct) / 100;
+  const imp = P * (c.imposto_pct + c.cartao_pct) / 100, com = Math.max(P - prot, 0) * (c.venda_pct + c.avaliacao_pct + clinEx(c, s.linha)) / 100;
   return { mat: mat, prot: prot, imp: imp, com: com, margem: P > 0 ? (P - mat - prot - imp - com) / P : null };
 }
 const clinDescMax = () => CLX.cfg.desconto_max_pct == null ? 10 : CLX.cfg.desconto_max_pct;
@@ -4581,11 +4586,12 @@ function clinPrecTab(){
     + '<div class="kpi"><span>Desconto limitado pela margem</span><b>' + nLi + '</b></div><div class="kpi"><span>Desconto máximo</span><b>' + nTxt(dm, 2) + '%</b></div><div class="kpi"><span>Margem mínima</span><b>' + nTxt(mm, 2) + '%</b></div></div>'
     + '<div class="card"><div class="tools" style="align-items:end"><label class="field" for="cp-q" style="margin:0;min-width:200px">Procedimento<input id="cp-q" type="search" placeholder="Buscar pelo nome" value="' + esc(CLX.pq) + '"></label>'
     + '<label class="field" for="cp-e" style="margin:0">Especialidade<select id="cp-e"><option value="">Todas</option>' + esps.map(e => '<option' + (e === CLX.pesp ? ' selected' : '') + '>' + esc(e) + '</option>').join('') + '</select></label>'
+    + '<label class="field" for="cp-l" style="margin:0">Linha<select id="cp-l"><option value="">Todas</option><option value="clinico"' + (CLX.plin === 'clinico' ? ' selected' : '') + '>Clínico geral</option><option value="hof"' + (CLX.plin === 'hof' ? ' selected' : '') + '>HOF</option></select></label>'
     + '<label class="field" for="cp-s" style="margin:0">Situação<select id="cp-s">' + [['todos', 'Todos'], ['abaixo', 'Abaixo da margem'], ['limitado', 'Desconto limitado pela margem'], ['livre', 'Desconto máximo liberado']].map(o => '<option value="' + o[0] + '"' + (o[0] === CLX.psit ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label>'
     + (dir ? '<button class="btn ghost sm" type="button" id="cp-fix" style="margin-bottom:8px">Corrigir os abaixo da margem</button>' : '') + '<button class="btn ghost sm" type="button" id="cp-csv" style="margin-bottom:8px">Exportar CSV</button></div>'
     + '<div id="cp-tab"></div><div class="tools" id="cp-bar" hidden style="margin-top:12px;align-items:center"><span id="cp-n" class="sub" style="margin:0"></span><button class="btn ghost sm" type="button" id="cp-desc">Descartar</button><button class="btn sm" type="button" id="cp-ok">Salvar alterações</button></div><div class="err" id="cp-err" role="alert"></div></div>';
   const sit = s => s.preco_ideal == null ? 'livre' : abaixo(s) ? 'abaixo' : limitado(s) ? 'limitado' : 'livre';
-  const filtra = () => lista.filter(s => (!CLX.pq || clNorm(s.nome).includes(clNorm(CLX.pq))) && (!CLX.pesp || s.especialidade === CLX.pesp) && (CLX.psit === 'todos' || sit(s) === CLX.psit));
+  const filtra = () => lista.filter(s => (!CLX.pq || clNorm(s.nome).includes(clNorm(CLX.pq))) && (!CLX.pesp || s.especialidade === CLX.pesp) && (!CLX.plin || (s.linha || 'clinico') === CLX.plin) && (CLX.psit === 'todos' || sit(s) === CLX.psit));
   const margemTd = (s, v) => { const m = clinDecomp(s, v).margem; return m == null ? '—' : '<span class="pill ' + (m * 100 + 0.0001 < mm ? 'off' : 'on') + '">' + pctTxt(m) + '</span>'; };
   const barra = () => {
     const n = Object.keys(CLX.pe).length; $('#cp-bar').hidden = !n; $('#cp-n').textContent = n + (n === 1 ? ' alteração não salva' : ' alterações não salvas');
@@ -4595,7 +4601,7 @@ function clinPrecTab(){
     $('#cp-tab').innerHTML = !l.length ? '<div class="vazio">Nenhum procedimento com esses filtros.</div>' : '<div class="rlg" style="max-height:600px"><table class="tb rl"><thead><tr><th>Procedimento</th><th class="n" title="Materiais, sem o protético, no preço mínimo de venda">Materiais</th><th class="n">Protético</th><th class="n" title="Impostos e taxa do cartão, sobre o preço mínimo de venda">Impostos e cartão</th><th class="n" title="Comissões sobre o preço mínimo de venda menos o protético">Comissões</th>'
       + '<th class="n" title="Menor valor que ainda deixa a margem mínima">Piso da margem</th><th class="n" title="Valor de tabela menos o desconto máximo, nunca abaixo do piso da margem">Preço mínimo de venda</th><th class="n">Valor de tabela</th><th class="n" title="Margem no valor de tabela">Margem na tabela</th><th class="n" title="Quando o valor de tabela está abaixo do piso da margem, este é o valor para corrigir">Sugerido para correção</th>' + (dir ? '<th class="n">Novo valor de tabela</th><th></th>' : '') + '</tr></thead><tbody>'
       + l.map(s => { const ed = CLX.pe[s.id], v = ed != null ? ed : s.valor, mn = clinMinDe(s.preco_ideal, v), d = clinDecomp(s, mn);
-        return '<tr data-s="' + s.id + '"' + (ed != null ? ' style="background:var(--surface-2)"' : '') + '><td><b>' + esc(s.nome) + '</b>' + (s.especialidade ? '<div class="sub" style="margin:0">' + esc(s.especialidade) + '</div>' : '') + '</td>'
+        return '<tr data-s="' + s.id + '"' + (ed != null ? ' style="background:var(--surface-2)"' : '') + '><td><b>' + esc(s.nome) + '</b>' + (s.linha === 'hof' ? ' <span class="pill wr">HOF</span>' : '') + (s.especialidade ? '<div class="sub" style="margin:0">' + esc(s.especialidade) + '</div>' : '') + '</td>'
           + (s.preco_ideal == null ? '<td class="n" colspan="5">Sem preço possível com os percentuais atuais</td>' : '<td class="n">' + brl(d.mat) + '</td><td class="n">' + brl(d.prot) + '</td><td class="n">' + brl(d.imp) + '</td><td class="n">' + brl(d.com) + '</td><td class="n">' + brl(s.preco_ideal) + '</td>')
           + '<td class="n" data-mn><b>' + brl(mn) + '</b></td><td class="n">' + brl(s.valor) + '</td><td class="n" data-mg>' + margemTd(s, s.valor) + '</td><td class="n" data-sg>' + (abaixo(s) ? '<b style="color:var(--red)">' + brl(s.preco_ideal) + '</b>' : '—') + '</td>'
           + (dir ? '<td class="n"><input data-v inputmode="numeric" aria-label="Novo valor de tabela de ' + esc(s.nome) + '" style="width:110px;text-align:right" value="' + esc(moedaTxt(v)) + '"></td><td>' + (s.preco_ideal != null && v < s.preco_ideal ? '<button class="btn ghost sm" type="button" data-u>Usar o piso</button>' : '') + '</td>' : '') + '</tr>'; }).join('')
@@ -4612,7 +4618,7 @@ function clinPrecTab(){
     barra();
   };
   $('#cp-q').addEventListener('input', e => { CLX.pq = e.target.value; tab(); });
-  $('#cp-e').addEventListener('change', e => { CLX.pesp = e.target.value; tab(); });
+  $('#cp-e').addEventListener('change', e => { CLX.pesp = e.target.value; tab(); }); $('#cp-l').addEventListener('change', e => { CLX.plin = e.target.value; tab(); });
   $('#cp-s').addEventListener('change', e => { CLX.psit = e.target.value; tab(); });
   $('#cp-csv').addEventListener('click', () => {
     const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"', n2 = x => x == null ? '' : (Math.round(x * 100) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, useGrouping: false });
@@ -4648,7 +4654,7 @@ function clinServTab(){
     + (cust ? '<label style="display:flex;gap:8px;align-items:center;margin:0 0 8px"><input type="checkbox" id="cs-ab"' + (CLX.abaixo ? ' checked' : '') + '> Só abaixo da margem mínima (' + nTxt(CLX.cfg.margem_min_pct, 2) + '%)</label>' : '')
     + (edit ? '<button class="btn sm" type="button" id="cs-novo">Novo procedimento</button>' + (ehDir() ? '<button class="btn ghost sm" type="button" id="cs-imp">Importar planilha (CSV)</button>' : '') : '') + '</div><div id="cs-tab"></div></div>';
   const sit = s => { const mm = CLX.cfg.margem_min_pct; return s.margem == null ? '—' : s.margem * 100 < mm ? 'Valor abaixo da margem' : s.margem_minimo != null && s.margem_minimo * 100 < mm ? 'Mínimo abaixo da margem' : 'Dentro da margem'; };
-  const cols = [{ t: 'Procedimento', v: s => s.nome, h: s => esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') }, { t: 'Especialidade', v: s => s.especialidade || '—' }];
+  const cols = [{ t: 'Procedimento', v: s => s.nome, h: s => esc(s.nome) + (s.ativo ? '' : ' <span class="pill off">inativo</span>') }, { t: 'Especialidade', v: s => s.especialidade || '—' }, { t: 'Linha', v: s => s.linha === 'hof' ? 'HOF' : 'Clínico geral', h: s => s.linha === 'hof' ? '<span class="pill wr">HOF</span>' : 'Clínico geral' }];
   if (verV) cols.push({ t: 'Valor', r: 1, v: s => brl(s.valor) }, { t: 'Mín. de venda', r: 1, v: s => s.minimo == null ? '—' : brl(s.minimo) });
   if (cust) cols.push({ t: 'Custo', r: 1, v: s => brl(s.custo) }, { t: 'Margem no valor', r: 1, v: s => pctTxt(s.margem) }, { t: 'Margem no mín.', r: 1, v: s => pctTxt(s.margem_minimo) },
     { t: 'Piso da margem', r: 1, v: s => s.preco_ideal == null ? '—' : brl(s.preco_ideal) }, { t: 'Situação', v: sit, h: s => clinSit(s) });
@@ -4668,6 +4674,7 @@ function clinServForm(s){
   abrirJanela(s ? 'Editar procedimento' : 'Novo procedimento', '<form id="sf-form" novalidate><div class="db">'
     + '<label class="field" for="sf-n">Nome do procedimento<input id="sf-n" maxlength="160" value="' + esc(s ? s.nome : '') + '"></label>'
     + '<label class="field" for="sf-e">Especialidade<input id="sf-e" maxlength="60" list="sf-el" value="' + esc(s ? s.especialidade || '' : '') + '"><datalist id="sf-el">' + [...new Set(CLX.cat.servicos.map(x => x.especialidade).filter(Boolean))].map(e => '<option value="' + esc(e) + '">').join('') + '</datalist></label>'
+    + '<label class="field" for="sf-l">Linha<select id="sf-l"><option value="clinico"' + (s && s.linha === 'hof' ? '' : ' selected') + '>Clínico geral</option><option value="hof"' + (s && s.linha === 'hof' ? ' selected' : '') + '>HOF (harmonização)</option></select></label>'
     + '<div class="tools" style="margin:0"><label class="field" for="sf-v" style="margin:0">Valor de venda (R$)<input id="sf-v" inputmode="numeric" value="' + esc(s ? moedaTxt(s.valor) : '') + '"' + (dir ? '' : ' disabled') + '></label><label class="field" for="sf-m" style="margin:0">Preço mínimo de venda (R$), calculado<input id="sf-m" inputmode="numeric" disabled value="' + esc(s ? moedaTxt(s.minimo) : '') + '"></label></div>'
     + '<p class="sub" style="margin:0">O preço mínimo de venda é calculado pelo sistema: o valor de tabela menos ' + nTxt(clinDescMax(), 2) + '% de desconto, nunca abaixo do piso da margem (' + nTxt(cfg.margem_min_pct, 2) + '% depois de materiais, protético, impostos, cartão e comissões). ' + (dir ? 'O valor de tabela não pode ser menor que o piso da margem.' : 'Só o diretor altera o valor de tabela.') + '</p>'
     + '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sf-a"' + (!s || s.ativo ? ' checked' : '') + '> Serviço ativo (aparece nos orçamentos)</label>'
@@ -4678,9 +4685,9 @@ function clinServForm(s){
   const calc = () => {
     if (!cust) return; const v = moedaNum($('#sf-v').value) || 0;
     const ins = ler().filter(x => x.qtd > 0).map(x => { const mt = mats.find(y => y.id === x.material_id) || { custo_unit: 0 }; return { qtd: x.qtd, custo_unit: mt.custo_unit, protetico: !!mt.protetico }; });
-    const id = clinIdealJs(ins, cfg), m = clinMinDe(id, v); pisoAtual = id; $('#sf-m').value = moedaTxt(m);
-    const c1 = clinCustoJs(ins, v, cfg), c2 = clinCustoJs(ins, m, cfg);
-    const mg = x => x > 0 ? pctTxt((x - clinCustoJs(ins, x, cfg)) / x) : '—';
+    const ln = $('#sf-l').value, id = clinIdealJs(ins, cfg, ln), m = clinMinDe(id, v); pisoAtual = id; $('#sf-m').value = moedaTxt(m);
+    const c1 = clinCustoJs(ins, v, cfg, ln), c2 = clinCustoJs(ins, m, cfg, ln);
+    const mg = x => x > 0 ? pctTxt((x - clinCustoJs(ins, x, cfg, ln)) / x) : '—';
     $('#sf-cm').innerHTML = '<div class="kv"><span>Custo no valor cheio</span><b>' + brl(c1) + '</b><span>Margem no valor cheio</span><b>' + mg(v) + '</b><span>Custo no preço mínimo</span><b>' + brl(c2) + '</b><span>Margem no preço mínimo</span><b>' + mg(m) + '</b>'
       + '<span>Margem mínima desejada</span><b>' + nTxt(cfg.margem_min_pct, 2) + '%</b><span>Piso da margem</span><b>' + (id == null ? 'impossível com esses percentuais' : brl(id)) + '</b><span>Preço mínimo de venda</span><b>' + brl(m) + '</b></div>'
       + (id == null || !dir ? '' : '<div class="tools" style="margin:10px 0 0"><button class="btn ghost sm" type="button" id="sf-ideal">Usar o piso da margem como valor de tabela</button></div>');
@@ -4689,7 +4696,7 @@ function clinServForm(s){
   const lig = r => { $('[data-ix]', r).addEventListener('click', () => { r.remove(); calc(); }); $('[data-im]', r).addEventListener('change', calc); $('[data-iq]', r).addEventListener('input', calc); };
   $$('#sf-ins [data-ir]').forEach(lig);
   $('#sf-add').addEventListener('click', () => { if (!mats.length) { $('#sf-err').textContent = 'Cadastre os materiais primeiro (aba Materiais).'; return; } const d = document.createElement('div'); d.innerHTML = linha(null); const r = d.firstChild; $('#sf-ins').appendChild(r); lig(r); calc(); });
-  $('#sf-v').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); calc(); });
+  $('#sf-v').addEventListener('input', e => { e.target.value = mMoeda(e.target.value); calc(); }); $('#sf-l').addEventListener('change', calc);
   $('#sf-x').addEventListener('click', fecharJanela); calc();
   $('#sf-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#sf-err'); er.textContent = '';
@@ -4699,7 +4706,7 @@ function clinServForm(s){
     if (dir && pisoAtual != null && cust && v < pisoAtual) { er.textContent = 'O valor de tabela não pode ser menor que o piso da margem (' + brl(pisoAtual) + ').'; return; }
     if (ins.some(x => !(x.qtd > 0))) { er.textContent = 'A quantidade de cada material deve ser maior que zero.'; return; }
     const b = $('#sf-ok'); b.disabled = true;
-    const r = await sb.rpc('clin_servico_salvar', { p: { id: s ? s.id : null, nome: $('#sf-n').value, especialidade: $('#sf-e').value, valor: dir ? v : null, ativo: $('#sf-a').checked, insumos: ins } });
+    const r = await sb.rpc('clin_servico_salvar', { p: { id: s ? s.id : null, nome: $('#sf-n').value, especialidade: $('#sf-e').value, linha: $('#sf-l').value, valor: dir ? v : null, ativo: $('#sf-a').checked, insumos: ins } });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; } fecharJanela(); toast('Procedimento salvo.'); CLX.cat = null; clinCarregar();
   });
 }
@@ -4799,13 +4806,13 @@ function clinCompraForm(){
 function clinCfgTab(){
   const c = CLX.cfg, campo = (id, rot, v) => '<label class="field" for="' + id + '" style="margin:0">' + rot + '<input id="' + id + '" inputmode="decimal" value="' + esc(nTxt(v, 3)) + '"></label>';
   $('#cl-body').innerHTML = '<form class="card" id="clc-form" novalidate><div class="sec">Composição de preço</div><p class="sub" style="margin:4px 0 10px">O sistema soma o custo dos materiais e do protético, as comissões e os impostos e calcula o <b>piso da margem</b> de cada serviço: o menor valor que garante a margem mínima. O <b>preço mínimo de venda</b> é o valor de tabela menos o desconto máximo, nunca abaixo desse piso. Serviços abaixo do piso aparecem em vermelho.</p>'
-    + '<div class="tools" style="margin:0">' + campo('clc-mm', 'Margem mínima desejada (%)', c.margem_min_pct) + campo('clc-d', 'Desconto máximo sobre o valor de tabela (%)', c.desconto_max_pct == null ? 10 : c.desconto_max_pct) + campo('clc-i', 'Impostos (%)', c.imposto_pct) + campo('clc-c', 'Taxa do cartão (%)', c.cartao_pct) + campo('clc-v', 'Comissão de vendas (%)', c.venda_pct) + campo('clc-e', 'Comissão do dentista: execução (%)', c.execucao_pct) + campo('clc-a', 'Comissão do dentista: avaliação (%)', c.avaliacao_pct) + '</div>'
+    + '<div class="tools" style="margin:0">' + campo('clc-mm', 'Margem mínima desejada (%)', c.margem_min_pct) + campo('clc-d', 'Desconto máximo sobre o valor de tabela (%)', c.desconto_max_pct == null ? 10 : c.desconto_max_pct) + campo('clc-i', 'Impostos (%)', c.imposto_pct) + campo('clc-c', 'Taxa do cartão (%)', c.cartao_pct) + campo('clc-v', 'Comissão de vendas (%)', c.venda_pct) + campo('clc-e', 'Comissão do dentista: execução (%)', c.execucao_pct) + campo('clc-h', 'Comissão do dentista no HOF (%)', c.hof_execucao_pct == null ? c.execucao_pct : c.hof_execucao_pct) + campo('clc-a', 'Comissão do dentista: avaliação (%)', c.avaliacao_pct) + '</div>'
     + '<p class="sub" style="margin:8px 0 0">Impostos e cartão incidem sobre o valor do serviço; as comissões incidem sobre o valor menos o custo do protético (mesma regra da aba "Cálculo preço" da planilha). A margem é (valor − custos) ÷ valor.</p>'
     + '<div class="sec" style="margin-top:14px">Financiamento próprio</div>' + campo('clc-j', 'Juros ao mês (%)', c.juros_mensal)
     + '<div class="err" id="clc-err" role="alert"></div><div class="tools" style="margin-top:12px"><button class="btn" type="submit" id="clc-ok">Salvar</button></div></form>';
   $('#clc-form').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#clc-err'); er.textContent = '';
-    const p = { margem_min_pct: numBR($('#clc-mm').value), desconto_max_pct: numBR($('#clc-d').value), juros_mensal: numBR($('#clc-j').value), imposto_pct: numBR($('#clc-i').value), cartao_pct: numBR($('#clc-c').value), venda_pct: numBR($('#clc-v').value), avaliacao_pct: numBR($('#clc-a').value), execucao_pct: numBR($('#clc-e').value) };
+    const p = { margem_min_pct: numBR($('#clc-mm').value), desconto_max_pct: numBR($('#clc-d').value), juros_mensal: numBR($('#clc-j').value), imposto_pct: numBR($('#clc-i').value), cartao_pct: numBR($('#clc-c').value), venda_pct: numBR($('#clc-v').value), avaliacao_pct: numBR($('#clc-a').value), execucao_pct: numBR($('#clc-e').value), hof_execucao_pct: numBR($('#clc-h').value) };
     if (Object.values(p).some(x => x == null || x < 0 || x > 100)) { er.textContent = 'Use valores de 0 a 100.'; return; }
     if (p.juros_mensal > 30) { er.textContent = 'Juros ao mês: no máximo 30%.'; return; }
     if (p.margem_min_pct >= 90) { er.textContent = 'A margem mínima deve ficar abaixo de 90%.'; return; }
