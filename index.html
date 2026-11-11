@@ -1203,6 +1203,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.66.0', '2026-11-10', 'Clínico: a negociação aceita pagamento em várias formas (entrada em dinheiro, Pix, débito e um ou mais cartões, cada um com suas parcelas). Se os pagamentos cobrem o total, não há cronograma de execução: cada serviço é liberado quando o pagamento é confirmado. Se sobrar saldo, ele vai para o financiamento próprio. Ao confirmar, os links de Pix e cartão do Asaas já são gerados, e o plano mostra cada pagamento com Gerar link, Ver link e Receber.'],
   ['0.65.0', '2026-11-10', 'Clínico: o "preço sugerido" virou preço mínimo de venda. Ele é o valor de tabela menos o desconto máximo (padrão 10%, configurável em Clínico › Configuração), e nunca fica abaixo do piso da margem. A tela passou a se chamar Clínico › Preço mínimo de venda e mostra também o piso da margem; o "mín." da negociação usa o novo preço mínimo.'],
   ['0.64.0', '2026-11-10', 'Clínico › Preços sugeridos: tela de conferência com a composição de cada procedimento (materiais, protético, impostos e cartão, comissões), o preço sugerido, o valor atual e a margem. O diretor ajusta os valores em lote, corrige de uma vez os que estão abaixo da margem e exporta tudo em CSV.'],
   ['0.63.0', '2026-11-10', 'Asaas: as cobranças podem nascer sozinhas todo dia, uma unidade por vez (Unidades › Asaas: gerar sozinho, quantos dias antes do vencimento). Parcelas que não viram cobrança, como as de paciente sem CPF, aparecem em Pendências do Asaas no Financeiro.'],
@@ -2793,7 +2794,7 @@ async function finPropCarregar(){
 async function finPropAbre(x){
   const carrega = async () => {
     const r = await sb.rpc('clin_plano_obter', { p_orc: x.orcamento_id }); if (r.error) { toast(erroTxt(r.error)); return; }
-    const pl = r.data, o = { id: x.orcamento_id, paciente: x.paciente };
+    const pl = r.data, o = { id: x.orcamento_id, paciente: x.paciente }; await clinPagtosCarrega(pl);
     abrirJanela('Financiamento próprio — ' + x.paciente, '<div class="db" id="oc-box">' + clinPlanoHtml(pl, ehGer(), { baixa: pode('financeiro.baixar'), enc: true, aporte: true }) + '<div class="err" id="oc-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="oc-x">Fechar</button></div>');
     $('#oc-x').addEventListener('click', () => { fecharJanela(); finPropCarregar(); });
     const er = t => { $('#oc-err').textContent = t || ''; };
@@ -4708,7 +4709,7 @@ async function clinOrcAbrir(id, modo){
 }
 async function clinPlanoCarrega(){
   CLO.plano = null;
-  if (CLO.o && CLO.o.status === 'fechado') { const r = await sb.rpc('clin_plano_obter', { p_orc: CLO.o.id }); if (!r.error) CLO.plano = r.data; }
+  if (CLO.o && CLO.o.status === 'fechado') { const r = await sb.rpc('clin_plano_obter', { p_orc: CLO.o.id }); if (!r.error) { CLO.plano = r.data; await clinPagtosCarrega(CLO.plano); } }
 }
 const MES_ABR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const mesAbr = iso => MES_ABR[Number(String(iso).slice(5, 7)) - 1] + '/' + String(iso).slice(0, 4);
@@ -4749,6 +4750,92 @@ function clinTlArrasta(box, aoMover){
     d.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); const t = i0 + (e.key === 'ArrowLeft' ? -1 : 1); if (t >= 0 && t < ms.length && ms[t] >= cur) aoMover(Number(el.dataset.ex), ms[t] + '-01'); } });
   });
 }
+/* ----- pagamento em várias formas (entrada, vários cartões, Pix...) ----- */
+const mxSoma = () => r2((CLX.mx || []).reduce((t, x) => t + (moedaNum(x.valor) || 0), 0));
+function mxResumo(){
+  const tot = clTotal(CLO.o), soma = mxSoma(), sal = r2(tot - soma), r = $('#mx-res'); if (!r) return;
+  r.innerHTML = '<span>Valor do tratamento</span><b>' + brl(tot) + '</b><span>Soma dos pagamentos</span><b>' + brl(soma) + '</b><span>' + (sal > 0.005 ? 'Saldo a financiar' : sal < -0.005 ? 'Passou do valor em' : 'Saldo') + '</span><b' + (sal < -0.005 ? ' style="color:var(--red)"' : '') + '>' + brl(Math.abs(sal)) + '</b>';
+  const f = $('#fp-fin'), e = $('#sm-e'); if (!f || CLX.forma !== 'misto') return;
+  f.hidden = !(sal > 0.005 && soma > 0);
+  if (e) { e.readOnly = true; e.value = moedaTxt(soma); e.dispatchEvent(new Event('input')); }
+}
+function mxLiga(){
+  const l = CLX.mx = CLX.mx && CLX.mx.length ? CLX.mx : [{ forma: 'dinheiro', valor: '', n: '1' }];
+  const desenha = () => {
+    $('#mx-lista').innerHTML = l.map((x, k) => '<div class="tools" data-k="' + k + '" style="margin:0 0 8px;align-items:end"><label class="field" style="margin:0">Forma<select data-f aria-label="Forma do pagamento ' + (k + 1) + '">' + MX_FORMAS.map(f => '<option value="' + f[0] + '"' + (x.forma === f[0] ? ' selected' : '') + '>' + f[1] + '</option>').join('') + '</select></label>'
+      + '<label class="field" style="margin:0">Valor (R$)<input data-v inputmode="numeric" style="width:120px" value="' + esc(x.valor) + '" placeholder="0,00" aria-label="Valor do pagamento ' + (k + 1) + '"></label>'
+      + (x.forma === 'credito' ? '<label class="field" style="margin:0">Parcelas<select data-n aria-label="Parcelas do pagamento ' + (k + 1) + '">' + Array.from({ length: 12 }, (_, j) => '<option value="' + (j + 1) + '"' + (String(j + 1) === String(x.n) ? ' selected' : '') + '>' + (j + 1) + 'x</option>').join('') + '</select></label>' : '')
+      + '<button class="btn ghost sm" type="button" data-s>Usar o saldo</button>' + (l.length > 1 ? '<button class="btn ghost sm" type="button" data-x aria-label="Remover pagamento ' + (k + 1) + '">×</button>' : '') + '</div>').join('');
+    $$('#mx-lista [data-k]').forEach(row => {
+      const k = Number(row.dataset.k), x = l[k];
+      $('[data-f]', row).addEventListener('change', e => { x.forma = e.target.value; desenha(); });
+      $('[data-v]', row).addEventListener('input', e => { e.target.value = mMoeda(e.target.value); x.valor = e.target.value; mxResumo(); });
+      if ($('[data-n]', row)) $('[data-n]', row).addEventListener('change', e => { x.n = e.target.value; });
+      $('[data-s]', row).addEventListener('click', () => { const resto = r2(clTotal(CLO.o) - l.reduce((t, y, j) => t + (j === k ? 0 : (moedaNum(y.valor) || 0)), 0)); x.valor = resto > 0 ? moedaTxt(resto) : ''; desenha(); });
+      if ($('[data-x]', row)) $('[data-x]', row).addEventListener('click', () => { l.splice(k, 1); desenha(); });
+    });
+    mxResumo();
+  };
+  const add = $('#mx-add'); if (add && !add.dataset.on) { add.dataset.on = '1'; add.addEventListener('click', () => { if (l.length >= 10) return; l.push({ forma: 'credito', valor: '', n: '1' }); desenha(); }); }
+  desenha();
+}
+async function clinConfirmaMisto(o, er, rec){
+  const l = CLX.mx || [], tot = clTotal(o), soma = mxSoma(), sal = r2(tot - soma);
+  if (!l.length || l.some(x => !(moedaNum(x.valor) > 0))) { er('Informe o valor de cada pagamento.'); return; }
+  if (sal < -0.005) { er('Os pagamentos passam do valor do tratamento em ' + brl(-sal) + '.'); return; }
+  const args = { p_orc: o.id, p_pagtos: l.map(x => ({ forma: x.forma, valor: moedaNum(x.valor), parcelas: x.forma === 'credito' ? Number(x.n) || 1 : null })) };
+  if (sal > 0.005) {
+    const sm = CLX.sim, val = sm.modo === 'n' ? numBR(sm.valor) : moedaNum(sm.valor);
+    if (val == null || !(val > 0)) { er('Informe o número de parcelas ou o valor da parcela do financiamento do saldo de ' + brl(sal) + '.'); return; }
+    Object.assign(args, { p_modo: sm.modo, p_valor: val, p_dia: Number($('#sm-d').value) });
+  }
+  er(''); $('#oc-conf').disabled = true;
+  const r = await sb.rpc('clin_neg_confirmar_misto', args);
+  if ($('#oc-conf')) $('#oc-conf').disabled = false;
+  if (r.error) { er(erroTxt(r.error)); await rec(); return; }
+  let msg = 'Negociação confirmada. Os pagamentos foram lançados no financeiro do paciente.';
+  if (await asAtiva(o.unidade_id || UN)) {
+    const lp = await sb.rpc('clin_plano_pagtos', { p_plano: r.data }); let n = 0, f = 0, mot = '';
+    for (const g of (lp.data || [])) if (g.forma === 'pix' || g.forma === 'credito') {
+      try { await asApi({ acao: 'gerar', parcela_id: g.parcela_id, forma: g.forma === 'pix' ? 'PIX' : 'CREDIT_CARD', parcelas: g.n_cartao || 1 }); n++; } catch (e) { f++; mot = e.message; }
+    }
+    if (n) msg += ' ' + n + (n === 1 ? ' link do Asaas gerado.' : ' links do Asaas gerados.');
+    if (f) toast(f + (f === 1 ? ' link não foi gerado' : ' links não foram gerados') + ': ' + mot.slice(0, 120) + ' Use o botão Gerar link.');
+  }
+  toast(msg); CLO.modo = 'orc'; rec();
+}
+/* pagamentos de um plano: dados, links e recebimento */
+async function clinPagtosCarrega(pl){
+  pl.pagtos = [];
+  const r = await sb.rpc('clin_plano_pagtos', { p_plano: pl.id }); if (r.error || !(r.data || []).length) return;
+  pl.asaas = await asAtiva(UN);
+  await Promise.all(r.data.map(async g => { if (pl.asaas && (g.forma === 'pix' || g.forma === 'credito') && g.status === 'aberta') { const rc = await sb.rpc('asaas_cobranca_parcela', { p_parcela: g.parcela_id }); g.cob = rc.data || null; } }));
+  pl.pagtos = r.data;
+}
+function clinPagtosHtml(pl){
+  const l = pl.pagtos || []; if (!l.length) return '';
+  const rec = pode('financeiro.baixar') && pl.status === 'ativo';
+  return '<div class="sec" style="margin-top:14px">Pagamentos</div><div class="tw"><table class="tb" id="pl-pg"><thead><tr><th>Pagamento</th><th class="n">Valor</th><th>Situação</th><th></th></tr></thead><tbody>'
+    + l.map(g => { const pend = g.cob && (g.cob.status === 'pendente' || g.cob.status === 'vencida'), aberta = g.status === 'aberta';
+      return '<tr data-pg="' + g.parcela_id + '"><td>' + esc(g.rotulo) + '</td><td class="n">' + brl(g.valor) + '</td><td>' + (!aberta ? '<span class="pill on">Recebido</span>' : pend ? '<span class="pill ' + AS_ST[g.cob.status][1] + '">Link: ' + AS_ST[g.cob.status][0].toLowerCase() + '</span>' : '<span class="pill nu">Em aberto</span>') + '</td><td>'
+        + (aberta && rec && pl.asaas && (g.forma === 'pix' || g.forma === 'credito') ? (pend ? '<button class="btn ghost sm" type="button" data-ver>Ver link</button> ' : '<button class="btn ghost sm" type="button" data-link>Gerar link</button> ') : '')
+        + (aberta && rec ? '<button class="btn sm" type="button" data-receber="' + g.parcela_id + '">Receber</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+}
+async function clinLinkPagto(o, g, volta, b){
+  b.disabled = true;
+  try { const d = await asApi({ acao: 'gerar', parcela_id: g.parcela_id, forma: g.forma === 'pix' ? 'PIX' : 'CREDIT_CARD', parcelas: g.n_cartao || 1 }); asMostrar({ id: g.parcela_id, unidade_id: UN }, o.paciente + ' · ' + g.rotulo, volta, d.cobranca); }
+  catch (e) { b.disabled = false; toast(e.message.length > 140 ? e.message.slice(0, 137) + '...' : e.message); }
+}
+/* plano à vista: sem cronograma, só a situação de cada serviço */
+function clinListaExec(pl, marcar, agendar){
+  const its = pl.itens || [];
+  return '<div class="lista" id="tl-box">' + its.map(i => {
+    const st = i.executado_em ? 'ok' : i.liberado ? 'lib' : 'esp', ag = i.agendamento;
+    const rot = i.executado_em ? 'Feito em ' + dBR(String(i.executado_em).slice(0, 10)) : ag ? 'Agendado ' + dBR(String(ag.data)) + ' ' + hmDe(ag.ini_min) : i.liberado ? 'Liberado' : 'Aguardando pagamento';
+    return '<div class="row f" style="cursor:default" data-ex="' + i.id + '"><div><b>' + esc(i.nome) + '</b>' + (i.dente ? '<div class="m">' + esc(i.dente) + '</div>' : '') + '</div><div><span class="pill ' + (st === 'ok' || st === 'lib' ? 'on' : 'nu') + '">' + esc(rot) + '</span></div><div>'
+      + (agendar && i.liberado && !i.executado_em && !ag ? '<button class="btn sm" type="button" data-agendar="1">Agendar</button> ' : '') + (marcar && i.liberado && !i.executado_em ? '<button class="btn ghost sm" type="button" data-feito="1">Marcar feito</button>' : '') + '</div></div>';
+  }).join('') + '</div>';
+}
 function clinPlanoHtml(pl, ger, ops){
   ops = ops || {};
   const par = (pl.parcelas || []).filter(x => !x.aporte), ab = par.filter(x => x.status === 'aberta'), its = pl.itens || [];
@@ -4756,12 +4843,13 @@ function clinPlanoHtml(pl, ger, ops){
   const sit = { ativo: 'Ativo', quitado: 'Finalizado', cancelado: 'Cancelado' }[pl.status] || pl.status;
   const pct = val && pl.total > 0 ? Math.min(100, Math.round(pl.pago / pl.total * 1000) / 10) : its.length ? Math.round(lib / its.length * 1000) / 10 : 0;
   return '<div class="card plx" style="margin:0" id="oc-plano"><div class="sec">Plano de pagamento e execução</div>'
-    + (val ? '<div class="kv"><span>Situação</span><b>' + sit + '</b><span>Forma</span><b>' + ({ pix: 'Pix', debito: 'Débito', dinheiro: 'Dinheiro', credito: 'Cartão de crédito' + (pl.n_cartao ? ' em ' + pl.n_cartao + 'x' : ''), financiamento: 'Financiamento próprio' }[pl.forma] || 'Financiamento próprio') + '</b><span>Valor do tratamento</span><b>' + brl(pl.total) + '</b><span>Entrada</span><b>' + brl(pl.entrada) + '</b><span>Total já pago</span><b>' + brl(pl.pago) + '</b><span>Parcelas em aberto</span><b>' + ab.length + (ab.length ? ' · próxima em ' + dBR(String(ab[0].vencimento)) : '') + '</b></div>'
+    + (val ? '<div class="kv"><span>Situação</span><b>' + sit + '</b><span>Forma</span><b>' + ({ pix: 'Pix', debito: 'Débito', dinheiro: 'Dinheiro', credito: 'Cartão de crédito' + (pl.n_cartao ? ' em ' + pl.n_cartao + 'x' : ''), financiamento: 'Financiamento próprio', misto: 'Várias formas' }[pl.forma] || 'Financiamento próprio') + '</b><span>Valor do tratamento</span><b>' + brl(pl.total) + '</b><span>Entrada</span><b>' + brl(pl.entrada) + '</b><span>Total já pago</span><b>' + brl(pl.pago) + '</b><span>Parcelas em aberto</span><b>' + ab.length + (ab.length ? ' · próxima em ' + dBR(String(ab[0].vencimento)) : '') + '</b></div>'
       : '<div class="kv"><span>Pagamento do paciente</span><b>' + sit + '</b></div>')
     + '<div class="pbx" id="pl-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><div class="pbx-f" style="width:' + pct + '%"></div>'
     + (val && pl.total > 0 ? its.map(i => '<i class="' + (i.liberado || i.executado_em ? 'on' : '') + '" style="left:' + Math.min(100, i.acumulado / pl.total * 100) + '%"></i>').join('') : '') + '</div>'
     + '<div class="pbx-l"><span>' + (val ? brl(pl.pago) + ' de ' + brl(pl.total) + ' · ' : '') + pct.toString().replace('.', ',') + '%</span><span>' + lib + ' de ' + its.length + ' etapas liberadas</span></div>'
-    + clinLinhaTempo(pl, ger && pl.status === 'ativo', pl.status !== 'cancelado', pl.status === 'ativo' && pode('agendamentos.criar'))
+    + clinPagtosHtml(pl)
+    + (pl.forma === 'financiamento' ? clinLinhaTempo(pl, ger && pl.status === 'ativo', pl.status !== 'cancelado', pl.status === 'ativo' && pode('agendamentos.criar')) : clinListaExec(pl, pl.status !== 'cancelado', pl.status === 'ativo' && pode('agendamentos.criar')))
     + '<div class="tools" style="margin:12px 0 0">' + (ops.aporte && ger && pl.status === 'ativo' && pl.forma === 'financiamento' ? '<button class="btn" type="button" id="pl-aporte">Registrar aporte</button>' : '') + (ops.enc && dir && pl.status === 'ativo' ? '<button class="btn ghost" type="button" id="pl-enc">Cancelar ou finalizar…</button>' : '') + '</div>'
     + (val ? '<details style="margin-top:10px"' + (ops.baixa ? ' open' : '') + '><summary>Parcelas do plano</summary><div class="tw" style="max-height:260px;margin-top:8px"><table class="tb" id="pl-par"><thead><tr><th>Descrição</th><th>Vencimento</th><th class="n">Valor</th><th class="n">Pago</th><th>Situação</th><th></th></tr></thead><tbody>'
       + (pl.parcelas || []).map(x => '<tr data-pc="' + x.id + '"><td>' + esc(x.descricao) + '</td><td>' + dBR(String(x.vencimento)) + '</td><td class="n">' + brl(x.valor) + '</td><td class="n">' + brl(x.pago) + '</td><td>' + (x.status === 'paga' ? 'Paga' : x.pago > 0 ? 'Parcial' : 'Em aberto') + '</td>'
@@ -4816,7 +4904,10 @@ async function clinAgendarDialogo(pl, ex, volta){
 /* liga os botões do plano (linha do tempo, aporte, receber, cancelar/finalizar) — usado no orçamento e na gestão do financiamento */
 function planoLiga(pl, c){
   const box = $('#oc-plano'); if (!box) return;
-  clinTlArrasta($('#tl-box'), (id, mes) => clinMesDialogo(pl, id, mes, c.volta));
+  if ($('#tl-box .tlx-in')) clinTlArrasta($('#tl-box'), (id, mes) => clinMesDialogo(pl, id, mes, c.volta));
+  $$('#pl-pg [data-receber]').forEach(b => b.addEventListener('click', () => planoReceber(c.o, pl, (pl.parcelas || []).find(x => x.id === Number(b.dataset.receber)), c.volta)));
+  $$('#pl-pg [data-link]').forEach(b => b.addEventListener('click', () => clinLinkPagto(c.o, (pl.pagtos || []).find(x => x.parcela_id === Number(b.closest('tr').dataset.pg)), c.volta, b)));
+  $$('#pl-pg [data-ver]').forEach(b => b.addEventListener('click', () => { const g = (pl.pagtos || []).find(x => x.parcela_id === Number(b.closest('tr').dataset.pg)); asMostrar({ id: g.parcela_id, unidade_id: UN }, c.o.paciente + ' · ' + g.rotulo, c.volta); }));
   $$('#tl-box [data-agendar]').forEach(b => b.addEventListener('click', () => clinAgendarDialogo(pl, (pl.itens || []).find(x => x.id === Number(b.closest('[data-ex]').dataset.ex)), c.volta)));
   $$('#tl-box [data-feito]').forEach(b => b.addEventListener('click', async () => { if (await c.chama('clin_exec_marcar', { p_exec: Number(b.closest('[data-ex]').dataset.ex), p_feito: true }, 'Serviço marcado como executado.')) c.rec(); }));
   if ($('#pl-aporte')) $('#pl-aporte').addEventListener('click', () => clinAporteDialogo(c.o, pl, c.volta));
@@ -4889,14 +4980,16 @@ function clinAporteDialogo(o, pl, voltaFn){
     toast('Aporte lançado no caixa como mensalidade antecipada de clínico.'); volta();
   });
 }
-const FORMAS_NEG = [['pix', 'Pix'], ['debito', 'Débito'], ['dinheiro', 'Dinheiro'], ['credito', 'Cartão de crédito'], ['financiamento', 'Financiamento próprio']];
-const FORMA_TXT = { pix: 'Pix', debito: 'cartão de débito', dinheiro: 'dinheiro', credito: 'cartão de crédito', financiamento: 'financiamento próprio da clínica' };
+const FORMAS_NEG = [['pix', 'Pix'], ['debito', 'Débito'], ['dinheiro', 'Dinheiro'], ['credito', 'Cartão de crédito'], ['financiamento', 'Financiamento próprio'], ['misto', 'Várias formas']];
+const MX_FORMAS = [['dinheiro', 'Dinheiro'], ['pix', 'Pix'], ['debito', 'Cartão de débito'], ['credito', 'Cartão de crédito']];
+const FORMA_TXT = { pix: 'Pix', debito: 'cartão de débito', dinheiro: 'dinheiro', credito: 'cartão de crédito', financiamento: 'financiamento próprio da clínica', misto: 'várias formas' };
 function clinCartaoTxt(){ const el = $('#fp-nt'); if (!el) return; const n = Number(CLX.cartao) || 1, t = clTotal(CLO.o); el.textContent = n + 'x de ' + brl(r2(t / n)) + ' (total ' + brl(t) + ')'; }
 function clinPagtoHtml(o){
   return '<div class="card" style="margin:0"><div class="sec">Forma de pagamento</div><div class="fpg" role="radiogroup" aria-label="Forma de pagamento" id="fp-g">'
     + FORMAS_NEG.map(f => '<label><input type="radio" name="fp" value="' + f[0] + '"' + (CLX.forma === f[0] ? ' checked' : '') + '>' + f[1] + '</label>').join('') + '</div>'
     + '<div id="fp-avista" hidden><div class="kv"><span>Valor à vista</span><b>' + brl(clTotal(o)) + '</b></div></div>'
     + '<div id="fp-cartao" hidden><div class="tools" style="margin:0;align-items:end"><label class="field" for="fp-n" style="margin:0">Parcelas no cartão<select id="fp-n">' + Array.from({ length: 12 }, (_, k) => '<option value="' + (k + 1) + '"' + (String(k + 1) === String(CLX.cartao) ? ' selected' : '') + '>' + (k + 1) + 'x</option>').join('') + '</select></label><b id="fp-nt"></b></div></div>'
+    + '<div id="fp-misto" hidden><div id="mx-lista"></div><div class="tools" style="margin:0 0 8px"><button class="btn ghost sm" type="button" id="mx-add">Adicionar pagamento</button></div><div class="kv" id="mx-res"></div></div>'
     + '<div id="fp-fin" hidden><div class="tools" style="margin:0;align-items:end"><label class="field" for="sm-e" style="margin:0">Entrada (R$)<input id="sm-e" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.entrada) + '" placeholder="0,00"></label>'
     + '<label class="field" for="sm-m" style="margin:0">Simular por<select id="sm-m"><option value="n"' + (CLX.sim.modo === 'n' ? ' selected' : '') + '>Número de parcelas</option><option value="v"' + (CLX.sim.modo === 'v' ? ' selected' : '') + '>Valor da parcela</option></select></label>'
     + '<label class="field" for="sm-v" style="margin:0"><span id="sm-vl">' + (CLX.sim.modo === 'n' ? 'Parcelas' : 'Parcela (R$)') + '</span><input id="sm-v" inputmode="numeric" style="width:120px" value="' + esc(CLX.sim.valor) + '"></label>'
@@ -4915,13 +5008,15 @@ function clinContratoHtml(d){
   const o = d.o, pl = d.pl || {}, p = d.p, u = d.u, forma = pl.forma || 'financiamento', total = r2(o.itens.reduce((t, i) => t + i.valor_unit * i.qtd, 0));
   const nome = esc(p.nome) + (p.nome_social ? ' (nome social: ' + esc(p.nome_social) + ')' : '');
   const resp = p.resp_nome ? ', representado(a) por seu responsável legal <b>' + esc(p.resp_nome) + '</b>' + (p.resp_cpf ? ', CPF ' + mCpfTxt(p.resp_cpf) : '') : '';
-  const par = (pl.parcelas || []).filter(x => !x.aporte), ent = par.find(x => x.numero === 0), reg = par.filter(x => x.numero !== 0);
+  const par = (pl.parcelas || []).filter(x => !x.aporte), ents = par.filter(x => x.numero === 0), ent = ents.length ? { valor: r2(ents.reduce((t, x) => t + x.valor, 0)) } : null, reg = par.filter(x => x.numero !== 0);
+  const pecas = (pl.pagtos || []).length > 1 ? (pl.pagtos || []).map(g => esc(g.rotulo) + ' <b>' + brl(g.valor) + '</b>').join('; ') : '';
   const itens = '<table class="it"><thead><tr><th>Serviço</th><th>Dente/região</th><th class="n">Qtd</th><th class="n">Valor unit.</th><th class="n">Subtotal</th></tr></thead><tbody>' + o.itens.map(i => '<tr><td>' + esc(i.servico) + '</td><td>' + esc(i.dente || '—') + '</td><td class="n">' + i.qtd + '</td><td class="n">' + brl(i.valor_unit) + '</td><td class="n">' + brl(r2(i.valor_unit * i.qtd)) + '</td></tr>').join('') + '<tr><td colspan="4"><b>Total</b></td><td class="n"><b>' + brl(total) + '</b></td></tr></tbody></table>';
   let pg;
-  if (forma === 'financiamento') pg = ['O pagamento é feito por <b>financiamento próprio da CONTRATADA</b>' + (ent ? ', com entrada de <b>' + brl(ent.valor) + '</b> e' : ',') + ' <b>' + reg.length + ' parcela(s) mensais</b>' + (reg.length ? ' de <b>' + brl(reg[0].valor) + '</b>' + (reg.length > 1 && reg[reg.length - 1].valor !== reg[0].valor ? ' (a última de ' + brl(reg[reg.length - 1].valor) + ')' : '') : '') + ', com juros de ' + nTxt(pl.juros_mensal || 0, 3) + '% ao mês, vencendo todo dia <b>' + (pl.dia_venc || '') + '</b>.',
+  if (forma === 'financiamento') pg = ['O pagamento é feito por <b>financiamento próprio da CONTRATADA</b>' + (ent ? ', com entrada de <b>' + brl(ent.valor) + '</b>' + (pecas ? ' (' + pecas + ')' : '') + ' e' : ',') + ' <b>' + reg.length + ' parcela(s) mensais</b>' + (reg.length ? ' de <b>' + brl(reg[0].valor) + '</b>' + (reg.length > 1 && reg[reg.length - 1].valor !== reg[0].valor ? ' (a última de ' + brl(reg[reg.length - 1].valor) + ')' : '') : '') + ', com juros de ' + nTxt(pl.juros_mensal || 0, 3) + '% ao mês, vencendo todo dia <b>' + (pl.dia_venc || '') + '</b>.',
     'Cada serviço é liberado para execução quando o total pago pelo CONTRATANTE alcançar o valor desse serviço, sem contar os juros, começando pelas limpezas. O cronograma de execução é informado pela CONTRATADA e pode ser reordenado por ela, mantida a regra de liberação.',
     'A falta de pagamento de uma parcela suspende a liberação dos serviços ainda não executados até a regularização. Parcelas pagas após o vencimento sofrem multa de 2% (dois por cento) e juros de mora de 1% (um por cento) ao mês.',
     'O CONTRATANTE pode antecipar valores (aporte) além da parcela do mês; o saldo é recalculado a valor presente e a CONTRATADA oferece a redução do valor da parcela ou do número de parcelas restantes.'];
+  else if (forma === 'misto') pg = ['O pagamento é feito <b>à vista</b>, no valor total de <b>' + brl(total) + '</b>, por <b>várias formas</b>: ' + pecas + ', no ato da contratação.', 'Os serviços são liberados para execução conforme a confirmação de cada pagamento, conforme agendamento.'];
   else pg = ['O pagamento é feito <b>à vista</b>, no valor de <b>' + brl(total) + '</b>, por <b>' + FORMA_TXT[forma] + '</b>' + (forma === 'credito' ? ', em <b>' + pl.n_cartao + 'x</b> de ' + brl(r2(total / pl.n_cartao)) + ' no cartão' : '') + ', no ato da contratação.', 'Os serviços são liberados para execução após a confirmação do pagamento, conforme agendamento.'];
   const cl = [['Objeto', ['O presente contrato tem por objeto a prestação de serviços odontológicos clínicos pela CONTRATADA, por meio de profissionais legalmente habilitados' + (o.dentista ? ' (dentista responsável: <b>' + esc(o.dentista) + '</b>)' : '') + ', conforme o plano de tratamento e o orçamento abaixo, aceito pelo CONTRATANTE.', itens, 'Os serviços são obrigação de meio e não de resultado: a evolução depende também da colaboração do CONTRATANTE, dos cuidados indicados e do comparecimento às consultas.']],
     ['Valor e forma de pagamento', pg],
@@ -4987,6 +5082,7 @@ function clinOrcDesenha(){
   if ($('#oc-ctr')) $('#oc-ctr').addEventListener('click', () => clinContratoAbrir(CLO.o, CLO.plano));
   if ($('#oc-conf')) $('#oc-conf').addEventListener('click', async () => {
     const forma = CLX.forma; if (!forma) { er('Escolha a forma de pagamento.'); return; }
+    if (forma === 'misto') { await clinConfirmaMisto(o, er, rec); return; }
     const args = { p_orc: o.id, p_forma: forma };
     if (forma === 'credito') args.p_cartao = Number($('#fp-n').value) || 1;
     if (forma === 'financiamento') {
@@ -4999,7 +5095,7 @@ function clinOrcDesenha(){
     if ($('#oc-conf')) $('#oc-conf').disabled = false;
     if (ok) { CLO.modo = 'orc'; rec(); }
   });
-  if ($('#fp-g')) { const mostra = () => { CLX.forma = ($('#fp-g input:checked') || {}).value || ''; $('#fp-cartao').hidden = CLX.forma !== 'credito'; $('#fp-fin').hidden = CLX.forma !== 'financiamento'; $('#fp-avista').hidden = !['pix', 'debito', 'dinheiro'].includes(CLX.forma); clinCartaoTxt(); };
+  if ($('#fp-g')) { const mostra = () => { CLX.forma = ($('#fp-g input:checked') || {}).value || ''; $('#fp-cartao').hidden = CLX.forma !== 'credito'; $('#fp-fin').hidden = CLX.forma !== 'financiamento'; $('#fp-misto').hidden = CLX.forma !== 'misto'; $('#fp-avista').hidden = !['pix', 'debito', 'dinheiro'].includes(CLX.forma); clinCartaoTxt(); if (CLX.forma === 'misto') mxLiga(); else if ($('#sm-e')) $('#sm-e').readOnly = false; };
     $$('#fp-g input').forEach(x => x.addEventListener('change', mostra)); $('#fp-n').addEventListener('change', e => { CLX.cartao = e.target.value; clinCartaoTxt(); }); mostra(); clinCartaoTxt(); }
   if (CLO.plano && o.status === 'fechado') planoLiga(CLO.plano, { o: o, chama: chama, rec: rec, volta: () => clinOrcAbrir(o.id) });
   if ($('#sm-e')) {
