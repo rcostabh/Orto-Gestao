@@ -1214,6 +1214,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.72.0', '2026-11-11', 'Procedimentos com sub-procedimentos: no cadastro do procedimento (ex.: Urgência) digite as opções, uma por linha; ao agendar, escolher o tipo passa a ser obrigatório (Corte de fio, Dor ou incômodo, Orientação, Recolagem de Braquete, Recolocação de Elastic, Recolocação de Fio, Recolocação de Borrachinha). O tipo aparece no horário da agenda e na ficha do agendamento.'],
   ['0.71.0', '2026-11-11', 'Agenda: cada procedimento pode ter cor de caixa e cor de fonte, definidas no cadastro de Procedimentos (com prévia). Na agenda do dia, o horário aparece com essas cores e uma faixa lateral mostra a situação (agendado, compareceu, em atendimento, faltou, concluído). Sem cor definida, vale a cor da situação como antes.'],
   ['0.70.0', '2026-11-11', 'Recepção: o perfil de recepcionista volta a abrir na tela Início (com os cartões de documentação, limpeza profunda, caixa e faltas), mesmo que o perfil tenha a permissão de Atendimento. Dentistas continuam abrindo no Atendimento.'],
   ['0.69.0', '2026-11-11', 'Recepção: no topo da agenda aparece uma faixa pequena com quantos pacientes do dia estão com documentação e limpeza profunda em atraso. Clicar no cartão destaca na agenda os horários desses pacientes. Ao confirmar a chegada de um deles, abre um aviso para oferecer o serviço; depois de confirmar a oferta, a presença é marcada, a oferta fica registrada na ficha e a tela volta para a agenda. Procedimentos passa a usar o grid padrão.'],
@@ -6103,7 +6104,7 @@ function prcLista(){
     $('#pr-n').textContent = l.length + (l.length === 1 ? ' procedimento' : ' procedimentos');
     const ord = Object.keys(PROC_LOC), o = l.slice().sort((a, b) => ord.indexOf(a.local) - ord.indexOf(b.local) || a.nome.localeCompare(b.nome, 'pt-BR'));
     gradeCad($('#pr-lista'), 'prc', o, [{ t: 'Procedimento', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' }, { t: 'Tipo de cadeira', v: p => PROC_LOC[p.local] },
-      { t: 'Cor na agenda', v: p => p.cor_fundo ? p.cor_fundo : 'Padrão', h: p => p.cor_fundo ? '<span class="corch" style="background:' + esc(p.cor_fundo) + ';color:' + esc(p.cor_fonte || '#ffffff') + '">Aa</span>' : '<span style="color:var(--muted,#666)">Padrão</span>' }, { t: 'Tempo', r: 1, v: p => minTxt(p.duracao_min), k: p => p.duracao_min, soma: p => 0 }, { t: 'Avaliação', v: p => p.avaliacao ? 'Sim' : 'Não' },
+      { t: 'Sub-procedimentos', v: p => (p.subprocedimentos || []).join(', '), h: p => (p.subprocedimentos || []).length ? esc((p.subprocedimentos || []).length + ' opções') : '' }, { t: 'Cor na agenda', v: p => p.cor_fundo ? p.cor_fundo : 'Padrão', h: p => p.cor_fundo ? '<span class="corch" style="background:' + esc(p.cor_fundo) + ';color:' + esc(p.cor_fonte || '#ffffff') + '">Aa</span>' : '<span style="color:var(--muted,#666)">Padrão</span>' }, { t: 'Tempo', r: 1, v: p => minTxt(p.duracao_min), k: p => p.duracao_min, soma: p => 0 }, { t: 'Avaliação', v: p => p.avaliacao ? 'Sim' : 'Não' },
       { t: 'Situação', v: p => p.ativo ? 'Ativo' : 'Inativo', h: p => '<span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span>' }], p => prcForm(p), 'Nenhum procedimento.');
   };
   $('#pr-q').addEventListener('input', desenha); desenha();
@@ -6120,6 +6121,7 @@ function prcForm(p){
     + '<div class="g2"><label class="field" for="pr-dur">Tempo *<select id="pr-dur"' + ro + '>' + durs.map(m => '<option value="' + m + '"' + ((p ? p.duracao_min : 15) === m ? ' selected' : '') + '>' + minTxt(m) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pr-loc">Tipo de cadeira *<select id="pr-loc"' + ro + '>' + Object.keys(PROC_LOC).map(k => '<option value="' + k + '"' + ((p ? p.local : 'auxiliar') === k ? ' selected' : '') + '>' + PROC_LOC[k] + '</option>').join('') + '</select></label></div>'
     + '<label class="chk" id="pr-avl"><input type="checkbox" id="pr-av"' + (p && p.avaliacao ? ' checked' : '') + ro + '> É uma avaliação</label>'
+    + '<label class="field" for="pr-sub">Sub-procedimentos <small>(um por linha; se houver, é obrigatório escolher ao agendar)</small><textarea id="pr-sub" rows="4" maxlength="800" placeholder="Ex.: Corte de fio"' + ro + '>' + esc(((p && p.subprocedimentos) || []).join('\n')) + '</textarea></label>'
     + '<div class="cpk" id="pr-cor"><b style="font-size:13px">Cores na agenda</b>'
     + '<div class="cpl"><span class="cpt">Caixa</span>' + PROC_CORES.map(c => '<button type="button" class="sw" data-f="' + c + '" style="background:' + c + '" aria-label="Caixa ' + c + '" aria-pressed="false"' + ro + '></button>').join('') + '<input type="color" id="pr-cf" aria-label="Escolher cor da caixa"' + ro + '></div>'
     + '<div class="cpl"><span class="cpt">Fonte</span><button type="button" class="sw" data-t="#ffffff" style="background:#fff" aria-label="Fonte branca" aria-pressed="false"' + ro + '></button><button type="button" class="sw" data-t="#111111" style="background:#111" aria-label="Fonte preta" aria-pressed="false"' + ro + '></button><input type="color" id="pr-ct" aria-label="Escolher cor da fonte"' + ro + '>'
@@ -6155,7 +6157,9 @@ function prcForm(p){
     const er = $('#pr-err'); er.textContent = '';
     const nome = $('#pr-nome').value.trim().replace(/\s+/g, ' ');
     if (!nome) { er.textContent = 'Dê um nome ao procedimento.'; return; }
-    const reg = { nome, duracao_min: Number($('#pr-dur').value), local: $('#pr-loc').value, avaliacao: $('#pr-av').checked, cor_fundo: COR.f, cor_fonte: COR.f ? (COR.t || prcFonteAuto(COR.f)) : null };
+    const subs = [...new Set($('#pr-sub').value.split('\n').map(x => x.trim().replace(/\s+/g, ' ')).filter(Boolean))].slice(0, 20);
+    if (subs.some(x => x.length > 60)) { er.textContent = 'Cada sub-procedimento deve ter até 60 letras.'; return; }
+    const reg = { nome, duracao_min: Number($('#pr-dur').value), local: $('#pr-loc').value, avaliacao: $('#pr-av').checked, cor_fundo: COR.f, cor_fonte: COR.f ? (COR.t || prcFonteAuto(COR.f)) : null, subprocedimentos: subs.length ? subs : null };
     const b = $('#pr-ok'); b.disabled = true;
     const r = novo ? await sb.from('procedimentos').insert(reg) : await sb.from('procedimentos').update(reg).eq('id', p.id);
     b.disabled = false;
@@ -6378,9 +6382,9 @@ function agdGrade(cols, h, dt, ags){
   ags.forEach(a => {
     const i = cols.findIndex(c => c.agenda_id === a.agenda_id), n = a.dur_min / 15, r = rw(a.ini_min);
     if (i < 0 || r < 3 || a.ini_min + a.dur_min > fe + 30) return;
-    const nome = a.tipo === 'paciente' ? a.paciente_nome : a.titulo, proc = a.tipo === 'paciente' ? a.procedimento_nome : 'Compromisso';
+    const nome = a.tipo === 'paciente' ? a.paciente_nome : a.titulo, proc = a.tipo === 'paciente' ? a.procedimento_nome + (a.subprocedimento ? ' › ' + a.subprocedimento : '') : 'Compromisso';
     const pcr = a.tipo === 'paciente' && AG.cores && AG.cores[a.procedimento_id], pcs = pcr && pcr.cor_fundo ? ';--pcb:' + pcr.cor_fundo + ';--pcf:' + (pcr.cor_fonte || '#ffffff') : '';
-    g += '<button type="button" class="a s-' + a.status + (a.tipo === 'compromisso' ? ' cp' : '') + (pcs ? ' pc' : '') + '" style="grid-row:' + r + ' / span ' + n + ';grid-column:' + (i + 2) + pcs + '" data-ag="' + a.id + '" title="' + esc(hmDe(a.ini_min) + ' · ' + nome + ' · ' + proc + ' · ' + ST_AG[a.status]) + '"><b>' + hmDe(a.ini_min) + ' ' + esc(nome) + '</b>'
+    g += '<button type="button" class="a s-' + a.status + (a.tipo === 'compromisso' ? ' cp' : '') + (pcs ? ' pc' : '') + '" style="grid-row:' + r + ' / span ' + n + ';grid-column:' + (i + 2) + pcs + '" data-ag="' + a.id + '" title="' + esc(hmDe(a.ini_min) + ' · ' + nome + ' · ' + proc + ' · ' + ST_AG[a.status]) + '"><b>' + hmDe(a.ini_min) + ' ' + esc(nome) + (n === 1 && a.subprocedimento ? ' · ' + esc(a.subprocedimento) : '') + '</b>'
       + (n > 1 ? '<small>' + esc(proc) + ' · ' + ST_AG[a.status] + '</small>' : '') + '</button>';
   });
   return g;
@@ -6397,6 +6401,7 @@ function agdAgendar(aid, m){
     + '<div id="n-pac" class="db" style="padding:0"><label class="field" for="n-q">Buscar pessoa<input id="n-q" type="search" placeholder="Nome, CPF ou código" autocomplete="off"></label>'
     + '<div class="pk" id="n-res" role="listbox" aria-label="Pessoas"></div>'
     + '<div class="g2"><label class="field" for="n-proc">Procedimento<select id="n-proc" disabled><option>Escolha a pessoa primeiro</option></select></label>'
+    + '<label class="field" id="n-subw" for="n-sub" hidden>Tipo *<select id="n-sub"></select></label>'
     + '<label class="field" for="n-extra">Tempo extra<select id="n-extra"><option value="0">Sem tempo extra</option><option value="15">+ 15 minutos</option><option value="30">+ 30 minutos</option></select></label></div></div>'
     + '<div id="n-cmp" class="db" style="padding:0" hidden>' + '<div class="g2">' + fld('n-tit', 'Título *', '', 'maxlength="80" autocomplete="off" placeholder="Ex.: reunião, treinamento"')
     + '<label class="field" for="n-dur">Duração<select id="n-dur">' + durs.map(d => '<option value="' + d + '"' + (d === 60 ? ' selected' : '') + '>' + minTxt(d) + '</option>').join('') + '</select></label></div></div>'
@@ -6408,12 +6413,18 @@ function agdAgendar(aid, m){
   const procsOk = () => !sel ? [] : AG.procs.filter(p => agCabe(p, c) && (sel.status === 'Prospecção' ? p.avaliacao : sel.status === 'Inativo' ? true : !p.avaliacao));
   const duracao = () => { if (tipo() === 'compromisso') return Number($('#n-dur').value); const p = AG.procs.find(x => x.id === Number($('#n-proc').value)); return p ? p.duracao_min + Number($('#n-extra').value) : 0; };
   const resumo = () => { const d = duracao(); $('#n-resumo').textContent = d ? hmDe(m) + ' às ' + hmDe(m + d) + ' (' + minTxt(d) + ') · ' + c.nome + ' · ' + (c.dentista_nome || 'Agenda Geral') : ''; };
+  const subDesenha = () => {
+    const pr = AG.procs.find(x => x.id === Number($('#n-proc').value)), l = (pr && pr.subprocedimentos) || [], w = $('#n-subw'), s = $('#n-sub'), ant = s.value;
+    w.hidden = !l.length; s.innerHTML = l.length ? '<option value="">Escolha o tipo</option>' + l.map(x => '<option' + (x === ant ? ' selected' : '') + '>' + esc(x) + '</option>').join('') : '';
+    if (l.length) w.firstChild.textContent = 'Tipo de ' + pr.nome.toLowerCase() + ' *';
+  };
   const desenhaProc = () => {
     const l = procsOk(), s = $('#n-proc');
     if (!sel) { s.innerHTML = '<option value="">Escolha a pessoa primeiro</option>'; s.disabled = true; resumo(); return; }
     s.disabled = !l.length;
     s.innerHTML = l.length ? l.map(p => '<option value="' + p.id + '">' + esc(p.nome) + ' · ' + minTxt(p.duracao_min) + '</option>').join('')
       : '<option value="">Nenhum procedimento cabe aqui</option>';
+    subDesenha();
     $('#n-err').textContent = l.length ? '' : (sel.status === 'Prospecção' ? 'Prospect só agenda avaliação, e a avaliação fica na agenda Geral.' : 'Nenhum procedimento ativo pode ser feito nesta agenda. Veja o tipo de cadeira em Procedimentos.');
     resumo();
   };
@@ -6431,7 +6442,7 @@ function agdAgendar(aid, m){
   const modo = () => { const p = tipo() === 'paciente'; $('#n-pac').hidden = !p; $('#n-cmp').hidden = p; $('#n-err').textContent = ''; if (p) desenhaProc(); else resumo(); };
   $$('input[name="n-tipo"]').forEach(i => i.addEventListener('change', modo));
   let tb; $('#n-q').addEventListener('input', () => { clearTimeout(tb); tb = setTimeout(busca, 250); });
-  $('#n-proc').addEventListener('change', resumo); $('#n-extra').addEventListener('change', resumo); $('#n-dur').addEventListener('change', resumo);
+  $('#n-proc').addEventListener('change', () => { subDesenha(); resumo(); }); $('#n-extra').addEventListener('change', resumo); $('#n-dur').addEventListener('change', resumo);
   $('#n-cancel').addEventListener('click', fecharJanela);
   busca(); resumo();
   $('#n-form').addEventListener('submit', async e => {
@@ -6439,10 +6450,11 @@ function agdAgendar(aid, m){
     const pac = tipo() === 'paciente';
     if (pac && !sel) { er.textContent = 'Escolha a pessoa na lista.'; return; }
     if (pac && !$('#n-proc').value) { er.textContent = 'Escolha o procedimento.'; return; }
+    if (pac && !$('#n-subw').hidden && !$('#n-sub').value) { er.textContent = 'Escolha o tipo de ' + (AG.procs.find(x => x.id === Number($('#n-proc').value)) || { nome: 'procedimento' }).nome.toLowerCase() + '.'; return; }
     if (!pac && !$('#n-tit').value.trim()) { er.textContent = 'Dê um título ao compromisso.'; return; }
     const b = $('#n-ok'); b.disabled = true;
     const r = await sb.rpc('agendar', { p_agenda: aid, p_data: AG.data, p_ini: m, p_tipo: tipo(), p_paciente: pac ? sel.id : null, p_procedimento: pac ? Number($('#n-proc').value) : null,
-      p_extra: pac ? Number($('#n-extra').value) : null, p_dur: pac ? null : Number($('#n-dur').value), p_titulo: pac ? null : $('#n-tit').value.trim(), p_obs: $('#n-obs').value.trim() || null });
+      p_extra: pac ? Number($('#n-extra').value) : null, p_dur: pac ? null : Number($('#n-dur').value), p_titulo: pac ? null : $('#n-tit').value.trim(), p_obs: $('#n-obs').value.trim() || null, p_sub: pac && !$('#n-subw').hidden ? $('#n-sub').value : null });
     b.disabled = false; if (r.error) { er.textContent = erroTxt(r.error); return; }
     fecharJanela(); toast('Agendado.'); agdCorpo();
   });
@@ -6728,7 +6740,7 @@ function agdDetalhe(id){
   const kv = (r, v) => v ? '<span>' + r + '</span><b>' + esc(v) + '</b>' : '';
   abrirJanela(pac ? 'Agendamento' : 'Compromisso',
     '<div class="db"><p style="margin:0;font-size:17px"><span class="sd s-' + a.status + '"></span><b>' + esc(pac ? a.paciente_nome : a.titulo) + '</b> <span class="pill ' + (a.status === 'faltou' ? 'off' : a.status === 'agendado' ? 'nu' : 'on') + '">' + ST_AG[a.status] + '</span></p>'
-    + '<div class="kv dkv">' + kv('Horário', hmDe(a.ini_min) + ' às ' + hmDe(a.ini_min + a.dur_min) + ' (' + minTxt(a.dur_min) + ')') + kv('Data', dBR(AG.data)) + kv('Agenda', c.nome + (c.dentista_nome ? ' · ' + c.dentista_nome : '')) + kv('Procedimento', a.procedimento_nome) + kv('Situação do cadastro', a.paciente_status) + kv('Observação', a.observacao) + '</div>'
+    + '<div class="kv dkv">' + kv('Horário', hmDe(a.ini_min) + ' às ' + hmDe(a.ini_min + a.dur_min) + ' (' + minTxt(a.dur_min) + ')') + kv('Data', dBR(AG.data)) + kv('Agenda', c.nome + (c.dentista_nome ? ' · ' + c.dentista_nome : '')) + kv('Procedimento', a.procedimento_nome) + kv('Tipo', a.subprocedimento) + kv('Situação do cadastro', a.paciente_status) + kv('Observação', a.observacao) + '</div>'
     + dicas.map(d => '<p class="sub" style="margin:0">' + esc(d) + '</p>').join('') + '<div class="err" id="d-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (editavel && !dentSo && pode('agendamentos.cancelar') ? '<button class="btn danger" type="button" id="d-canc">Cancelar agendamento</button>' : '') + '</div>'
     + (pac && pode('prontuario.ver') && a.status !== 'agendado' && a.status !== 'faltou' ? '<button class="btn ghost" type="button" id="d-pront">Prontuário</button>' : '')
