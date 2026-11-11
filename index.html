@@ -851,6 +851,7 @@ const MENU = [
     { r: 'financeiro', t: 'Financeiro', p: 'financeiro.ver' },
     { r: 'fin-prop', t: 'Financiamento próprio', p: 'financeiro.ver' },
     { r: 'fin-prev', t: 'Previsão de recebimento', p: 'financeiro.ver' },
+    { r: 'fin-rec', t: 'Recebimentos', p: 'financeiro.ver' },
     { r: 'notas', t: 'Notas fiscais', p: 'notas.ver' },
     { r: 'solicitacoes', t: 'Solicitações', p: ['isencao.solicitar', 'contratos.solicitar'] } ] },
   { g: 'Pacientes', ic: 'prospects', itens: [
@@ -859,7 +860,7 @@ const MENU = [
     { r: 'transferencias', t: 'Transferências', p: 'pacientes.ver' },
     { r: 'vendas', t: 'Vendas', p: 'vendas.ver' } ] }
 ];
-const TITULOS = { chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preço mínimo de venda', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', 'fin-rec': 'Recebimentos', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preço mínimo de venda', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   buscaRapMostra();
   let h = '';
@@ -1203,6 +1204,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.67.0', '2026-11-10', 'Financeiro › Recebimentos: acompanhamento por período, com o recebido por dia separado em venda e cobrança e em ortodontia e clínico. Dá para comparar um período com outro (mês com mês, mesmo mês do ano passado ou datas livres), ver a média por dia, o ticket médio e o resultado de cada produto e serviço, destacando o que parou, caiu ou cresceu, e exportar para planilha.'],
   ['0.66.0', '2026-11-10', 'Clínico: a negociação aceita pagamento em várias formas (entrada em dinheiro, Pix, débito e um ou mais cartões, cada um com suas parcelas). Se os pagamentos cobrem o total, não há cronograma de execução: cada serviço é liberado quando o pagamento é confirmado. Se sobrar saldo, ele vai para o financiamento próprio. Ao confirmar, os links de Pix e cartão do Asaas já são gerados, e o plano mostra cada pagamento com Gerar link, Ver link e Receber.'],
   ['0.65.0', '2026-11-10', 'Clínico: o "preço sugerido" virou preço mínimo de venda. Ele é o valor de tabela menos o desconto máximo (padrão 10%, configurável em Clínico › Configuração), e nunca fica abaixo do piso da margem. A tela passou a se chamar Clínico › Preço mínimo de venda e mostra também o piso da margem; o "mín." da negociação usa o novo preço mínimo.'],
   ['0.64.0', '2026-11-10', 'Clínico › Preços sugeridos: tela de conferência com a composição de cada procedimento (materiais, protético, impostos e cartão, comissões), o preço sugerido, o valor atual e a margem. O diretor ajusta os valores em lote, corrige de uma vez os que estão abaixo da margem e exporta tudo em CSV.'],
@@ -1349,7 +1351,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'fin-rec', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -1372,6 +1374,7 @@ function abrirRota(r, o){
   if (r === 'cobranca') return cobCarregar();
   if (r === 'fin-prop') return finPropCarregar();
   if (r === 'fin-prev') return finPrevCarregar();
+  if (r === 'fin-rec') return recCarregar();
   if (r === 'notas') return nfCarregar();
   if (r === 'comunicacao') return waCarregar();
   if (r === 'clinico' || r.startsWith('clin-')) return clinCarregar(r);
@@ -2833,6 +2836,120 @@ async function finPrevCarregar(){
     { t: 'Situação', v: stx, h: x => '<span class="pill ' + (x.status === 'paga' ? 'on' : x.atraso ? 'off' : 'wr') + '">' + stx(x) + '</span>' }] });
   const muda = () => { FP.de = $('#pv-de').value || de; FP.ate = $('#pv-ate').value || ate; FP.fm = []; FP.fp = []; finPrevCarregar(); };
   $('#pv-de').addEventListener('change', muda); $('#pv-ate').addEventListener('change', muda);
+}
+/* ---------- FINANCEIRO: acompanhamento dos recebimentos (venda x cobrança, ortodontia x clínico, por produto, período contra período) ---------- */
+const RC = { un: null, a: null, b: null, cmp: true, setor: '', area: '', q: '', queda: false, A: null, B: null, fp: [], fd: [] };
+const rcAreaTxt = { ortodontia: 'Ortodontia', clinico: 'Clínico' };
+function rcPreset(k){
+  const h = hoje(), y = Number(h.slice(0, 4)), m = Number(h.slice(5, 7)) - 1, d = Number(h.slice(8, 10));
+  const ult = (yy, mm) => new Date(yy, mm + 1, 0).getDate(), mk = (yy, mm, dd) => iso(new Date(yy, mm, Math.min(dd, ult(yy, mm))));
+  if (k === 'passado') return { a: [mk(y, m - 1, 1), mk(y, m - 1, 31)], b: [mk(y, m - 2, 1), mk(y, m - 2, 31)] };
+  if (k === 'ano') return { a: [mk(y, m, 1), h], b: [mk(y - 1, m, 1), mk(y - 1, m, d)] };
+  if (k === '30') return { a: [somaDias(h, -29), h], b: [somaDias(h, -59), somaDias(h, -30)] };
+  return { a: [mk(y, m, 1), h], b: [mk(y, m - 1, 1), mk(y, m - 1, d)] };
+}
+const rcDias = (de, ate) => { const o = []; for (let s = de; s <= ate && o.length < 401; s = somaDias(s, 1)) o.push(s); return o; };
+const rcOk = (de, ate) => de && ate && de <= ate && rcDias(de, ate).length <= 400;
+const rcSoma = (rows, fn) => r2(rows.reduce((s, x) => s + (!fn || fn(x) ? Number(x.valor) : 0), 0));
+function rcTotais(R){
+  const rows = (R && R.dias) || [];
+  return { total: rcSoma(rows), venda: rcSoma(rows, x => x.setor === 'venda'), cobranca: rcSoma(rows, x => x.setor === 'cobranca'), sem: rcSoma(rows, x => x.setor === 'sem_tipo'),
+    orto: rcSoma(rows, x => x.area === 'ortodontia'), clin: rcSoma(rows, x => x.area === 'clinico'), qtd: rows.reduce((s, x) => s + Number(x.qtd || 0), 0) };
+}
+const rcDelta = (a, b) => b ? (a - b) / Math.abs(b) : null;
+const rcSeta = f => f == null ? '' : '<em style="font-style:normal;font-size:12px;color:' + (f >= 0 ? 'var(--ok)' : 'var(--red)') + '">' + (f >= 0 ? '▲ ' : '▼ ') + pctTxt(Math.abs(f)) + '</em>';
+function rcSerie(R, dias, f){
+  const por = {}; ((R && R.dias) || []).filter(x => (!f.setor || x.setor === f.setor) && (!f.area || x.area === f.area)).forEach(x => { por[x.d] = (por[x.d] || 0) + Number(x.valor); });
+  return dias.map(d => r2(por[d] || 0));
+}
+function rcGrafico(dA, vA, dB, vB){
+  const n = Math.max(vA.length, vB.length), W = 900, H = 230, ml = 62, mb = 26, mt = 10, w = W - ml - 8, h = H - mb - mt, max = Math.max(1, ...vA, ...vB);
+  const g = Math.pow(10, Math.floor(Math.log10(max))), passo = [1, 2, 2.5, 5, 10].map(k => k * g).find(s => max / s <= 4) || 10 * g, topo = Math.ceil(max / passo) * passo, Y = v => mt + h - (v / topo) * h;
+  const bw = w / n, tem = vB.length > 0, bl = Math.max(1, Math.min(18, bw * (tem ? 0.4 : 0.7)));
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="Recebimentos por dia">';
+  for (let v = 0; v <= topo + 0.001; v += passo) s += '<line x1="' + ml + '" x2="' + (W - 8) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--line)" stroke-width="1"/><text x="' + (ml - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="11" fill="var(--muted)">' + (v >= 1000 ? nTxt(v / 1000, 1) + ' mil' : nTxt(v, 0)) + '</text>';
+  for (let i = 0; i < n; i++) {
+    const cx = ml + bw * (i + 0.5), a = vA[i], b = vB[i];
+    if (a != null) { const hh = a > 0 ? Math.max(2, (a / topo) * h) : 0; s += '<rect x="' + (cx - (tem ? bl + 0.5 : bl / 2)) + '" y="' + (mt + h - hh) + '" width="' + bl + '" height="' + hh + '" rx="2" fill="var(--accent)"><title>' + dBR(dA[i]) + ' · ' + brl(a) + '</title></rect>'; }
+    if (tem && b != null) { const hh = b > 0 ? Math.max(2, (b / topo) * h) : 0; s += '<rect x="' + (cx + 0.5) + '" y="' + (mt + h - hh) + '" width="' + bl + '" height="' + hh + '" rx="2" fill="var(--muted)" opacity=".45"><title>' + dBR(dB[i]) + ' · ' + brl(b) + '</title></rect>'; }
+    if (n <= 31 || i % Math.ceil(n / 12) === 0) s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" font-size="' + (n > 20 ? 9.5 : 11) + '" fill="var(--muted)">' + (dA[i] ? dA[i].slice(8) + '/' + dA[i].slice(5, 7) : '') + '</text>';
+  }
+  return s + '</svg>';
+}
+async function recCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla');
+  if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
+  defUn(ru.data); D.unidades = MINHAS.slice();
+  if (!UN) { $('#area').innerHTML = semUn('Recebimentos'); return; }
+  if (!RC.a) { const p = rcPreset('mes'); RC.a = p.a; RC.b = p.b; }
+  if (RC.un === null || (RC.un && !MINHAS.some(u => u.id === RC.un))) RC.un = UN;
+  const multi = MINHAS.length > 1;
+  $('#area').innerHTML = '<div class="head"><div><h1>Recebimentos</h1></div><button class="btn ghost" type="button" id="rc-csv">Exportar CSV</button></div>'
+    + '<div class="card"><div class="tools" style="align-items:end;flex-wrap:wrap">'
+    + (multi ? '<label class="field" for="rc-un" style="margin:0">Unidade<select id="rc-un"><option value="0"' + (RC.un === 0 ? ' selected' : '') + '>Todas as minhas unidades</option>' + MINHAS.map(u => '<option value="' + u.id + '"' + (RC.un === u.id ? ' selected' : '') + '>' + esc(u.sigla || u.nome) + '</option>').join('') + '</select></label>' : '')
+    + '<label class="field" for="rc-a0" style="margin:0">Período de<input id="rc-a0" type="date" value="' + RC.a[0] + '"></label><label class="field" for="rc-a1" style="margin:0">até<input id="rc-a1" type="date" value="' + RC.a[1] + '"></label>'
+    + '<label class="field" style="margin:0;flex-direction:row;align-items:center;gap:6px" for="rc-cmp"><input id="rc-cmp" type="checkbox"' + (RC.cmp ? ' checked' : '') + '> Comparar com</label>'
+    + '<span id="rc-bx" style="display:' + (RC.cmp ? 'contents' : 'none') + '"><label class="field" for="rc-b0" style="margin:0">De<input id="rc-b0" type="date" value="' + RC.b[0] + '"></label><label class="field" for="rc-b1" style="margin:0">até<input id="rc-b1" type="date" value="' + RC.b[1] + '"></label></span>'
+    + '<label class="field" for="rc-pre" style="margin:0">Atalho<select id="rc-pre"><option value="">Escolher...</option><option value="mes">Este mês × mês anterior</option><option value="passado">Mês passado × retrasado</option><option value="ano">Este mês × mesmo mês do ano passado</option><option value="30">Últimos 30 dias × 30 anteriores</option></select></label></div>'
+    + '<div class="tools" style="margin-top:10px;flex-wrap:wrap"><select id="rc-setor" aria-label="Venda ou cobrança"><option value="">Venda e cobrança</option><option value="venda">Só venda</option><option value="cobranca">Só cobrança</option></select>'
+    + '<select id="rc-area" aria-label="Área"><option value="">Ortodontia e clínico</option><option value="ortodontia">Só ortodontia</option><option value="clinico">Só clínico</option></select>'
+    + '<input id="rc-q" type="search" placeholder="Buscar produto ou serviço" aria-label="Buscar produto ou serviço" value="' + esc(RC.q) + '"><label class="field" style="margin:0;flex-direction:row;align-items:center;gap:6px" for="rc-queda"><input id="rc-queda" type="checkbox"' + (RC.queda ? ' checked' : '') + '> Só os que caíram mais de 10%</label></div><div class="err" id="rc-err"></div></div>'
+    + '<div id="rc-kpis"></div><div class="card"><div class="sec">Por dia</div><div id="rc-graf"></div></div><div class="card"><div class="sec">Por produto e serviço</div><div id="rc-prod"></div></div><div class="card"><div class="sec">Dia a dia</div><div id="rc-dias"></div></div>';
+  $('#rc-setor').value = RC.setor; $('#rc-area').value = RC.area;
+  const err = t => { $('#rc-err').textContent = t || ''; };
+  const busca = async () => {
+    err('');
+    if (!rcOk(RC.a[0], RC.a[1]) || (RC.cmp && !rcOk(RC.b[0], RC.b[1]))) { err('Informe períodos válidos, de no máximo 400 dias.'); return; }
+    const call = p => sb.rpc('relatorio_recebimentos', { p_unidade: RC.un || null, p_ini: p[0], p_fim: p[1] });
+    const [ra, rb] = await Promise.all([call(RC.a), RC.cmp ? call(RC.b) : Promise.resolve(null)]);
+    if (ra.error || (rb && rb.error)) { err(erroTxt(ra.error || rb.error)); return; }
+    RC.A = ra.data; RC.B = rb ? rb.data : null; desenha();
+  };
+  const desenha = () => {
+    const f = { setor: RC.setor, area: RC.area }, dA = rcDias(RC.a[0], RC.a[1]), dB = RC.cmp ? rcDias(RC.b[0], RC.b[1]) : [], tA = rcTotais(RC.A), tB = RC.cmp ? rcTotais(RC.B) : null;
+    const sub = (b, a, c) => tB ? '<small style="color:var(--muted)">' + brl(b) + ' ' + rcSeta(rcDelta(a, b)) + '</small>' : '';
+    const kx = (t, a, b) => '<div class="kpi"><span>' + t + '</span><b>' + brl(a) + '</b>' + sub(b, a) + '</div>', kp = (t, k) => kx(t, tA[k], tB ? tB[k] : 0);
+    const mA = dA.length ? tA.total / dA.length : 0, mB = tB && dB.length ? tB.total / dB.length : 0, tkA = tA.qtd ? tA.total / tA.qtd : 0, tkB = tB && tB.qtd ? tB.total / tB.qtd : 0;
+    $('#rc-kpis').innerHTML = '<div class="kpis">' + kp('Total recebido', 'total') + kp('Venda', 'venda') + kp('Cobrança', 'cobranca') + kp('Ortodontia', 'orto') + kp('Clínico', 'clin') + kx('Média por dia', mA, mB) + kx('Ticket médio', tkA, tkB) + (tA.sem > 0 || (tB && tB.sem > 0) ? kp('Sem tipo de lançamento', 'sem') : '') + '</div>';
+    const sA = rcSerie(RC.A, dA, f), sB = RC.cmp ? rcSerie(RC.B, dB, f) : [], dot = (c, o) => '<i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + c + ';opacity:' + o + ';margin-right:6px"></i>';
+    $('#rc-graf').innerHTML = rcGrafico(dA, sA, dB, sB) + '<div class="tools" style="margin-top:6px;gap:16px"><span>' + dot('var(--accent)', 1) + dBR(RC.a[0]) + ' a ' + dBR(RC.a[1]) + '</span>' + (RC.cmp ? '<span>' + dot('var(--muted)', 0.45) + dBR(RC.b[0]) + ' a ' + dBR(RC.b[1]) + '</span>' : '') + '</div>';
+    const rowsP = R => { const m = {}; ((R && R.produtos) || []).filter(x => (!f.setor || x.setor === f.setor) && (!f.area || x.area === f.area)).forEach(x => { const k = x.produto + '|' + x.tipo + '|' + x.area, o = m[k] = m[k] || { produto: x.produto, tipo: x.tipo, area: x.area, valor: 0, qtd: 0 }; o.valor = r2(o.valor + Number(x.valor)); o.qtd += Number(x.qtd); }); return m; };
+    const pa = rowsP(RC.A), pb = RC.cmp ? rowsP(RC.B) : {}, ks = new Set([...Object.keys(pa), ...Object.keys(pb)]), q = RC.q.trim().toLowerCase();
+    let lp = [...ks].map(k => { const a = pa[k], b = pb[k], base = a || b, va = a ? a.valor : 0, vb = b ? b.valor : 0, dl = r2(va - vb), dp = rcDelta(va, vb);
+      const sit = !RC.cmp ? '' : va <= 0 && vb > 0 ? 'Parou' : vb <= 0 && va > 0 ? 'Novo' : dp != null && dp <= -0.1 ? 'Em queda' : dp != null && dp >= 0.1 ? 'Em alta' : 'Estável';
+      return { produto: base.produto, tipo: base.tipo, area: base.area, va: va, qa: a ? a.qtd : 0, vb: vb, qb: b ? b.qtd : 0, dl: dl, dp: dp, sit: sit }; });
+    lp = lp.filter(x => (!q || x.produto.toLowerCase().includes(q) || String(x.tipo || '').toLowerCase().includes(q)) && (!RC.queda || x.sit === 'Em queda' || x.sit === 'Parou')).sort((x, y) => RC.cmp && RC.queda ? x.dl - y.dl : y.va - x.va || y.vb - x.vb);
+    const pill = { 'Parou': 'off', 'Em queda': 'off', 'Novo': 'on', 'Em alta': 'on', 'Estável': 'nu' };
+    const cols = [{ t: 'Produto ou serviço', v: x => x.produto }, { t: 'Tipo', v: x => x.tipo || '—' }, { t: 'Área', v: x => rcAreaTxt[x.area] || x.area },
+      { t: 'Recebido', n: 1, v: x => brl(x.va), soma: x => x.va }, { t: 'Qtd', n: 1, v: x => String(x.qa), soma: x => 0 }];
+    if (RC.cmp) cols.push({ t: 'Recebido (comparação)', n: 1, v: x => brl(x.vb), soma: x => x.vb }, { t: 'Qtd (comp.)', n: 1, v: x => String(x.qb), soma: x => 0 }, { t: 'Diferença', n: 1, v: x => brl(x.dl), soma: x => x.dl },
+      { t: 'Variação', n: 1, v: x => x.dp == null ? '—' : (x.dp >= 0 ? '+' : '−') + pctTxt(Math.abs(x.dp)), soma: x => 0 }, { t: 'Situação', v: x => x.sit, h: x => '<span class="pill ' + (pill[x.sit] || 'nu') + '">' + x.sit + '</span>' });
+    RC.lp = lp; RC.fp = [];
+    gradeF($('#rc-prod'), { dados: lp, f: RC.fp, vazio: 'Nenhum recebimento neste período.', maxH: 520, cols: cols });
+    const lin = {}; ((RC.A && RC.A.dias) || []).forEach(x => { if (f.setor && x.setor !== f.setor) return; if (f.area && x.area !== f.area) return; const o = lin[x.d] = lin[x.d] || { venda: 0, cobranca: 0, orto: 0, clin: 0, total: 0 }, v = Number(x.valor); o.total += v; if (x.setor === 'venda') o.venda += v; else if (x.setor === 'cobranca') o.cobranca += v; if (x.area === 'ortodontia') o.orto += v; else o.clin += v; });
+    const ld = dA.map((d, i) => Object.assign({ d: d, tb: RC.cmp ? sB[i] : 0, db: RC.cmp ? dB[i] : '' }, { venda: 0, cobranca: 0, orto: 0, clin: 0, total: 0 }, lin[d] || {}));
+    const dc = [{ t: 'Data', v: x => dBR(x.d) }, { t: 'Dia', v: x => dataLocal(x.d).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '') },
+      { t: 'Venda', n: 1, v: x => brl(x.venda), soma: x => x.venda }, { t: 'Cobrança', n: 1, v: x => brl(x.cobranca), soma: x => x.cobranca }, { t: 'Ortodontia', n: 1, v: x => brl(x.orto), soma: x => x.orto }, { t: 'Clínico', n: 1, v: x => brl(x.clin), soma: x => x.clin }, { t: 'Total', n: 1, v: x => brl(x.total), soma: x => x.total }];
+    if (RC.cmp) dc.push({ t: 'Dia comparado', v: x => x.db ? dBR(x.db) : '' }, { t: 'Total comparado', n: 1, v: x => brl(x.tb), soma: x => x.tb });
+    RC.fd = [];
+    gradeF($('#rc-dias'), { dados: ld, f: RC.fd, maxH: 420, cols: dc });
+  };
+  const per = () => { RC.a = [$('#rc-a0').value, $('#rc-a1').value]; RC.b = [$('#rc-b0').value, $('#rc-b1').value]; busca(); };
+  ['#rc-a0', '#rc-a1', '#rc-b0', '#rc-b1'].forEach(s => $(s).addEventListener('change', per));
+  $('#rc-cmp').addEventListener('change', e => { RC.cmp = e.target.checked; $('#rc-bx').style.display = RC.cmp ? 'contents' : 'none'; per(); });
+  $('#rc-pre').addEventListener('change', e => { if (!e.target.value) return; const p = rcPreset(e.target.value); RC.a = p.a; RC.b = p.b; RC.cmp = true; $('#rc-cmp').checked = true; $('#rc-bx').style.display = 'contents'; $('#rc-a0').value = p.a[0]; $('#rc-a1').value = p.a[1]; $('#rc-b0').value = p.b[0]; $('#rc-b1').value = p.b[1]; e.target.value = ''; busca(); });
+  const un = $('#rc-un'); if (un) un.addEventListener('change', e => { RC.un = Number(e.target.value); busca(); });
+  const filt = () => { RC.setor = $('#rc-setor').value; RC.area = $('#rc-area').value; RC.queda = $('#rc-queda').checked; if (RC.A) desenha(); };
+  ['#rc-setor', '#rc-area', '#rc-queda'].forEach(s => $(s).addEventListener('change', filt));
+  let tq = 0; $('#rc-q').addEventListener('input', e => { RC.q = e.target.value; clearTimeout(tq); tq = setTimeout(() => { if (RC.A) desenha(); }, 200); });
+  $('#rc-csv').addEventListener('click', () => {
+    if (!RC.lp) return; const q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"', n = v => String(v).replace('.', ',');
+    const cab = ['Produto ou serviço', 'Tipo', 'Área', 'Recebido', 'Qtd'].concat(RC.cmp ? ['Recebido (comparação)', 'Qtd (comparação)', 'Diferença', 'Variação (%)', 'Situação'] : []);
+    const lin = RC.lp.map(x => [q(x.produto), q(x.tipo), q(rcAreaTxt[x.area] || x.area), n(x.va), x.qa].concat(RC.cmp ? [n(x.vb), x.qb, n(x.dl), x.dp == null ? '' : n(Math.round(x.dp * 1000) / 10), q(x.sit)] : []).join(';'));
+    baixaArquivo('recebimentos-' + RC.a[0] + '-a-' + RC.a[1] + '.csv', '﻿' + cab.map(q).join(';') + '\r\n' + lin.join('\r\n'), 'text/csv;charset=utf-8');
+  });
+  await busca();
 }
 /* ---------- PACIENTES: prospects ---------- */
 const PAC = { q: '', canal: '', st: '', de: '', ate: '', dados: [], total: 0 }, CANAIS = ['Promotor', 'Tele', 'Indicação', 'Espontâneo', 'Lead Internet', 'Prospecta'];
