@@ -6074,7 +6074,7 @@ function prdForm(x){
 }
 
 /* ---------- PROCEDIMENTOS (tempo e tipo de cadeira) ---------- */
-const LOCAL_PROC = { geral: 'Agenda Geral', principal: 'Cadeira principal (C1)', auxiliar: 'Cadeiras auxiliares', todas: 'Todas as cadeiras (principal e auxiliares)' };
+const LOCAL_PROC = { geral: 'Agenda Geral', principal: 'Cadeira principal (C1)', auxiliar: 'Cadeiras auxiliares', todas: 'Todas as cadeiras, menos a Geral' };
 const ST_AG = { agendado: 'Agendado', compareceu: 'Compareceu', em_atendimento: 'Em atendimento', faltou: 'Faltou', concluido: 'Concluído' };
 const minTxt = m => m % 60 === 0 ? (m / 60) + ' h' : m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
 async function prcCarregar(){
@@ -6083,20 +6083,19 @@ async function prcCarregar(){
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
   D.procs = r.data; prcLista();
 }
-const PROC_LOC = { geral: 'Agenda Geral', principal: 'Cadeira principal', auxiliar: 'Cadeiras auxiliares', todas: 'Todas as cadeiras' };
+const PROC_LOC = { geral: 'Agenda Geral', principal: 'Cadeira principal', auxiliar: 'Cadeiras auxiliares', todas: 'Todas as cadeiras, menos a Geral' };
 const prcDur = m => m < 60 ? '<b>' + m + '</b><span>min</span>' : '<b>' + Math.floor(m / 60) + '</b><span>h</span>' + (m % 60 ? ' <b>' + (m % 60) + '</b><span>min</span>' : '');
 function prcLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Procedimentos</h1></div>'
     + (pode('procedimentos.criar') ? '<button class="btn" type="button" id="pr-novo">+ Novo procedimento</button>' : '') + '</div>'
-    + '<div class="pcbar"><input type="search" id="pr-q" placeholder="Buscar procedimento" aria-label="Buscar procedimento" autocomplete="off"><span class="pill nu" id="pr-n"></span></div><div class="pcs" id="pr-lista"></div>';
+    + '<div class="pcbar"><input type="search" id="pr-q" placeholder="Buscar procedimento" aria-label="Buscar procedimento" autocomplete="off"><span class="pill nu" id="pr-n"></span></div><div class="card" style="padding:0;overflow:hidden" id="pr-lista"></div>';
   const desenha = () => {
     const q = semAcento($('#pr-q').value.trim()), l = D.procs.filter(p => !q || semAcento(p.nome).includes(q));
     $('#pr-n').textContent = l.length + (l.length === 1 ? ' procedimento' : ' procedimentos');
     const ord = Object.keys(PROC_LOC), o = l.slice().sort((a, b) => ord.indexOf(a.local) - ord.indexOf(b.local) || a.nome.localeCompare(b.nome, 'pt-BR'));
-    $('#pr-lista').innerHTML = o.length ? '<div class="pcg">' + o.map(p =>
-      '<button type="button" class="pcc' + (p.ativo ? '' : ' off') + '" data-id="' + p.id + '"><span class="pl">' + PROC_LOC[p.local] + '</span><span class="pn">' + esc(p.nome) + '</span><span class="pd">' + prcDur(p.duracao_min) + '</span>'
-      + '<span class="pf">' + (p.avaliacao ? '<span class="pill wr">Avaliação</span>' : '') + '<span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span></span></button>').join('') + '</div>' : '<div class="card"><div class="vazio">Nenhum procedimento.</div></div>';
-    $$('#pr-lista .pcc').forEach(b => b.addEventListener('click', () => prcForm(D.procs.find(x => x.id === Number(b.dataset.id)))));
+    gradeCad($('#pr-lista'), 'prc', o, [{ t: 'Procedimento', v: p => p.nome, h: p => '<b>' + esc(p.nome) + '</b>' }, { t: 'Tipo de cadeira', v: p => PROC_LOC[p.local] },
+      { t: 'Tempo', r: 1, v: p => minTxt(p.duracao_min), k: p => p.duracao_min, soma: p => 0 }, { t: 'Avaliação', v: p => p.avaliacao ? 'Sim' : 'Não' },
+      { t: 'Situação', v: p => p.ativo ? 'Ativo' : 'Inativo', h: p => '<span class="pill ' + (p.ativo ? 'on' : 'off') + '">' + (p.ativo ? 'Ativo' : 'Inativo') + '</span>' }], p => prcForm(p), 'Nenhum procedimento.');
   };
   $('#pr-q').addEventListener('input', desenha); desenha();
   const n = $('#pr-novo'); if (n) n.addEventListener('click', () => prcForm(null));
