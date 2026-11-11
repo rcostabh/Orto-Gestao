@@ -1214,6 +1214,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.74.0', '2026-11-11', 'Agenda: mais 5 cores para a caixa dos procedimentos (azul-marinho, ciano, verde-limão, marrom e vinho). As cores de fonte não mudam.'],
   ['0.73.0', '2026-11-11', 'Agenda: a cor da fonte do horário muda conforme a situação (agendado, faltou, aguardando, em atendimento, concluído). As cores são escolhidas em Procedimentos › Cores por situação, com prévia sobre as caixas de cada procedimento; a cor da caixa continua sendo a do procedimento. A prévia no cadastro do procedimento mostra as cinco situações.'],
   ['0.72.0', '2026-11-11', 'Procedimentos com sub-procedimentos: no cadastro do procedimento (ex.: Urgência) digite as opções, uma por linha; ao agendar, escolher o tipo passa a ser obrigatório (Corte de fio, Dor ou incômodo, Orientação, Recolagem de Braquete, Recolocação de Elastic, Recolocação de Fio, Recolocação de Borrachinha). O tipo aparece no horário da agenda e na ficha do agendamento.'],
   ['0.71.0', '2026-11-11', 'Agenda: cada procedimento pode ter cor de caixa e cor de fonte, definidas no cadastro de Procedimentos (com prévia). Na agenda do dia, o horário aparece com essas cores e uma faixa lateral mostra a situação (agendado, compareceu, em atendimento, faltou, concluído). Sem cor definida, vale a cor da situação como antes.'],
@@ -6117,7 +6118,7 @@ const ST_FUNDO = { agendado: '#111111', compareceu: '#1b8a4b', em_atendimento: '
 const ST_PAD = { agendado: '#ffffff', faltou: '#ff9e9e', compareceu: '#ffe066', em_atendimento: '#7df9ff', concluido: '#d0d0d0' };
 let ST_COR = { ...ST_PAD };
 const stCarrega = async () => { const r = await sb.rpc('agenda_cores_ler'); if (!r.error && r.data) ST_COR = { ...ST_PAD, ...r.data }; };
-const PROC_CORES = ['#1769d6', '#1b8a4b', '#d4271c', '#ff6a00', '#8e44ad', '#0f9d9a', '#e84393', '#f2c200', '#7a7a7a', '#111111'];
+const PROC_CORES = ['#1769d6', '#1b8a4b', '#d4271c', '#ff6a00', '#8e44ad', '#0f9d9a', '#e84393', '#f2c200', '#7a7a7a', '#111111', '#1e3a8a', '#1cb5e0', '#84b81a', '#8d5a2b', '#7b1e3a'];
 function prcStatusForm(){
   const base = [...new Set((D.procs || []).filter(x => x.ativo && x.cor_fundo).map(x => x.cor_fundo))].slice(0, 6), caixas = base.length ? base : ['#1769d6', '#8e44ad', '#0f9d9a'];
   const C = { ...ST_COR };
