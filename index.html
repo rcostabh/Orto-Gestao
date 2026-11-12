@@ -1295,6 +1295,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.80.1', '2026-11-12', 'Paciente inativo: só agenda Limpeza, Raspagem, Reavaliação do tratamento e Remoção do aparelho, e só nas agendas/cadeiras que fazem esses procedimentos, para qualquer perfil de acesso (antes a permissão de agendar inativos liberava tudo).'],
   ['0.80.0', '2026-11-12', 'Novo módulo Financiamento próprio (liga e desliga por unidade, em Unidades › Módulos, só o Diretor). Menu Financiamento: Carteira (pago, executado e crédito de cada paciente, parcelas, atraso, boletos e aviso de tratamento aguardando crédito), Vencimentos e boletos (todas as parcelas por período, baixa pelo botão Receber ou automática pelo Asaas, gerar e ver boleto), Régua de cobrança própria (a vencer, 1-15, 16-30, 31-60 e +60 dias, com WhatsApp de 1 toque e registro do contato) e a Previsão de recebimento. Ao fechar um orçamento com financiamento próprio, o carnê de boletos de todas as parcelas é gerado no Asaas (também pelo botão Gerar boletos na Carteira).'],
   ['0.79.1', '2026-11-12', 'Cobrança: linhas dos grids mais baixas (botões, ícone do WhatsApp e seletor de resultado compactos).'],
   ['0.79.0', '2026-11-12', 'Painel: o cartão Faltas sem reagendar abre a nova tela Faltas sem reagendar, com período, busca, filtro de quem já reagendou e filtros por coluna no grid padrão (clicar abre a ficha do paciente). Cobrança: as listas da Régua, Sem agendamento, Campanhas e Faltas ficam iguais ao grid de Pacientes (nome em negrito, linha clicável, uma linha por paciente, mesma altura).'],
@@ -6536,7 +6537,7 @@ function prcForm(p){
     + '<div class="g2"><label class="field" for="pr-dur">Tempo *<select id="pr-dur"' + ro + '>' + durs.map(m => '<option value="' + m + '"' + ((p ? p.duracao_min : 15) === m ? ' selected' : '') + '>' + minTxt(m) + '</option>').join('') + '</select></label>'
     + '<label class="field" for="pr-loc">Tipo de cadeira *<select id="pr-loc"' + ro + '>' + Object.keys(PROC_LOC).map(k => '<option value="' + k + '"' + ((p ? p.local : 'auxiliar') === k ? ' selected' : '') + '>' + PROC_LOC[k] + '</option>').join('') + '</select></label></div>'
     + '<label class="chk" id="pr-avl"><input type="checkbox" id="pr-av"' + (p && p.avaliacao ? ' checked' : '') + ro + '> É uma avaliação</label>'
-    + '<label class="chk"><input type="checkbox" id="pr-inp"' + (p && p.inativo_pode ? ' checked' : '') + ro + '> Pode ser agendado para paciente inativo (perfis sem a permissão de agendar inativos)</label>'
+    + '<label class="chk"><input type="checkbox" id="pr-inp"' + (p && p.inativo_pode ? ' checked' : '') + ro + '> Pode ser agendado para paciente inativo (vale para todos os perfis, só nas agendas que fazem este procedimento)</label>'
     + '<label class="field" for="pr-sub">Sub-procedimentos <small>(um por linha; se houver, é obrigatório escolher ao agendar)</small><textarea id="pr-sub" rows="4" maxlength="800" placeholder="Ex.: Corte de fio"' + ro + '>' + esc(((p && p.subprocedimentos) || []).join('\n')) + '</textarea></label>'
     + '<div class="cpk" id="pr-cor"><b style="font-size:13px">Cores na agenda</b>'
     + '<div class="cpl"><span class="cpt">Caixa</span>' + PROC_CORES.map(c => '<button type="button" class="sw" data-f="' + c + '" style="background:' + c + '" aria-label="Caixa ' + c + '" aria-pressed="false"' + ro + '></button>').join('') + '<input type="color" id="pr-cf" aria-label="Escolher cor da caixa"' + ro + '></div>'
@@ -6824,7 +6825,7 @@ function agdAgendar(aid, m){
     + '<div class="err" id="n-err" role="alert"></div></div>'
     + '<div class="df"><button class="btn ghost" type="button" id="n-cancel">Cancelar</button><button class="btn" type="submit" id="n-ok">Agendar</button></div></form>');
   const tipo = () => $('input[name="n-tipo"]:checked').value;
-  const procsOk = () => !sel ? [] : AG.procs.filter(p => agCabe(p, c) && (sel.status === 'Prospecção' ? p.avaliacao : sel.status === 'Inativo' ? (pode('agendamentos.inativos') || !!p.inativo_pode) : !p.avaliacao));
+  const procsOk = () => !sel ? [] : AG.procs.filter(p => agCabe(p, c) && (sel.status === 'Prospecção' ? p.avaliacao : sel.status === 'Inativo' ? !!p.inativo_pode : !p.avaliacao));
   const duracao = () => { if (tipo() === 'compromisso') return Number($('#n-dur').value); const p = AG.procs.find(x => x.id === Number($('#n-proc').value)); return p ? p.duracao_min + Number($('#n-extra').value) : 0; };
   const resumo = () => { const d = duracao(); $('#n-resumo').textContent = d ? hmDe(m) + ' às ' + hmDe(m + d) + ' (' + minTxt(d) + ') · ' + c.nome + ' · ' + (c.dentista_nome || 'Agenda Geral') : ''; };
   const subDesenha = () => {
@@ -6839,7 +6840,7 @@ function agdAgendar(aid, m){
     s.innerHTML = l.length ? l.map(p => '<option value="' + p.id + '">' + esc(p.nome) + ' · ' + minTxt(p.duracao_min) + '</option>').join('')
       : '<option value="">Nenhum procedimento cabe aqui</option>';
     subDesenha();
-    $('#n-err').textContent = l.length ? '' : (sel.status === 'Prospecção' ? 'Prospect só agenda avaliação, e a avaliação fica na agenda Geral.' : 'Nenhum procedimento ativo pode ser feito nesta agenda. Veja o tipo de cadeira em Procedimentos.');
+    $('#n-err').textContent = l.length ? '' : (sel.status === 'Prospecção' ? 'Prospect só agenda avaliação, e a avaliação fica na agenda Geral.' : sel.status === 'Inativo' ? 'Paciente inativo só agenda Limpeza, Raspagem, Reavaliação do tratamento ou Remoção do aparelho, e esta agenda não tem nenhum deles.' : 'Nenhum procedimento ativo pode ser feito nesta agenda. Veja o tipo de cadeira em Procedimentos.');
     resumo();
   };
   const busca = async () => {
