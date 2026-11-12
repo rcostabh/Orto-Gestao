@@ -424,7 +424,9 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .rcf{padding:8px 12px}.rcf .tools{gap:6px 10px;align-items:flex-end;margin:0}.rcf .field{margin:0;font-size:11px;gap:2px}.rcf input,.rcf select{height:28px;min-height:0;padding:2px 8px;font-size:12px;border-radius:8px}.rcf input[type=checkbox]{height:auto;width:14px;padding:0}.rcf label[for=rc-cmp],.rcf label[for=rc-queda]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px;font-size:12px;height:28px;white-space:nowrap}.rcf input[type=checkbox]{margin:0}.rcf #rc-q{min-width:150px;width:170px}.rcf .err:empty{display:none}#rc-kpis .kpis{grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}#rc-kpis .kpi b{font-size:clamp(19px,5.4vw,24px)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 12px}
 .kpi{background:var(--surface-2);border-radius:14px;padding:11px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.kpi span{font-size:12.5px;color:var(--muted)} .kpi b{font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums} .kpi.al b{color:var(--red)} .kpi.ok b{color:var(--ok)}
+.kpi span{font-size:12.5px;color:var(--muted)} .kpi b{font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums}
+#rc-kpis .kpis{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(96px,1fr);gap:6px;margin:0 0 8px;overflow-x:auto}
+#rc-kpis .kpi{padding:5px 8px;border-radius:10px;gap:0}#rc-kpis .kpi span{font-size:10px;white-space:nowrap}#rc-kpis .kpi b{font-size:14px;white-space:nowrap}#rc-kpis .kpi small{font-size:9.5px;white-space:nowrap}#rc-kpis .kpi em{font-size:9.5px!important} .kpi.al b{color:var(--red)} .kpi.ok b{color:var(--ok)}
 .cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}.cp-off{opacity:.65}
 .tools .chk input[type=checkbox]{flex:none;min-height:0;width:18px;height:18px;padding:0;border:0}
 .cbres{margin-top:0;font:400 12.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 6px;max-width:150px}
@@ -1295,6 +1297,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.81.0', '2026-11-12', 'Financeiro › Recebimentos: os cartões de totais ficaram menores e ficam todos em uma única linha, e o gráfico por dia foi retirado (o dia a dia continua na tabela).'],
   ['0.80.1', '2026-11-12', 'Paciente inativo: só agenda Limpeza, Raspagem, Reavaliação do tratamento e Remoção do aparelho, e só nas agendas/cadeiras que fazem esses procedimentos, para qualquer perfil de acesso (antes a permissão de agendar inativos liberava tudo).'],
   ['0.80.0', '2026-11-12', 'Novo módulo Financiamento próprio (liga e desliga por unidade, em Unidades › Módulos, só o Diretor). Menu Financiamento: Carteira (pago, executado e crédito de cada paciente, parcelas, atraso, boletos e aviso de tratamento aguardando crédito), Vencimentos e boletos (todas as parcelas por período, baixa pelo botão Receber ou automática pelo Asaas, gerar e ver boleto), Régua de cobrança própria (a vencer, 1-15, 16-30, 31-60 e +60 dias, com WhatsApp de 1 toque e registro do contato) e a Previsão de recebimento. Ao fechar um orçamento com financiamento próprio, o carnê de boletos de todas as parcelas é gerado no Asaas (também pelo botão Gerar boletos na Carteira).'],
   ['0.79.1', '2026-11-12', 'Cobrança: linhas dos grids mais baixas (botões, ícone do WhatsApp e seletor de resultado compactos).'],
@@ -3156,20 +3159,6 @@ function rcSerie(R, dias, f){
   const por = {}; ((R && R.dias) || []).filter(x => (!f.setor || x.setor === f.setor) && (!f.area || x.area === f.area)).forEach(x => { por[x.d] = (por[x.d] || 0) + Number(x.valor); });
   return dias.map(d => r2(por[d] || 0));
 }
-function rcGrafico(dA, vA, dB, vB){
-  const n = Math.max(vA.length, vB.length), W = 900, H = 230, ml = 62, mb = 26, mt = 10, w = W - ml - 8, h = H - mb - mt, max = Math.max(1, ...vA, ...vB);
-  const g = Math.pow(10, Math.floor(Math.log10(max))), passo = [1, 2, 2.5, 5, 10].map(k => k * g).find(s => max / s <= 4) || 10 * g, topo = Math.ceil(max / passo) * passo, Y = v => mt + h - (v / topo) * h;
-  const bw = w / n, tem = vB.length > 0, bl = Math.max(1, Math.min(18, bw * (tem ? 0.4 : 0.7)));
-  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="Recebimentos por dia">';
-  for (let v = 0; v <= topo + 0.001; v += passo) s += '<line x1="' + ml + '" x2="' + (W - 8) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--line)" stroke-width="1"/><text x="' + (ml - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="11" fill="var(--muted)">' + (v >= 1000 ? nTxt(v / 1000, 1) + ' mil' : nTxt(v, 0)) + '</text>';
-  for (let i = 0; i < n; i++) {
-    const cx = ml + bw * (i + 0.5), a = vA[i], b = vB[i];
-    if (a != null) { const hh = a > 0 ? Math.max(2, (a / topo) * h) : 0; s += '<rect x="' + (cx - (tem ? bl + 0.5 : bl / 2)) + '" y="' + (mt + h - hh) + '" width="' + bl + '" height="' + hh + '" rx="2" fill="var(--accent)"><title>' + dBR(dA[i]) + ' · ' + brl(a) + '</title></rect>'; }
-    if (tem && b != null) { const hh = b > 0 ? Math.max(2, (b / topo) * h) : 0; s += '<rect x="' + (cx + 0.5) + '" y="' + (mt + h - hh) + '" width="' + bl + '" height="' + hh + '" rx="2" fill="var(--muted)" opacity=".45"><title>' + dBR(dB[i]) + ' · ' + brl(b) + '</title></rect>'; }
-    if (n <= 31 || i % Math.ceil(n / 12) === 0) s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" font-size="' + (n > 20 ? 9.5 : 11) + '" fill="var(--muted)">' + (dA[i] ? dA[i].slice(8) + '/' + dA[i].slice(5, 7) : '') + '</text>';
-  }
-  return s + '</svg>';
-}
 async function recCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const ru = await sb.from('unidades').select('*').order('sigla');
@@ -3189,7 +3178,7 @@ async function recCarregar(){
     + '<select id="rc-setor" aria-label="Venda ou cobrança"><option value="">Venda e cobrança</option><option value="venda">Só venda</option><option value="cobranca">Só cobrança</option></select>'
     + '<select id="rc-area" aria-label="Área"><option value="">Todas as áreas</option><option value="ortodontia">Só ortodontia</option><option value="clinico">Só clínico</option><option value="hof">Só HOF</option></select>'
     + '<input id="rc-q" type="search" placeholder="Buscar produto ou serviço" aria-label="Buscar produto ou serviço" value="' + esc(RC.q) + '"><label class="field" for="rc-queda"><input id="rc-queda" type="checkbox"' + (RC.queda ? ' checked' : '') + '> Caíram mais de 10%</label></div><div class="err" id="rc-err"></div></div>'
-    + '<div id="rc-kpis"></div><div class="card"><div class="sec">Por dia</div><div id="rc-graf"></div></div><div class="card"><div class="sec">Por produto e serviço</div><div id="rc-prod"></div></div><div class="card"><div class="sec">Dia a dia</div><div id="rc-dias"></div></div>';
+    + '<div id="rc-kpis"></div><div class="card"><div class="sec">Por produto e serviço</div><div id="rc-prod"></div></div><div class="card"><div class="sec">Dia a dia</div><div id="rc-dias"></div></div>';
   $('#rc-setor').value = RC.setor; $('#rc-area').value = RC.area;
   const err = t => { $('#rc-err').textContent = t || ''; };
   const busca = async () => {
@@ -3206,8 +3195,7 @@ async function recCarregar(){
     const kx = (t, a, b) => '<div class="kpi"><span>' + t + '</span><b>' + brl(a) + '</b>' + sub(b, a) + '</div>', kp = (t, k) => kx(t, tA[k], tB ? tB[k] : 0);
     const mA = dA.length ? tA.total / dA.length : 0, mB = tB && dB.length ? tB.total / dB.length : 0, tkA = tA.qtd ? tA.total / tA.qtd : 0, tkB = tB && tB.qtd ? tB.total / tB.qtd : 0;
     $('#rc-kpis').innerHTML = '<div class="kpis">' + kp('Total recebido', 'total') + kp('Venda', 'venda') + kp('Cobrança', 'cobranca') + kp('Ortodontia', 'orto') + kp('Clínico', 'clin') + (tA.hof > 0 || (tB && tB.hof > 0) ? kp('HOF', 'hof') : '') + kx('Média por dia', mA, mB) + kx('Ticket médio', tkA, tkB) + (tA.sem > 0 || (tB && tB.sem > 0) ? kp('Sem tipo de lançamento', 'sem') : '') + '</div>';
-    const sA = rcSerie(RC.A, dA, f), sB = RC.cmp ? rcSerie(RC.B, dB, f) : [], dot = (c, o) => '<i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + c + ';opacity:' + o + ';margin-right:6px"></i>';
-    $('#rc-graf').innerHTML = rcGrafico(dA, sA, dB, sB) + '<div class="tools" style="margin-top:6px;gap:16px"><span>' + dot('var(--accent)', 1) + dBR(RC.a[0]) + ' a ' + dBR(RC.a[1]) + '</span>' + (RC.cmp ? '<span>' + dot('var(--muted)', 0.45) + dBR(RC.b[0]) + ' a ' + dBR(RC.b[1]) + '</span>' : '') + '</div>';
+    const sA = rcSerie(RC.A, dA, f), sB = RC.cmp ? rcSerie(RC.B, dB, f) : [];
     const rowsP = R => { const m = {}; ((R && R.produtos) || []).filter(x => (!f.setor || x.setor === f.setor) && (!f.area || x.area === f.area)).forEach(x => { const k = x.produto + '|' + x.tipo + '|' + x.area, o = m[k] = m[k] || { produto: x.produto, tipo: x.tipo, area: x.area, valor: 0, qtd: 0 }; o.valor = r2(o.valor + Number(x.valor)); o.qtd += Number(x.qtd); }); return m; };
     const pa = rowsP(RC.A), pb = RC.cmp ? rowsP(RC.B) : {}, ks = new Set([...Object.keys(pa), ...Object.keys(pb)]), q = RC.q.trim().toLowerCase();
     let lp = [...ks].map(k => { const a = pa[k], b = pb[k], base = a || b, va = a ? a.valor : 0, vb = b ? b.valor : 0, dl = r2(va - vb), dp = rcDelta(va, vb);
