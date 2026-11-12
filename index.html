@@ -500,6 +500,21 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .ch-r{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
 .ch-vz{margin:auto;color:var(--line)}.ch-vz svg{width:72px;height:72px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round}
 .ch-cab{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);min-height:62px}
+.ch-r{position:relative}
+.ch-cab .gp{display:flex;align-items:center;gap:12px;background:none;border:0;padding:4px 8px 4px 4px;margin:-4px 0;border-radius:10px;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0}
+.ch-cab .gp:hover,.ch-cab .gp:focus-visible{background:var(--surface-2,rgba(127,127,127,.12))}
+.ch-cab .gp .dica{font-size:11.5px;color:var(--accent);margin-left:2px}
+.ch-pn{position:absolute;inset:0;z-index:6;background:var(--surface);display:flex;flex-direction:column;min-height:0}
+.ch-pn header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.ch-pn header b{font-size:16px}.ch-pn header .fx{margin-left:auto}
+.ch-pn .cp{padding:12px 16px;overflow:auto;display:grid;gap:8px;align-content:start}
+.ch-pn .av{flex:none}
+.ch-pn .lin{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--line)}
+.ch-pn .lin .nm{display:flex;flex-direction:column;min-width:0}.ch-pn .lin small{color:var(--muted)}
+.ch-pn .lin label{display:flex;align-items:center;gap:10px;width:100%;cursor:pointer}
+.ch-pn .aviso{background:var(--accent-soft,rgba(60,140,200,.12));border-radius:10px;padding:10px 12px;font-size:13.5px}
+.ch-pn .ger{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--muted);margin-left:6px}
+.ch-i .lk{font-size:11px;color:var(--muted);margin-left:6px}
 .ch-cab .nm{display:flex;flex-direction:column;min-width:0}.ch-cab .nm b{font-size:15.5px}.ch-cab .nm small{color:var(--muted);font-size:12.5px}
 .ch .ch-vb{display:none}
 .ib{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:0}
@@ -997,7 +1012,7 @@ function chatParar(){
   CH.tk++; clearInterval(CH.timer); CH.timer = null;
   try { if (CH.rt) sb.removeChannel(CH.rt); if (CH.pr) sb.removeChannel(CH.pr); } catch (_) {}
   if (CH.rec) { CH.rec.enviar = false; try { CH.rec.mr.stop(); } catch (_) {} }
-  Object.assign(CH, { eu: null, grupo: null, un: null, rt: null, pr: null, online: new Set(), pessoas: [], nl: {}, conv: null, msgs: [], urls: {}, anexo: null, sujo: false });
+  Object.assign(CH, { canais: null, eu: null, grupo: null, un: null, rt: null, pr: null, online: new Set(), pessoas: [], nl: {}, conv: null, msgs: [], urls: {}, anexo: null, sujo: false });
   { const cb = $('#chat-btn'); if (cb) cb.hidden = true; } chBadge();
 }
 function chatReinicia(){ CH.pronto = chatIniciar(); return CH.pronto; }
@@ -1006,8 +1021,9 @@ async function chatIniciar(){
   const un = UN, tk = CH.tk;
   const cx = await sb.rpc('chat_contexto', { p_unidade: un }); const c = (cx.data || [])[0];
   if (cx.error || !c || !c.eu || tk !== CH.tk || un !== UN) return;
-  const [pe, nl] = await Promise.all([sb.rpc('chat_pessoas', { p_unidade: un }), sb.rpc('chat_nao_lidas', { p_unidade: un })]);
+  const [pe, nl, ca] = await Promise.all([sb.rpc('chat_pessoas', { p_unidade: un }), sb.rpc('chat_nao_lidas', { p_unidade: un }), sb.rpc('chat_canais', { p_unidade: un })]);
   if (tk !== CH.tk) return;
+  CH.canais = null; if (!ca.error) { CH.canais = {}; (ca.data || []).forEach(x => { CH.canais[x.canal] = x; }); }
   CH.eu = c.eu; CH.grupo = c.grupo; CH.un = un; { const cb = $('#chat-btn'); if (cb) cb.hidden = false; } CH.pessoas = pe.data || []; chNL(nl.data || []);
   try {
     CH.rt = sb.channel('chat-msg-' + un).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensagens', filter: 'unidade_id=eq.' + un }, p => chChega(p.new)).subscribe();
@@ -1017,6 +1033,12 @@ async function chatIniciar(){
   chBadge(); chLimpa();
   CH.timer = setInterval(chVerifica, 1500);
 }
+async function chCanaisCarrega(){
+  if (!CH.un) return;
+  const r = await sb.rpc('chat_canais', { p_unidade: CH.un }); if (r.error) return;
+  CH.canais = {}; (r.data || []).forEach(c => { CH.canais[c.canal] = c; });
+}
+const chPode = c => !CH.canais || !CH.canais[c] || CH.canais[c].pode !== false;
 function chNL(rows){ CH.nl = {}; (rows || []).forEach(r => { if (Number(r.qtd) > 0) CH.nl[r.chave] = Number(r.qtd); }); chBadge(); }
 function chBadge(){
   const t = Object.values(CH.nl).reduce((a, b) => a + b, 0), txt = t > 99 ? '99+' : String(t);
@@ -1057,6 +1079,7 @@ async function chatTela(){
   await CH.pronto;
   const a = $('#area');
   if (!CH.eu) { a.innerHTML = '<div class="card"><div class="vazio">O chat é usado por funcionários dentro de uma unidade.</div></div>'; return; }
+  await chCanaisCarrega();
   a.innerHTML = '<div class="ch" id="ch"><aside class="ch-l" id="ch-lista" aria-label="Conversas"></aside><section class="ch-r" id="ch-r"><div class="ch-vz">' + CH_IC.setor + '</div></section></div>';
   chLista();
   $('#ch-lista').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) chAbrir(b.dataset.k); });
@@ -1067,15 +1090,58 @@ function chLista(){
   const bd = k => CH.nl[k] ? '<span class="chn">' + (CH.nl[k] > 99 ? '99+' : CH.nl[k]) + '</span>' : '';
   const outros = CH.pessoas.filter(p => p.id !== CH.eu).sort((x, y) => (CH.online.has(String(y.id)) - CH.online.has(String(x.id))) || x.nome.localeCompare(y.nome, 'pt-BR'));
   const on = outros.filter(p => CH.online.has(String(p.id))).length;
-  el.innerHTML = '<div class="ch-t">Setores</div>' + CH_SET.map(s => { const k = 'setor:' + s[0]; return '<button type="button" class="ch-i' + (CH.conv === k ? ' on' : '') + '" data-k="' + k + '"><span class="av s">' + CH_IC.setor + '</span><span class="nm">' + s[1] + '</span>' + bd(k) + '</button>'; }).join('')
+  el.innerHTML = '<div class="ch-t">Setores</div>' + CH_SET.filter(s => chPode(s[0])).map(s => { const k = 'setor:' + s[0]; const rs = CH.canais && CH.canais[s[0]] && CH.canais[s[0]].restrito; return '<button type="button" class="ch-i' + (CH.conv === k ? ' on' : '') + '" data-k="' + k + '"><span class="av s">' + CH_IC.setor + '</span><span class="nm">' + s[1] + (rs ? '<span class="lk" title="Só participantes escolhidos">🔒 restrito</span>' : '') + '</span>' + bd(k) + '</button>'; }).join('')
     + '<div class="ch-t">Pessoas <small>' + on + ' online</small></div>'
     + (outros.map(p => { const k = 'dm:' + p.id; return '<button type="button" class="ch-i' + (CH.conv === k ? ' on' : '') + '" data-k="' + k + '"><span class="av">' + esc(chIni(p.nome)) + '<i class="pt' + (CH.online.has(String(p.id)) ? ' on' : '') + '"></i></span><span class="nm">' + esc(p.nome) + '<small>' + esc(p.perfil || '') + '</small></span>' + bd(k) + '</button>'; }).join('') || '<div class="ch-nada">Nenhum outro funcionário nesta unidade.</div>');
 }
 function chCab(){
   const el = $('#ch-cab'); if (!el || !CH.conv) return; const k = CH.conv, dm = k.startsWith('dm:');
   const on = dm ? CH.online.has(k.slice(3)) : false, qtd = dm ? 0 : CH.pessoas.filter(p => CH.online.has(String(p.id))).length;
-  el.innerHTML = '<button type="button" class="ib ch-vb" id="ch-vb" aria-label="Voltar">' + CH_IC.volta + '</button><span class="av' + (dm ? '' : ' s') + '">' + (dm ? esc(chIni(chNome(k))) + '<i class="pt' + (on ? ' on' : '') + '"></i>' : CH_IC.setor) + '</span><div class="nm"><b>' + esc(chNome(k)) + '</b><small>' + (dm ? (on ? 'online' : 'offline') : qtd + ' online') + '</small></div>';
+  const cn = !dm && CH.canais ? CH.canais[k.slice(6)] : null;
+  const sub = dm ? (on ? 'online' : 'offline') : qtd + ' online' + (cn && cn.restrito ? ' · ' + (cn.qtd != null ? cn.qtd + ' participantes + gerência' : 'restrito') : '');
+  const info = dm ? '<span class="av">' + esc(chIni(chNome(k))) + '<i class="pt' + (on ? ' on' : '') + '"></i></span><div class="nm"><b>' + esc(chNome(k)) + '</b><small>' + sub + '</small></div>'
+    : '<button type="button" class="gp" id="ch-gp" aria-label="Ver quem está em ' + esc(chNome(k)) + '" title="Ver quem está neste setor"><span class="av s">' + CH_IC.setor + '</span><div class="nm"><b>' + esc(chNome(k)) + '</b><small>' + esc(sub) + ' <span class="dica">· ver participantes</span></small></div></button>';
+  el.innerHTML = '<button type="button" class="ib ch-vb" id="ch-vb" aria-label="Voltar">' + CH_IC.volta + '</button>' + info;
   $('#ch-vb').addEventListener('click', () => { $('#ch').classList.remove('conv'); CH.conv = null; chLista(); });
+  const gp = $('#ch-gp'); if (gp) gp.addEventListener('click', () => chParticipantes(k.slice(6)));
+}
+/* participantes do setor: qualquer um vê quem está; a gerência escolhe quem participa */
+async function chParticipantes(canal){
+  const r0 = $('#ch-r'); if (!r0) return; const un = CH.un;
+  let pn = $('#ch-pn'); if (pn) pn.remove();
+  pn = document.createElement('div'); pn.id = 'ch-pn'; pn.className = 'ch-pn'; pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', 'Participantes de ' + chNome('setor:' + canal));
+  pn.innerHTML = '<header><button type="button" class="ib" id="ch-pn-x" aria-label="Fechar">' + CH_IC.x + '</button><b>' + esc(chNome('setor:' + canal)) + '</b><span class="fx" id="ch-pn-n"></span></header><div class="cp" id="ch-pn-c"><p class="sub">Carregando...</p></div>';
+  r0.appendChild(pn);
+  const fecha = () => { const p = $('#ch-pn'); if (p) p.remove(); };
+  $('#ch-pn-x').addEventListener('click', fecha); $('#ch-pn-x').focus();
+  const res = await sb.rpc('chat_canal_info', { p_unidade: un, p_canal: canal });
+  const c = $('#ch-pn-c'); if (!c || !$('#ch-pn')) return;
+  if (res.error) { c.innerHTML = '<div class="err">' + esc(erroTxt(res.error)) + '</div>'; return; }
+  const gente = res.data || [], restrito = gente.length ? !!gente[0].restrito : false, pode = ehGer() && canal !== 'geral';
+  const online = p => CH.online.has(String(p.id));
+  const linha = (p, chk) => '<div class="lin"><span class="av">' + esc(chIni(p.nome)) + '<i class="pt' + (online(p) ? ' on' : '') + '"></i></span>'
+    + (chk ? '<label><input type="checkbox" data-f="' + p.id + '"' + (p.membro ? ' checked' : '') + (p.gerencia ? ' disabled' : '') + '><span class="nm">' + esc(p.nome) + (p.gerencia ? '<span class="ger">gerência</span>' : '') + '<small>' + esc(p.perfil || '') + '</small></span></label>'
+      : '<span class="nm">' + esc(p.nome) + (p.gerencia ? '<span class="ger">gerência</span>' : '') + '<small>' + esc(p.perfil || '') + (online(p) ? ' · online' : '') + '</small></span>') + '</div>';
+  if (!pode) {
+    const lista = gente.filter(p => p.membro);
+    $('#ch-pn-n').textContent = lista.length + ' pessoa' + (lista.length === 1 ? '' : 's');
+    c.innerHTML = '<div class="aviso">' + (restrito ? 'Setor restrito: só as pessoas abaixo (e a gerência) leem e escrevem aqui.' : 'Setor aberto: todos da unidade participam.') + '</div>' + lista.map(p => linha(p, false)).join('');
+    return;
+  }
+  c.innerHTML = '<label class="chk"><input type="checkbox" id="ch-rst"' + (restrito ? ' checked' : '') + '><span><b>Só participantes escolhidos</b><br><small class="sub">Desmarcado: todos da unidade participam. Marcado: só quem estiver marcado abaixo (a gerência sempre acessa).</small></span></label>'
+    + '<div id="ch-lst" style="display:grid;gap:2px">' + gente.map(p => linha(p, true)).join('') + '</div>'
+    + '<div class="err" id="ch-pn-e" role="alert"></div><div class="btns"><button type="button" class="btn" id="ch-pn-s">Salvar</button><button type="button" class="btn ghost" id="ch-pn-c2">Cancelar</button></div>';
+  const sync = () => { const r = $('#ch-rst').checked; $('#ch-lst').style.opacity = r ? '1' : '.45'; $$('#ch-lst input').forEach(i => { if (!i.dataset.g) i.dataset.g = i.disabled ? '1' : '0'; i.disabled = !r || i.dataset.g === '1'; }); };
+  $('#ch-rst').addEventListener('change', sync); sync();
+  $('#ch-pn-c2').addEventListener('click', fecha);
+  $('#ch-pn-s').addEventListener('click', async () => {
+    const ids = $$('#ch-lst input:checked').map(i => Number(i.dataset.f)), rs = $('#ch-rst').checked; $('#ch-pn-s').disabled = true;
+    const sv = await sb.rpc('chat_canal_definir', { p_unidade: un, p_canal: canal, p_restrito: rs, p_membros: ids });
+    $('#ch-pn-s').disabled = false;
+    if (sv.error) { $('#ch-pn-e').textContent = erroTxt(sv.error); return; }
+    toast(rs ? 'Participantes de ' + chNome('setor:' + canal) + ' atualizados.' : chNome('setor:' + canal) + ' aberto a toda a unidade.');
+    await chCanaisCarrega(); fecha(); chLista(); chCab();
+  });
 }
 async function chAbrir(k){
   if (CH.rec) chGravaFim(false);
@@ -1223,6 +1289,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.78.0', '2026-11-12', 'Chat: a gerência define quem participa de cada setor (Recepção, Cobrança etc.) e todos podem clicar no ícone do setor para ver quem está nele, na própria tela do chat. Setor sem restrição continua aberto a toda a unidade.'],
   ['0.77.0', '2026-11-12', 'Menu lateral reorganizado pelo caminho do paciente: Início, Painel e Chat no topo; grupos Pacientes, Agenda, Atendimento, Vendas, Financeiro, Cobrança, Clínico, Cadastros e Administração. Nada mudou nas permissões. Atendimento passou a se chamar Painel do dia no menu e Financeiro (parcelas) a se chamar Parcelas.'],
   ['0.76.0', '2026-11-12', 'Chat: o aviso de mensagem nova passa a sumir depois que a conversa é lida (a leitura não estava sendo gravada, e o aviso voltava ao recarregar).'],
   ['0.75.0', '2026-11-12', 'Auxiliar administrativo: pode agendar, remarcar e desmarcar (paciente inativo só para Limpeza, Raspagem e Reavaliação do tratamento, marcados em Procedimentos), gerar links de pagamento do Asaas sem dar baixa manual (nova permissão Cobrar) e alterar telefone, status e aviso prévio do paciente, tudo registrado no histórico do cadastro. Novo status de aviso prévio (início e término, 90 dias por padrão). Novos relatórios: Pacientes (aviso prévio e aniversariantes do mês) e Agendamentos (dia, data, horário, paciente e telefone).'],
