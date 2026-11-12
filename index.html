@@ -866,10 +866,13 @@ const MENU = [
   { g: 'Financeiro', ic: 'financeiro', itens: [
     { r: 'caixa', t: 'Caixa', p: ['financeiro.baixar', 'caixa.ver', 'caixa.abrir', 'caixa.conciliar'] },
     { r: 'fin-rec', t: 'Recebimentos', p: 'financeiro.ver' },
-    { r: 'fin-prev', t: 'Previsão de recebimento', p: 'financeiro.ver' },
     { r: 'financeiro', t: 'Parcelas', p: 'financeiro.ver' },
-    { r: 'fin-prop', t: 'Financiamento próprio', p: 'financeiro.ver' },
     { r: 'notas', t: 'Notas fiscais', p: 'notas.ver' } ] },
+  { g: 'Financiamento', ic: 'financeiro', mod: 'fin', itens: [
+    { r: 'fin-prop', t: 'Carteira', p: 'financeiro.ver' },
+    { r: 'fin-venc', t: 'Vencimentos e boletos', p: 'financeiro.ver' },
+    { r: 'fin-regua', t: 'Régua de cobrança', p: ['cobranca.contatar', 'cobranca.ver', 'financeiro.ver'] },
+    { r: 'fin-prev', t: 'Previsão de recebimento', p: 'financeiro.ver' } ] },
   { g: 'Cobrança', ic: 'cobranca', itens: [
     { r: 'cobranca', t: 'Cobrança', p: ['cobranca.ver', 'financeiro.ver', 'cobranca.contatar'] },
     { r: 'comunicacao', t: 'Comunicação', p: ['cobranca.contatar', 'cobranca.campanhas'] } ] },
@@ -895,7 +898,7 @@ const MENU = [
     { r: 'email', t: 'E-mail', p: 'diretor' },
     { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
 ];
-const TITULOS = { 'ag-rel': 'Relatório de agendamentos', 'pac-rel': 'Relatórios de pacientes', chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', faltas: 'Faltas sem reagendar', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', 'fin-rec': 'Recebimentos', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preço mínimo de venda', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { 'fin-prop': 'Carteira de financiamento', 'fin-venc': 'Vencimentos e boletos', 'fin-regua': 'Régua do financiamento', 'ag-rel': 'Relatório de agendamentos', 'pac-rel': 'Relatórios de pacientes', chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', faltas: 'Faltas sem reagendar', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', 'fin-rec': 'Recebimentos', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preço mínimo de venda', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   buscaRapMostra();
   let h = '';
@@ -903,7 +906,7 @@ function montarMenu(){
   if (EU.fora) { $('#menu').innerHTML = h; $$('#menu button[data-r]').forEach(b => b.addEventListener('click', () => irPara(b.dataset.r))); return; }
   for (const m of MENU) {
     if (m.r) { if (m.r === 'inicio' && inicioRota() === 'atendimento') continue; if (!m.p || [].concat(m.p).some(x => x === 'gerencia' ? ehGer() : pode(x))) h += btnMenu(m); }
-    else if (m.itens) { const v = m.itens.filter(i => buscaOkP(i.p)); if (v.length) h += '<div class="mgrp"><button class="grp tg" type="button" aria-expanded="false" data-g="' + esc(m.g) + '">' + ico(m.ic) + m.g + '<svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="msub" hidden>' + v.map(btnMenu).join('') + '</div></div>'; }
+    else if (m.itens) { if (m.mod && !modOk(m.mod)) continue; const v = m.itens.filter(i => buscaOkP(i.p)); if (v.length) h += '<div class="mgrp"><button class="grp tg" type="button" aria-expanded="false" data-g="' + esc(m.g) + '">' + ico(m.ic) + m.g + '<svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="msub" hidden>' + v.map(btnMenu).join('') + '</div></div>'; }
     else h += '<div class="grp">' + m.g + '</div>' + m.soon.map(s => '<div class="item soon" aria-disabled="true">' + ico(s[0]) + s[1] + '<span class="tag">em breve</span></div>').join('');
   }
   $('#menu').innerHTML = h;
@@ -947,13 +950,14 @@ const BUSCA_EXTRA = [
   { t: 'Envio de e-mail', c: 'Administração › E-mail', r: 'email', p: 'diretor', k: 'smtp remetente teste anamnese' },
   { t: 'Cadeiras e agendas', c: 'Cadastros › Agendas', r: 'agendas', p: 'agendas.ver', k: 'cadeira sala dentista dias' }
 ];
+const modOk = k => k === 'fin' ? !!(MINHAS.find(u => u.id === UN) || {}).mod_financiamento : true;
 const semAcento = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const buscaOkP = p => !p || (p === 'diretor' ? !!EU.acesso_total : p === 'gerencia' ? ehGer() : [].concat(p).some(x => pode(x)));
 function buscaIndice(){
   const l = [];
   for (const m of MENU) {
     if (m.r) { if (buscaOkP(m.p)) l.push({ t: m.t, c: 'Menu', r: m.r, k: '' }); }
-    else if (m.itens) m.itens.forEach(i => { if (buscaOkP(i.p)) l.push({ t: i.t, c: 'Menu › ' + m.g, r: i.r, k: '' }); });
+    else if (m.itens) m.itens.forEach(i => { if ((!m.mod || modOk(m.mod)) && buscaOkP(i.p)) l.push({ t: i.t, c: 'Menu › ' + m.g, r: i.r, k: '' }); });
   }
   BUSCA_EXTRA.forEach(x => { if (buscaOkP(x.p)) l.push(x); });
   return l;
@@ -1291,6 +1295,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.80.0', '2026-11-12', 'Novo módulo Financiamento próprio (liga e desliga por unidade, em Unidades › Módulos, só o Diretor). Menu Financiamento: Carteira (pago, executado e crédito de cada paciente, parcelas, atraso, boletos e aviso de tratamento aguardando crédito), Vencimentos e boletos (todas as parcelas por período, baixa pelo botão Receber ou automática pelo Asaas, gerar e ver boleto), Régua de cobrança própria (a vencer, 1-15, 16-30, 31-60 e +60 dias, com WhatsApp de 1 toque e registro do contato) e a Previsão de recebimento. Ao fechar um orçamento com financiamento próprio, o carnê de boletos de todas as parcelas é gerado no Asaas (também pelo botão Gerar boletos na Carteira).'],
   ['0.79.1', '2026-11-12', 'Cobrança: linhas dos grids mais baixas (botões, ícone do WhatsApp e seletor de resultado compactos).'],
   ['0.79.0', '2026-11-12', 'Painel: o cartão Faltas sem reagendar abre a nova tela Faltas sem reagendar, com período, busca, filtro de quem já reagendou e filtros por coluna no grid padrão (clicar abre a ficha do paciente). Cobrança: as listas da Régua, Sem agendamento, Campanhas e Faltas ficam iguais ao grid de Pacientes (nome em negrito, linha clicável, uma linha por paciente, mesma altura).'],
   ['0.78.0', '2026-11-12', 'Chat: a gerência define quem participa de cada setor (Recepção, Cobrança etc.) e todos podem clicar no ícone do setor para ver quem está nele, na própria tela do chat. Setor sem restrição continua aberto a toda a unidade.'],
@@ -1438,7 +1443,7 @@ function trocarUnidade(id){
     if (id === UN) return;
     if (ABA) { try { await ABA.pronto; } catch (_) {} }
     UN = id; try { localStorage.setItem('og_un_' + (EU.id || EU.login), String(id)); } catch (_) {}
-    desenhaUn(); AV.vistos = null; AT.vistos = null; AV.lista = []; avBuscar(); atBuscar(); avVivo(); ferrCaixa(); chatReinicia();
+    desenhaUn(); montarMenu(); AV.vistos = null; AT.vistos = null; AV.lista = []; avBuscar(); atBuscar(); avVivo(); ferrCaixa(); chatReinicia();
     const eraFicha = ABA && ABA.rota === 'paciente'; if (eraFicha) $('#area').replaceChildren();
     const resto = ABAS.filter(a => a.rota !== 'paciente'); ABAS.length = 0; ABAS.push(...resto);
     if (eraFicha) mostrar(ABAS.find(a => a.rota === 'prospects') || ABAS[0]); else renderAbas();
@@ -1451,7 +1456,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'faltas', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'fin-rec', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'faltas', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-venc', 'fin-regua', 'fin-prev', 'fin-rec', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -1473,6 +1478,8 @@ function abrirRota(r, o){
   if (r === 'financeiro') return finCarregar();
   if (r === 'cobranca') return cobCarregar();
   if (r === 'fin-prop') return finPropCarregar();
+  if (r === 'fin-venc') return finVencCarregar();
+  if (r === 'fin-regua') return finReguaCarregar();
   if (r === 'fin-prev') return finPrevCarregar();
   if (r === 'fin-rec') return recCarregar();
   if (r === 'notas') return nfCarregar();
@@ -2500,6 +2507,7 @@ function uniForm(u){
     + '<div class="sec">Horário de funcionamento</div><div class="hor" id="u-hor">' + horas + '</div>'
     + (edita ? '<div><button class="link" type="button" id="u-rep">Repetir a segunda-feira de terça a sexta</button></div><p class="sub" style="margin:0">Se a clínica não para para o almoço, use "Sem almoço" no dia. Sem dentista na unidade não há atendimento, então o horário aqui é o de quando a clínica funciona.</p>' : '')
     + (!novo && pode('notas.ver') ? '<div id="nf-sec" hidden></div>' : '')
+    + (!novo && ehDir() ? '<div class="sec">Módulos</div><label class="chk"><input type="checkbox" id="u-modfin"' + (u.mod_financiamento ? ' checked' : '') + '> <span><b>Financiamento próprio</b><br><small class="sub">Carteira de pacientes, vencimentos e boletos, régua de cobrança e crédito do tratamento. Desligado, o menu Financiamento some desta unidade.</small></span></label>' : '')
     + (!novo && ehDir() ? '<div id="as-sec" hidden></div>' : '')
     + '<div class="err" id="u-err" role="alert"></div></div>'
     + '<div class="df"><div class="esq">' + (!novo && pode('unidades.inativar') ? '<button class="btn ' + (u.ativa ? 'danger' : 'ghost') + '" type="button" id="u-ina">' + (u.ativa ? 'Inativar unidade' : 'Reativar unidade') + '</button>' : '') + '</div>'
@@ -2541,13 +2549,13 @@ function uniForm(u){
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('u-email'))) { er.textContent = 'Informe um e-mail válido para a unidade.'; return; }
     if (!v('u-log') || !v('u-num') || !v('u-cid') || !v('u-uf')) { er.textContent = 'Preencha rua, número, cidade e UF.'; return; }
     if (!Object.keys(horario).length) { er.textContent = 'Marque pelo menos um dia de funcionamento.'; return; }
-    const reg = { razao_social: v('u-razao'), cnpj: dig(v('u-cnpj')) || null, sigla, telefone: dig(v('u-tel')), email: v('u-email').toLowerCase(), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario };
+    const reg = { razao_social: v('u-razao'), cnpj: dig(v('u-cnpj')) || null, sigla, telefone: dig(v('u-tel')), email: v('u-email').toLowerCase(), cep: dig(v('u-cep')) || null, logradouro: v('u-log'), numero: v('u-num'), complemento: v('u-comp') || null, bairro: v('u-bai') || null, cidade: v('u-cid'), uf: v('u-uf'), horario }; if ($('#u-modfin')) reg.mod_financiamento = $('#u-modfin').checked;
     const b = $('#u-ok'); b.disabled = true;
     const { error } = novo ? await sb.from('unidades').insert(reg) : await sb.from('unidades').update(reg).eq('id', u.id);
     if (!error && !novo && NFC) { const r = await sb.rpc('nf_config_salvar', { p_unidade: u.id, p_cfg: nfLer(), p_token: ($('#nf-token').value || '').trim() || null }); if (r.error) { b.disabled = false; er.textContent = erroTxt(r.error); return; } }
     b.disabled = false;
     if (error) { er.textContent = erroTxt(error); return; }
-    fecharJanela(); toast(novo ? 'Unidade cadastrada.' : 'Unidade atualizada.'); uniCarregar();
+    fecharJanela(); toast(novo ? 'Unidade cadastrada.' : 'Unidade atualizada.'); uniCarregar().then(() => montarMenu());
   });
 }
 
@@ -2928,28 +2936,156 @@ function denForm(d){
 
 /* ---------- FINANCEIRO: gestão do financiamento próprio (clínico) ---------- */
 const FP = { f: [], q: '', fp: [], st: '', de: '', ate: '' };
+/* carnê: um boleto do Asaas para cada parcela em aberto do plano (o servidor gera em lotes; aqui repete até acabar) */
+async function finCarne(plano, btn){
+  if (btn) btn.disabled = true; let tot = 0, restam = 1, venc = 0, erro = '', total = 0;
+  try {
+    for (let v = 0; v < 14 && restam > 0; v++) {
+      const d = await asApi({ acao: 'carne', plano_id: plano });
+      tot += d.geradas; restam = d.restam; venc = d.vencidas_sem_boleto || 0; total = d.total || 0;
+      if (d.falhas) { erro = (d.detalhes || [])[0] || 'Falha ao gerar um boleto.'; break; }
+      if (!d.total) break;
+    }
+  } catch (e) { erro = e.message; }
+  if (btn) btn.disabled = false;
+  toast((tot ? tot + (tot === 1 ? ' boleto gerado' : ' boletos gerados') + ' no Asaas.' : (erro ? '' : 'Não há parcelas a vencer sem boleto.')) + (erro ? ' Parou: ' + erro.slice(0, 140) : '') + (venc ? ' ' + venc + (venc === 1 ? ' parcela vencida está sem boleto' : ' parcelas vencidas estão sem boleto') + ' (use Vencimentos e boletos).' : ''));
+  return { tot, erro, venc };
+}
+const FIN_SIT = { ativo: ['Ativo', 'on'], quitado: ['Finalizado', 'wr'], cancelado: ['Cancelado', 'wr'] };
 async function finPropCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const ru = await sb.from('unidades').select('*').order('sigla');
   if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; }
   defUn(ru.data); D.unidades = MINHAS.slice();
   if (!UN) { $('#area').innerHTML = semUn('Financiamento próprio'); return; }
-  const r = await sb.rpc('clin_planos_listar', { p_unidade: UN });
+  if (!modOk('fin')) { $('#area').innerHTML = finInativo(); return; }
+  const [r, as] = await Promise.all([sb.rpc('fin_carteira', { p_unidade: UN }), asAtiva(UN)]);
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
-  D.planos = r.data || [];
-  const tot = D.planos.filter(x => x.status === 'ativo');
-  $('#area').innerHTML = '<div class="head"><div><h1>Financiamento próprio</h1><p class="sub">Pacientes que financiam o tratamento clínico com a clínica. Clique para ver o plano de pagamento e execução, receber parcelas e registrar aportes.</p></div></div>'
-    + '<div class="card"><div class="tools"><b>' + tot.length + '</b> plano(s) ativo(s) · a receber <b>' + brl(r2(tot.reduce((s, x) => s + x.a_receber, 0))) + '</b> · em atraso <b>' + tot.filter(x => x.atrasadas > 0).length + '</b> paciente(s)</div><div id="fp-lista"></div></div>';
-  gradeF($('#fp-lista'), { dados: D.planos, f: FP.f, vazio: 'Nenhum paciente com financiamento próprio ainda. O financiamento nasce ao fechar um orçamento clínico.', maxH: 560, clique: x => finPropAbre(x), cols: [
-    { t: 'Paciente', v: x => x.paciente },
-    { t: 'Situação', v: x => ({ ativo: 'Ativo', quitado: 'Finalizado', cancelado: 'Cancelado' })[x.status], h: x => '<span class="pill ' + (x.status === 'ativo' ? (x.atrasadas ? 'off' : 'on') : 'wr') + '">' + ({ ativo: x.atrasadas ? 'Em atraso' : 'Ativo', quitado: 'Finalizado', cancelado: 'Cancelado' })[x.status] + '</span>' },
-    { t: 'Fechado em', v: x => dBR(String(x.criado_em).slice(0, 10)) },
+  D.planos = r.data || []; FP.as = as;
+  const at = D.planos.filter(x => x.status === 'ativo'), atr = at.filter(x => x.atrasadas > 0), sc = at.filter(x => x.prox_falta > 0);
+  const kp = (c, t, v, d) => '<div class="kpi ' + c + '"><span>' + t + '</span><b>' + v + '</b>' + (d ? '<small>' + d + '</small>' : '') + '</div>';
+  $('#area').innerHTML = '<div class="head"><div><h1>Carteira de financiamento</h1><p class="sub">Pacientes que financiam o tratamento com a clínica. O tratamento é liberado conforme os pagamentos entram: o crédito é o que já foi pago menos o que já foi executado. Clique no paciente para ver o plano, receber parcelas e registrar aportes.</p></div></div>'
+    + '<div class="card"><div class="kpis">' + kp('', 'Planos ativos', at.length) + kp('ok', 'Já recebido', brl(r2(at.reduce((s, x) => s + x.pago, 0)))) + kp('', 'A receber', brl(r2(at.reduce((s, x) => s + x.a_receber, 0)))) + kp(atr.length ? 'al' : 'ok', 'Em atraso', brl(r2(at.reduce((s, x) => s + x.valor_atrasado, 0))), atr.length + (atr.length === 1 ? ' paciente' : ' pacientes')) + kp(sc.length ? 'al' : 'ok', 'Aguardando crédito', sc.length, 'próximo serviço acima do pago') + '</div>'
+    + '<div id="fp-lista"></div></div>';
+  const pode_b = FP.as && podeCobrar();
+  gradeF($('#fp-lista'), { dados: D.planos, f: FP.f, vazio: 'Nenhum paciente com financiamento próprio ainda. O financiamento nasce ao fechar um orçamento clínico com a forma "Financiamento próprio".', maxH: 520, clique: x => finPropAbre(x), cols: [
+    { t: 'Paciente', v: x => x.paciente, h: x => '<b>' + esc(x.paciente) + '</b>' },
+    { t: 'Situação', v: x => x.status === 'ativo' && x.atrasadas ? 'Em atraso' : FIN_SIT[x.status][0], h: x => '<span class="pill ' + (x.status === 'ativo' && x.atrasadas ? 'off' : FIN_SIT[x.status][1]) + '">' + (x.status === 'ativo' && x.atrasadas ? 'Em atraso' : FIN_SIT[x.status][0]) + '</span>' },
+    { t: 'Fechado em', k: x => String(x.criado_em).slice(0, 10), v: x => dBR(String(x.criado_em).slice(0, 10)) },
     { t: 'Total', n: 1, v: x => brl(x.total), k: x => x.total, soma: x => x.total },
     { t: 'Pago', n: 1, v: x => brl(x.pago), k: x => x.pago, soma: x => x.pago },
+    { t: 'Executado', n: 1, v: x => brl(x.executado), k: x => x.executado, soma: x => x.executado },
+    { t: 'Crédito', n: 1, v: x => brl(x.credito), k: x => x.credito, soma: x => x.credito },
     { t: 'A receber', n: 1, v: x => brl(x.a_receber), k: x => x.a_receber, soma: x => x.a_receber },
-    { t: 'Parcelas abertas', r: 1, v: x => String(x.abertas) },
-    { t: 'Próximo vencimento', v: x => x.proximo ? dBR(String(x.proximo)) : '—' },
-    { t: 'Serviços feitos', r: 1, v: x => x.feitos + ' de ' + x.servicos }] });
+    { t: 'Parcelas', r: 1, v: x => x.parcelas_pagas + ' de ' + x.parcelas_total },
+    { t: 'Atraso', v: x => x.atrasadas ? x.atrasadas + (x.atrasadas === 1 ? ' parcela · ' : ' parcelas · ') + x.dias_atraso + ' d' : '—', h: x => x.atrasadas ? '<span class="pill off">' + x.atrasadas + (x.atrasadas === 1 ? ' parcela · ' : ' parcelas · ') + x.dias_atraso + ' d</span>' : '—' },
+    { t: 'Próximo vencimento', k: x => x.proximo || '', v: x => x.proximo ? dBR(String(x.proximo)) : '—' },
+    { t: 'Boletos', v: x => x.boletos_abertos + ' abertos · ' + x.boletos_pagos + ' pagos' },
+    { t: 'Tratamento', v: x => x.status !== 'ativo' ? '—' : x.prox_falta > 0 ? 'Aguardando crédito' : 'Liberado', h: x => x.status !== 'ativo' ? '—' : x.prox_falta > 0 ? '<span class="pill wr" title="' + esc((x.proximo_servico || '') + ' · faltam ' + brl(x.prox_falta)) + '">Falta ' + brl(x.prox_falta) + '</span>' : '<span class="pill on">Liberado</span>' },
+    { t: 'Serviços', r: 1, v: x => x.feitos + ' de ' + x.servicos }],
+    acao: pode_b ? x => (x.status === 'ativo' && x.abertas > x.boletos_abertos ? '<button class="btn ghost sm" type="button" data-carne="' + x.id + '">Gerar boletos</button>' : '') : null,
+    liga: box => $$('[data-carne]', box).forEach(b => b.addEventListener('click', async e => { e.stopPropagation(); await finCarne(Number(b.dataset.carne), b); finPropCarregar(); })) });
+}
+const finInativo = () => '<div class="card"><div class="err">O módulo Financiamento próprio não está ativo nesta unidade. O Diretor liga em Unidades › editar a unidade › Módulos.</div></div>';
+/* ---------- FINANCIAMENTO: vencimentos e boletos (todas as parcelas, baixa manual ou automática pelo Asaas) ---------- */
+const FV = { de: '', ate: '', pre: 'mes', q: '', sit: '', semb: false, f: [], dados: [] };
+const finMes = (h, n) => { const a = Number(h.slice(0, 4)), m = Number(h.slice(5, 7)) + n, d = new Date(a, m - 1, 1); return [iso(d), iso(new Date(d.getFullYear(), d.getMonth() + 1, 0))]; };
+async function finVencCarregar(){
+  const h = hoje();
+  const pre = [['mes', 'Este mês', ...finMes(h, 0)], ['prox', 'Próximo mês', ...finMes(h, 1)], ['atraso', 'Em atraso', somaDias(h, -700), somaDias(h, -1)], ['30', 'Próximos 30 dias', h, somaDias(h, 30)], ['90', 'Próximos 90 dias', h, somaDias(h, 90)]];
+  if (!FV.de) { const p = pre[0]; FV.de = p[2]; FV.ate = p[3]; }
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla'); if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; } defUn(ru.data);
+  if (!UN) { $('#area').innerHTML = semUn('Financiamento próprio'); return; }
+  if (!modOk('fin')) { $('#area').innerHTML = finInativo(); return; }
+  const [r, as] = await Promise.all([sb.rpc('fin_vencimentos', { p_unidade: UN, p_de: FV.de, p_ate: FV.ate }), asAtiva(UN)]);
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  FV.dados = r.data || []; FV.as = as;
+  $('#area').innerHTML = '<div class="head"><div><h1>Vencimentos e boletos</h1><p class="sub">Todas as parcelas do financiamento próprio por vencimento. O boleto pago no Asaas dá baixa sozinho; pagamento em dinheiro ou Pix na clínica você recebe pelo botão Receber.</p></div></div>'
+    + '<div class="card"><div class="tools" id="fv-pre">' + pre.map(p => '<button class="btn ' + (FV.de === p[2] && FV.ate === p[3] ? '' : 'ghost ') + 'sm" type="button" data-pre="' + p[0] + '">' + p[1] + '</button>').join('') + '</div>'
+    + '<div class="tools"><input id="fv-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FV.q) + '"><label class="dtf">De <input type="date" id="fv-de" value="' + esc(FV.de) + '" aria-label="Vencimento a partir de"></label><label class="dtf">até <input type="date" id="fv-ate" value="' + esc(FV.ate) + '" aria-label="Vencimento até"></label>'
+    + '<select id="fv-sit" aria-label="Situação"><option value="">Todas as situações</option><option value="a_vencer">A vencer</option><option value="vencida">Vencidas</option><option value="paga">Pagas</option></select>'
+    + (as ? '<label class="chk" style="flex:none"><input type="checkbox" id="fv-sb"' + (FV.semb ? ' checked' : '') + '> Só sem boleto</label>' : '') + '</div>'
+    + '<div class="kpis" id="fv-k"></div><div class="err" id="fv-err" role="alert"></div><div id="fv-g"></div></div>';
+  $('#fv-sit').value = FV.sit;
+  $$('#fv-pre [data-pre]').forEach(b => b.addEventListener('click', () => { const p = pre.find(x => x[0] === b.dataset.pre); FV.de = p[2]; FV.ate = p[3]; FV.f = []; finVencCarregar(); }));
+  const per = () => { const de = $('#fv-de').value, ate = $('#fv-ate').value, er = $('#fv-err'); er.textContent = ''; if (!de || !ate) { er.textContent = 'Informe a data inicial e a final.'; return; } if (ate < de) { er.textContent = 'A data final é anterior à inicial.'; return; } FV.de = de; FV.ate = ate; FV.f = []; finVencCarregar(); };
+  $('#fv-de').addEventListener('change', per); $('#fv-ate').addEventListener('change', per);
+  $('#fv-q').addEventListener('input', e => { FV.q = e.target.value; finVencGrade(); }); $('#fv-sit').addEventListener('change', e => { FV.sit = e.target.value; finVencGrade(); });
+  if ($('#fv-sb')) $('#fv-sb').addEventListener('change', e => { FV.semb = e.target.checked; finVencGrade(); });
+  finVencGrade();
+}
+function finBoletoSit(x){ return !x.cob_id ? null : x.cob_status === 'paga' ? 'paga' : x.cob_status === 'vencida' ? 'vencida' : 'pendente'; }
+function finVencGrade(){
+  const box = $('#fv-g'); if (!box) return; const q = relNorm((FV.q || '').trim());
+  const vis = FV.dados.filter(x => (!FV.sit || x.situacao === FV.sit) && (!q || relNorm(x.paciente).includes(q)) && (!FV.semb || (x.situacao !== 'paga' && !x.cob_id)));
+  const sm = (l, k) => r2(l.reduce((t, x) => t + Number(x[k]), 0)), abertas = vis.filter(x => x.situacao !== 'paga'), venc = vis.filter(x => x.situacao === 'vencida');
+  const kp = (c, t, v, d) => '<div class="kpi ' + c + '"><span>' + t + '</span><b>' + v + '</b>' + (d ? '<small>' + d + '</small>' : '') + '</div>';
+  $('#fv-k').innerHTML = kp('', 'Previsto no período', brl(sm(vis, 'valor')), vis.length + (vis.length === 1 ? ' parcela' : ' parcelas')) + kp('ok', 'Recebido', brl(sm(vis, 'pago'))) + kp('', 'A receber', brl(sm(abertas, 'saldo')), abertas.length + (abertas.length === 1 ? ' parcela' : ' parcelas')) + kp(venc.length ? 'al' : 'ok', 'Vencidas', brl(sm(venc, 'saldo')), venc.length + (venc.length === 1 ? ' parcela' : ' parcelas'));
+  const pod = FV.as && podeCobrar(), bx = pode('financeiro.baixar');
+  gradeF(box, { dados: vis, f: FV.f, vazio: FV.dados.length ? 'Nenhuma parcela com estes filtros.' : 'Nenhuma parcela de financiamento neste período.', maxH: 520, clique: x => abrirPaciente({ id: x.paciente_id, nome: x.paciente, nome_social: null }), cols: [
+    { t: 'Vencimento', k: x => x.venc, v: x => dBR(x.venc) },
+    { t: 'Paciente', v: x => x.paciente, h: x => '<b>' + esc(x.paciente) + '</b>' },
+    { t: 'Parcela', v: x => x.rotulo },
+    { t: 'Valor', n: 1, k: x => x.valor, soma: x => x.valor, v: x => reais(x.valor) },
+    { t: 'Pago', n: 1, k: x => x.pago, soma: x => x.pago, v: x => reais(x.pago) },
+    { t: 'Saldo', n: 1, k: x => x.saldo, soma: x => x.saldo, v: x => reais(x.saldo) },
+    { t: 'Situação', v: x => x.situacao === 'paga' ? 'Paga' : x.situacao === 'vencida' ? 'Vencida' : 'A vencer', h: x => x.situacao === 'paga' ? '<span class="pill on">Paga' + (x.pago_em ? ' ' + dBR(String(x.pago_em).slice(0, 10)) : '') + '</span>' : x.situacao === 'vencida' ? '<span class="pill off">Vencida · ' + x.dias_atraso + ' d</span>' : '<span class="pill nu">A vencer</span>' },
+    { t: 'Boleto', v: x => { const b = finBoletoSit(x); return !b ? (x.situacao === 'paga' ? '—' : 'Sem boleto') : (x.cob_forma === 'BOLETO' ? 'Boleto' : x.cob_forma === 'PIX' ? 'Pix' : x.cob_forma === 'CREDIT_CARD' ? 'Cartão' : 'Link') + ' · ' + AS_ST[b === 'paga' ? 'paga' : b][0]; },
+      h: x => { const b = finBoletoSit(x); return !b ? (x.situacao === 'paga' ? '—' : '<span class="pill nu">Sem boleto</span>') : '<span class="pill ' + AS_ST[b][1] + '">' + (x.cob_forma === 'BOLETO' ? 'Boleto' : x.cob_forma === 'PIX' ? 'Pix' : x.cob_forma === 'CREDIT_CARD' ? 'Cartão' : 'Link') + ' · ' + AS_ST[b][0] + '</span>'; } }],
+    acao: (pod || bx) ? x => x.situacao === 'paga' ? '' : (bx ? '<button class="btn sm" type="button" data-rec="' + x.paciente_id + '">Receber</button> ' : '') + (pod ? (x.cob_id && x.cob_status !== 'paga' ? '<button class="btn ghost sm" type="button" data-bol="' + x.parcela_id + '" data-nm="' + esc(x.paciente) + '">Ver boleto</button>' : (!x.cob_id && x.situacao === 'a_vencer' ? '<button class="btn ghost sm" type="button" data-nbol="' + x.parcela_id + '">Gerar boleto</button>' : '')) : '') : null,
+    liga: g => {
+      $$('[data-rec]', g).forEach(b => b.addEventListener('click', e => { e.stopPropagation(); caixaPaciente(Number(b.dataset.rec)); }));
+      $$('[data-bol]', g).forEach(b => b.addEventListener('click', e => { e.stopPropagation(); asMostrar({ id: Number(b.dataset.bol), unidade_id: UN }, b.dataset.nm, () => { fecharJanela(); finVencCarregar(); }); }));
+      $$('[data-nbol]', g).forEach(b => b.addEventListener('click', async e => { e.stopPropagation(); b.disabled = true; try { await asApi({ acao: 'gerar', parcela_id: Number(b.dataset.nbol), forma: 'BOLETO' }); toast('Boleto gerado no Asaas.'); finVencCarregar(); } catch (er) { b.disabled = false; toast(er.message.length > 140 ? er.message.slice(0, 137) + '...' : er.message); } }));
+    } });
+}
+/* ---------- FINANCIAMENTO: régua de cobrança própria (faixas de atraso, mensagem de WhatsApp de 1 toque) ---------- */
+const FIN_REGUA = [['avencer', 'Vence em até 3 dias', 'nu', 'Olá, {primeiro_nome}! Aqui é da {unidade}. Sua parcela do tratamento, de R$ {valor_proximo}, vence em {proximo_vencimento}. Qualquer dúvida sobre o boleto, é só chamar por aqui!'],
+  ['f1_15', 'Atraso de 1 a 15 dias', 'wr', 'Olá, {primeiro_nome}! Aqui é da {unidade}. Identificamos que a parcela do seu tratamento (R$ {valor_em_atraso}) está em atraso. Se já pagou, desconsidere esta mensagem. Posso te enviar a segunda via do boleto?'],
+  ['f16_30', 'Atraso de 16 a 30 dias', 'wr', 'Olá, {primeiro_nome}! Aqui é da {unidade}. Sua parcela está em aberto há {dias_atraso} dias (R$ {valor_em_atraso}). Para não atrapalhar a liberação do seu tratamento, vamos regularizar? Posso enviar o boleto atualizado.'],
+  ['f31_60', 'Atraso de 31 a 60 dias', 'off', 'Olá, {primeiro_nome}! Aqui é da {unidade}. Há parcelas do seu tratamento em aberto há {dias_atraso} dias (R$ {valor_em_atraso}). O tratamento só avança conforme os pagamentos são feitos. Vamos conversar sobre a melhor forma de colocar em dia?'],
+  ['f60', 'Atraso acima de 60 dias', 'off', 'Olá, {primeiro_nome}! Aqui é da {unidade}. Suas parcelas estão em aberto há mais de 60 dias (R$ {valor_em_atraso}). Precisamos regularizar para manter o seu tratamento ativo. Pode falar conosco hoje para combinarmos?']];
+const FR = { dados: [], faixa: 'todas', q: '', ocultar: true, f: [], cd: 3 };
+async function finReguaCarregar(){
+  $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
+  const ru = await sb.from('unidades').select('*').order('sigla'); if (ru.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(ru.error)) + '</div></div>'; return; } defUn(ru.data);
+  if (!UN) { $('#area').innerHTML = semUn('Financiamento próprio'); return; }
+  if (!modOk('fin')) { $('#area').innerHTML = finInativo(); return; }
+  const [r, c] = await Promise.all([sb.rpc('fin_regua', { p_unidade: UN }), sb.rpc('cobranca_config_ler')]);
+  if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
+  FR.dados = r.data || []; FR.cd = (c.data && c.data.cooldown_dias) || 3;
+  const por = k => FR.dados.filter(x => x.regua === k), sm = l => r2(l.reduce((t, x) => t + Number(x.valor_atraso || 0), 0));
+  $('#area').innerHTML = '<div class="head"><div><h1>Régua do financiamento</h1><p class="sub">Quem precisa ser lembrado ou cobrado, por faixa de atraso. Um toque abre o WhatsApp com a mensagem pronta e o contato fica registrado.</p></div></div>'
+    + '<div class="cbc" id="fr-cards">' + FIN_REGUA.map(f => '<button type="button" class="cbc1 ' + (FR.faixa === f[0] ? 'on' : '') + '" data-fx="' + f[0] + '"><span class="pill ' + f[2] + '">' + f[1] + '</span><b>' + por(f[0]).length + (por(f[0]).length === 1 ? ' paciente' : ' pacientes') + '</b><strong>' + (f[0] === 'avencer' ? brl(r2(por(f[0]).reduce((t, x) => t + Number(x.valor_proximo || 0), 0))) : brl(sm(por(f[0])))) + '</strong></button>').join('') + '</div>'
+    + '<div class="card"><div class="tools"><input id="fr-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(FR.q) + '"><label class="chk" style="flex:none"><input type="checkbox" id="fr-oc"' + (FR.ocultar ? ' checked' : '') + '> Ocultar quem recebeu mensagem nos últimos ' + FR.cd + ' dias</label>'
+    + '<button class="btn ghost sm" type="button" id="fr-todas">' + (FR.faixa === 'todas' ? 'Mostrando todas as faixas' : 'Mostrar todas as faixas') + '</button></div>'
+    + '<details style="margin:0 0 10px"><summary style="cursor:pointer;font-weight:600;font-size:14px">Mensagem que será enviada</summary><p id="fr-msg" style="margin:8px 0 0;white-space:pre-wrap;font-size:14.5px"></p><p class="sub" style="margin:6px 0 0">O nome e os valores de cada paciente entram automaticamente. A mensagem muda conforme a faixa.</p></details>'
+    + '<div id="fr-g"></div></div>';
+  $$('#fr-cards [data-fx]').forEach(b => b.addEventListener('click', () => { FR.faixa = FR.faixa === b.dataset.fx ? 'todas' : b.dataset.fx; FR.f = []; finReguaCarregar(); }));
+  $('#fr-todas').addEventListener('click', () => { FR.faixa = 'todas'; FR.f = []; finReguaCarregar(); });
+  $('#fr-q').addEventListener('input', e => { FR.q = e.target.value; finReguaGrade(); }); $('#fr-oc').addEventListener('change', e => { FR.ocultar = e.target.checked; finReguaGrade(); });
+  cbLigaEnvio($('#fr-g'), (pid, cid) => FR.dados.find(x => cid ? x.ultimo_contato_id === cid : x.paciente_id === pid), 'financiamento', null, x => finMsg(x), () => finReguaGrade());
+  finReguaGrade();
+}
+const finMsg = x => cobMsg((FIN_REGUA.find(f => f[0] === x.regua) || FIN_REGUA[1])[3], x);
+function finReguaGrade(){
+  const box = $('#fr-g'); if (!box) return; const q = relNorm((FR.q || '').trim());
+  const oculto = x => FR.ocultar && !x._sessao && x.ultimo_contato && (Date.now() - Date.parse(x.ultimo_contato)) < FR.cd * 86400000;
+  const vis = FR.dados.filter(x => (FR.faixa === 'todas' || x.regua === FR.faixa) && !oculto(x) && (!q || relNorm(x.nome).includes(q)));
+  const fx = FIN_REGUA.find(f => f[0] === FR.faixa); $('#fr-msg').textContent = fx ? fx[3] : 'Cada faixa tem a sua mensagem. Escolha uma faixa acima para ver o texto.';
+  gradeF(box, { dados: vis, f: FR.f, vazio: FR.dados.length ? 'Ninguém nesta faixa (ou todos já foram contatados recentemente).' : 'Nenhum paciente com parcela a vencer ou em atraso. Bom sinal.', maxH: 520, clique: x => abrirPaciente({ id: x.paciente_id, nome: x.nome, nome_social: null }), cols: [
+    { t: 'Paciente', v: x => cbCap(x.nome), h: x => '<b>' + esc(cbCap(x.nome)) + '</b>' },
+    { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—', h: x => x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.nome) : '—' },
+    { t: 'WhatsApp', v: x => (CB_WPP[x.whatsapp] || CB_WPP.sem_registro)[1], h: x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro; return '<span class="pill ' + w[0] + '">' + w[1] + '</span>'; } },
+    { t: 'Faixa', v: x => (FIN_REGUA.find(f => f[0] === x.regua) || [0, '—'])[1], h: x => { const f = FIN_REGUA.find(z => z[0] === x.regua); return f ? '<span class="pill ' + f[2] + '">' + f[1] + '</span>' : '—'; } },
+    { t: 'Em atraso', n: 1, k: x => Number(x.valor_atraso), soma: x => x.valor_atraso, v: x => reais(x.valor_atraso) },
+    { t: 'Parcelas', r: 1, k: x => x.qtd_atraso, v: x => String(x.qtd_atraso) },
+    { t: 'Dias de atraso', r: 1, k: x => x.dias_atraso, v: x => x.dias_atraso > 0 ? String(x.dias_atraso) : '—' },
+    { t: 'Próximo vencimento', k: x => x.proximo_venc || '', v: x => x.proximo_venc ? dBR(x.proximo_venc) : '—' },
+    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo },
+    { t: 'Resultado', v: x => x.ultimo_contato ? (CB_RES.find(r => r[0] === x.ultimo_resultado) || [0, '—'])[1] : '—', h: cbResultado }],
+    acao: x => cbAcao(x, finMsg(x)) });
 }
 async function finPropAbre(x){
   const carrega = async () => {
@@ -4445,7 +4581,7 @@ const cbDias = d => { if (!d) return null; return Math.round((Date.parse(hoje() 
 function cobMsg(tpl, x, ex){
   ex = ex || {}; const nm = x.nome || x.paciente_nome || '', pn = cbCap(nm.trim().split(/\s+/)[0] || nm), uf = x.ultima_visita, df = x.data || x.ultima_falta;
   const v = { primeiro_nome: pn, nome: cbCap(nm), unidade: cbUnNome(), ultima_visita: uf ? dBR(uf) : 'sua última consulta', procedimento: ex.procedimento || 'o procedimento',
-              valor_em_atraso: x.valor_atraso != null ? String(Number(x.valor_atraso).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '', data_falta: df ? dBR(df) : 'sua consulta' };
+              valor_proximo: x.valor_proximo != null ? String(Number(x.valor_proximo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '', proximo_vencimento: x.proximo_venc ? dBR(x.proximo_venc) : '', dias_atraso: x.dias_atraso != null ? String(x.dias_atraso) : '', valor_em_atraso: x.valor_atraso != null ? String(Number(x.valor_atraso).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '', data_falta: df ? dBR(df) : 'sua consulta' };
   return String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => k in v ? v[k] : m);
 }
 function cobAbasHtml(){
@@ -5481,6 +5617,7 @@ function clinOrcDesenha(){
     $('#oc-conf').disabled = true;
     const ok = await chama('clin_neg_confirmar', args, 'Negociação confirmada. O valor foi lançado no financeiro do paciente. Use o botão Contrato para imprimir.');
     if ($('#oc-conf')) $('#oc-conf').disabled = false;
+    if (ok && forma === 'financiamento' && modOk('fin') && podeCobrar() && await asAtiva(UN)) { const pr = await sb.rpc('clin_plano_obter', { p_orc: o.id }); if (pr.data && pr.data.id) await finCarne(pr.data.id); }
     if (ok) { CLO.modo = 'orc'; rec(); }
   });
   if ($('#fp-g')) { const mostra = () => { CLX.forma = ($('#fp-g input:checked') || {}).value || ''; $('#fp-cartao').hidden = CLX.forma !== 'credito'; $('#fp-fin').hidden = CLX.forma !== 'financiamento'; $('#fp-misto').hidden = CLX.forma !== 'misto'; $('#fp-avista').hidden = !['pix', 'debito', 'dinheiro'].includes(CLX.forma); clinCartaoTxt(); if (CLX.forma === 'misto') mxLiga(); else if ($('#sm-e')) $('#sm-e').readOnly = false; };
