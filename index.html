@@ -425,7 +425,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .kpi span{font-size:12.5px;color:var(--muted)} .kpi b{font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums} .kpi.al b{color:var(--red)} .kpi.ok b{color:var(--ok)}
 .cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}.cp-off{opacity:.65}
 .tools .chk input[type=checkbox]{flex:none;min-height:0;width:18px;height:18px;padding:0;border:0}
-.cbres{margin-top:3px;font:400 12.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 6px;max-width:150px}
+.cbres{margin-top:0;font:400 12.5px var(--font);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:30px;padding:0 6px;max-width:150px}
 /* início compacto: cabeçalho pela metade e quadros que cabem na tela sem rolar */
 .in-head{margin-bottom:8px;gap:4px 12px;align-items:center}.in-head h1{font-size:18px;line-height:1.15;margin:0}.in-head .sub{font-size:12px;margin:0}.in-head .btn{padding:6px 12px;font-size:12.5px;border-radius:9px}
 .dnota{margin:6px 4px 0;font-size:10.5px;line-height:1.3}
@@ -893,7 +893,7 @@ const MENU = [
     { r: 'email', t: 'E-mail', p: 'diretor' },
     { r: 'privacidade', t: 'Privacidade (LGPD)', p: 'diretor' } ] }
 ];
-const TITULOS = { 'ag-rel': 'Relatório de agendamentos', 'pac-rel': 'Relatórios de pacientes', chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', 'fin-rec': 'Recebimentos', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preço mínimo de venda', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
+const TITULOS = { 'ag-rel': 'Relatório de agendamentos', 'pac-rel': 'Relatórios de pacientes', chat: 'Chat', atendimento: 'Atendimento', prontuario: 'Prontuário', painel: 'Painel', faltas: 'Faltas sem reagendar', 'ag-log': 'Log da agenda', canais: 'Canais de venda', transferencias: 'Transferências', 'fin-prop': 'Financiamento próprio', 'fin-prev': 'Previsão de recebimento', 'fin-rec': 'Recebimentos', notas: 'Notas fiscais', feriados: 'Feriados', email: 'E-mail', privacidade: 'Privacidade', cobranca: 'Cobrança', comunicacao: 'Comunicação', clinico: 'Orçamentos clínicos', 'clin-proc': 'Procedimentos clínicos', 'clin-mat': 'Materiais', 'clin-comp': 'Compras', 'clin-cfg': 'Configuração do clínico', 'clin-preco': 'Preço mínimo de venda', inicio: 'Início', unidades: 'Unidades', funcionarios: 'Funcionários', dentistas: 'Dentistas', agenda: 'Agenda', agendas: 'Agendas', prospects: 'Pacientes', documentacao: 'Documentação', procedimentos: 'Procedimentos', vendas: 'Vendas', financeiro: 'Financeiro', solicitacoes: 'Solicitações', caixa: 'Caixa', produtos: 'Produtos e serviços', tratamentos: 'Tipos de tratamento', avaliacoes: 'Avaliações', paciente: 'Paciente', perfis: 'Perfis de acesso', 'p-grupos': 'Grupos', 'p-grupo': 'Grupo', 'p-usuarios': 'Usuários da plataforma', 'p-log': 'Registro de acessos' };
 function montarMenu(){
   buscaRapMostra();
   let h = '';
@@ -1289,6 +1289,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.79.0', '2026-11-12', 'Painel: o cartão Faltas sem reagendar abre a nova tela Faltas sem reagendar, com período, busca, filtro de quem já reagendou e filtros por coluna no grid padrão (clicar abre a ficha do paciente). Cobrança: as listas da Régua, Sem agendamento, Campanhas e Faltas ficam iguais ao grid de Pacientes (nome em negrito, linha clicável, uma linha por paciente, mesma altura).'],
   ['0.78.0', '2026-11-12', 'Chat: a gerência define quem participa de cada setor (Recepção, Cobrança etc.) e todos podem clicar no ícone do setor para ver quem está nele, na própria tela do chat. Setor sem restrição continua aberto a toda a unidade.'],
   ['0.77.0', '2026-11-12', 'Menu lateral reorganizado pelo caminho do paciente: Início, Painel e Chat no topo; grupos Pacientes, Agenda, Atendimento, Vendas, Financeiro, Cobrança, Clínico, Cadastros e Administração. Nada mudou nas permissões. Atendimento passou a se chamar Painel do dia no menu e Financeiro (parcelas) a se chamar Parcelas.'],
   ['0.76.0', '2026-11-12', 'Chat: o aviso de mensagem nova passa a sumir depois que a conversa é lida (a leitura não estava sendo gravada, e o aviso voltava ao recarregar).'],
@@ -1447,7 +1448,7 @@ function trocarUnidade(id){
 
 /* ---------- janelas (abas): cada tela fica aberta em sua aba; trocar de aba não perde nada ---------- */
 const ABAS = []; let ABA = null, FILA = Promise.resolve();
-const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'fin-rec', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
+const ATUALIZA = new Set(['inicio', 'atendimento', 'prontuario', 'painel', 'faltas', 'ag-log', 'canais', 'transferencias', 'fin-prop', 'fin-prev', 'fin-rec', 'notas', 'agenda', 'agendas', 'feriados', 'procedimentos', 'prospects', 'vendas', 'financeiro', 'cobranca', 'comunicacao', 'clinico', 'clin-proc', 'clin-mat', 'clin-comp', 'clin-cfg', 'clin-preco', 'caixa', 'solicitacoes', 'tratamentos', 'produtos', 'avaliacoes', 'paciente', 'privacidade', 'p-grupos', 'p-grupo', 'p-usuarios', 'p-log']), POR_UNIDADE = new Set(['funcionarios', 'dentistas']);
 const precisa = a => ATUALIZA.has(a.rota) || (POR_UNIDADE.has(a.rota) && a.un !== UN);
 const recarregar = a => { a.un = UN; a.pronto = Promise.resolve(abrirRota(a.rota, a.opc)).catch(() => {}); return a.pronto; };
 function renderAbas(){
@@ -1477,6 +1478,7 @@ function abrirRota(r, o){
   if (r === 'caixa') return caixaCarregar();
   if (r === 'solicitacoes') return solCarregar();
   if (r === 'transferencias') return trfCarregar();
+  if (r === 'faltas') return pode('agenda.ver') ? faltasCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Sem permissão para ver a agenda.</div></div>');
   if (r === 'ag-log') return ehGer() ? agLogCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">O log da agenda é da gerência e da diretoria.</div></div>');
   if (r === 'painel') return ehGer() ? painelCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">O painel é da gerência e da diretoria.</div></div>');
   if (r === 'canais') return ehDir() ? canCarregar() : void($('#area').innerHTML = '<div class="card"><div class="err">Só o Diretor acessa os canais de venda.</div></div>');
@@ -1806,6 +1808,47 @@ function inicioFaltas(l, erro){
   };
   pinta();
   $$('#in-tiles [data-t]').forEach(b => b.addEventListener('click', () => { INI.sel = b.dataset.t; INI.f = []; pinta(); }));
+}
+
+/* ---------- FALTAS SEM REAGENDAR: tela aberta pelo card do Painel (grid padrão, filtros por período, busca e coluna) ---------- */
+const FAL = { de: '', ate: '', q: '', so: true, dados: [], f: [] };
+async function faltasCarregar(){
+  const h = hoje(); if (!FAL.de || !FAL.ate) { FAL.de = somaDias(h, -14); FAL.ate = h; }
+  const pre = [['Hoje', h, h], ['Ontem', somaDias(h, -1), somaDias(h, -1)], ['7 dias', somaDias(h, -6), h], ['14 dias', somaDias(h, -14), h], ['30 dias', somaDias(h, -29), h]];
+  $('#area').innerHTML = '<div class="head"><div><h1>Faltas sem reagendar</h1><p class="sub">Pacientes que faltaram e ainda não têm nova consulta marcada. Clique no paciente para abrir a ficha.</p></div></div>'
+    + '<div class="card"><div class="tools" id="fa-pre">' + pre.map((p, i) => '<button class="btn ' + (FAL.de === p[1] && FAL.ate === p[2] ? '' : 'ghost ') + 'sm" type="button" data-pre="' + i + '">' + p[0] + '</button>').join('') + '</div>'
+    + '<div class="tools"><input id="fa-q" type="search" placeholder="Buscar por nome, código ou telefone" aria-label="Buscar" value="' + esc(FAL.q) + '"><label class="dtf">De <input type="date" id="fa-de" value="' + esc(FAL.de) + '" aria-label="Faltas a partir de"></label><label class="dtf">até <input type="date" id="fa-ate" value="' + esc(FAL.ate) + '" aria-label="Faltas até"></label>'
+    + '<label class="chk" style="flex:none"><input type="checkbox" id="fa-so"' + (FAL.so ? ' checked' : '') + '> Só quem ainda não reagendou</label></div>'
+    + '<small id="fa-dica" style="display:block;color:var(--muted);margin:2px 2px 8px;min-height:16px"></small><div class="err" id="fa-err" role="alert"></div><div class="lista" id="fa-lista"><p class="sub">Carregando...</p></div></div>';
+  $$('#fa-pre [data-pre]').forEach(b => b.addEventListener('click', () => { const p = pre[Number(b.dataset.pre)]; FAL.de = p[1]; FAL.ate = p[2]; FAL.f = []; faltasCarregar(); }));
+  const periodo = () => { const de = $('#fa-de').value, ate = $('#fa-ate').value, er = $('#fa-err'); er.textContent = '';
+    if (!de || !ate) { er.textContent = 'Informe a data inicial e a final.'; return; } if (ate < de) { er.textContent = 'A data final é anterior à inicial.'; return; } if (dataLocal(ate) - dataLocal(de) > 120 * 86400000) { er.textContent = 'Escolha um período de até 120 dias.'; return; }
+    FAL.de = de; FAL.ate = ate; FAL.f = []; faltasCarregar(); };
+  $('#fa-de').addEventListener('change', periodo); $('#fa-ate').addEventListener('change', periodo);
+  $('#fa-q').addEventListener('input', e => { FAL.q = e.target.value; faltasGrade(); }); $('#fa-so').addEventListener('change', e => { FAL.so = e.target.checked; FAL.f = []; faltasGrade(); });
+  const r = await sb.rpc('faltas_da_unidade', { p_unidade: UN, p_de: FAL.de, p_ate: FAL.ate });
+  if (!$('#fa-lista')) return;
+  if (r.error) { $('#fa-lista').innerHTML = '<div class="err">' + esc(erroTxt(r.error)) + '</div>'; return; }
+  FAL.dados = r.data || []; faltasGrade();
+}
+function faltasGrade(){
+  const box = $('#fa-lista'); if (!box) return;
+  const q = relNorm((FAL.q || '').trim()), qd = dig(FAL.q || '');
+  const v = FAL.dados.filter(x => (!FAL.so || !x.remarcado_para) && (!q || relNorm(x.paciente_nome).includes(q) || (qd && (String(x.codigo).startsWith(qd) || dig(x.telefone || '').includes(qd)))));
+  const pac = new Set(v.map(x => x.paciente_id)).size, tot = FAL.dados.length;
+  $('#fa-dica').textContent = v.length + (v.length === 1 ? ' falta' : ' faltas') + ' · ' + pac + (pac === 1 ? ' paciente' : ' pacientes') + (v.length !== tot ? ' (de ' + tot + ' no período)' : '');
+  const pr = x => x.proxima_data ? dBR(x.proxima_data) + ' ' + hmDe(x.proxima_hora) : 'Sem horário livre';
+  gradeF(box, { dados: v, f: FAL.f, vazio: tot ? 'Nenhuma falta com estes filtros.' : 'Nenhuma falta neste período.', maxH: 520, clique: x => abrirPaciente({ id: x.paciente_id, nome: x.paciente_nome }), cols: [
+    { t: 'Data', k: x => x.data + String(x.ini_min).padStart(5, '0'), v: x => dBR(x.data) + ' ' + hmDe(x.ini_min) },
+    { t: 'Código', v: x => String(x.codigo) },
+    { t: 'Paciente', v: x => x.paciente_nome, h: x => '<b>' + esc(x.paciente_nome) + '</b>' },
+    { t: 'Status', v: x => x.paciente_status || '—', h: x => '<span class="pill ' + (PILL_ST[x.paciente_status] || 'nu') + '">' + esc(x.paciente_status || '—') + '</span>' },
+    { t: 'Telefone', v: x => x.telefone ? (ehGer() ? mTel(x.telefone) : maskTel(x.telefone)) : '—', h: x => x.telefone ? (ehGer() ? esc(mTel(x.telefone)) + waIc(x.telefone, x.paciente_nome) : esc(maskTel(x.telefone))) : '—' },
+    { t: 'Procedimento', v: x => x.procedimento || '—' },
+    { t: 'Dentista', v: x => x.dentista_nome || '—' },
+    { t: 'Situação', v: x => x.remarcado_para ? 'Reagendou' : 'Sem reagendar', h: x => x.remarcado_para ? '<span class="pill on">' + dBR(x.remarcado_para) + '</span>' : '<span class="pill off">Sem reagendar</span>' },
+    { t: 'Próximo horário livre', v: pr }
+  ] });
 }
 
 /* ---------- E-MAIL: configuração do SMTP (Zoho) pelo Diretor, teste e histórico ---------- */
@@ -4342,9 +4385,9 @@ function cobTela(){
     + '</div></div>'
 
     + '<div class="cbc" id="cb-cards">' + REGUAS.filter(r => r[0] !== 'mais90').map(r => '<button type="button" class="cbc1 ' + (CB.regua === r[0] ? 'on' : '') + '" data-rg="' + r[0] + '"><span class="pill ' + r[3] + '">' + r[1] + '</span><b>' + por(r[0]).length + (por(r[0]).length === 1 ? ' paciente' : ' pacientes') + '</b><strong>' + reais(soma(por(r[0]))) + '</strong><small>' + r[2] + '</small></button>').join('') + '</div>'
-    + '<div class="card" style="padding:0;overflow:hidden"><div class="tools" style="padding:12px 14px 0"><div id="cb-abas" role="tablist">' + [['todas', 'Todas', d.length]].concat(REGUAS.map(r => [r[0], r[1], por(r[0]).length])).map(a => '<button class="btn ' + (CB.regua === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CB.regua === a[0]) + '" data-rg="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
+    + '<div class="card"><div class="tools"><div id="cb-abas" role="tablist">' + [['todas', 'Todas', d.length]].concat(REGUAS.map(r => [r[0], r[1], por(r[0]).length])).map(a => '<button class="btn ' + (CB.regua === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CB.regua === a[0]) + '" data-rg="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
     + '<input id="cb-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(CB.q) + '"></div>'
-    + '<div class="tools cbv" style="padding:4px 14px 10px;gap:8px;align-items:end"><label class="field" for="cb-vi" style="margin:0">Parcela mais antiga vence entre<input id="cb-vi" type="date" value="' + esc(CB.vi) + '"></label><label class="field" for="cb-vf" style="margin:0">e<input id="cb-vf" type="date" value="' + esc(CB.vf) + '"></label><button class="btn ghost sm" type="button" id="cb-vl">Limpar datas</button></div>'
+    + '<div class="tools cbv" style="gap:8px;align-items:end;margin-bottom:8px"><label class="field" for="cb-vi" style="margin:0">Parcela mais antiga vence entre<input id="cb-vi" type="date" value="' + esc(CB.vi) + '"></label><label class="field" for="cb-vf" style="margin:0">e<input id="cb-vf" type="date" value="' + esc(CB.vf) + '"></label><button class="btn ghost sm" type="button" id="cb-vl">Limpar datas</button></div>'
     + '<div id="cb-tab"></div></div>';
   $('#cb-per').addEventListener('submit', async e => {
     e.preventDefault(); const er = $('#cb-err'); er.textContent = ''; const i = $('#cb-ini').value, f = $('#cb-fim').value;
@@ -4358,7 +4401,7 @@ function cobTela(){
   $('#cb-vl').addEventListener('click', () => { CB.vi = CB.vf = ''; $('#cb-vi').value = ''; $('#cb-vf').value = ''; cobCorpo(); });
   cobCorpo(); cobAjusta(); cobAbasLiga();
 }
-const cobAlt = () => { const g = $('#cb-tab'); return g ? Math.max(260, Math.round(window.innerHeight - g.getBoundingClientRect().top - 24)) : 440; };
+const cobAlt = () => 520;
 function cobAjusta(){ const g = $('#cb-tab .rlg'); if (g) g.style.maxHeight = cobAlt() + 'px'; }
 window.addEventListener('resize', () => { try { cobAjusta(); } catch (e) {} });
 function cobCorpo(){
@@ -4367,17 +4410,17 @@ function cobCorpo(){
   if (CB.vi) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '') >= CB.vi); if (CB.vf) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '9999') <= CB.vf);
   const rg = k => REGUAS.find(r => r[0] === k), baixa = podeCobrar();
   const vd = d => d ? dBR(d) : '—';
-  gradeF($('#cb-tab'), { dados: l, f: CB.gf = CB.gf || [], vazio: 'Nenhum paciente nesta régua.', maxH: cobAlt(), cols: [
-    { t: 'Paciente', v: x => x.paciente_nome, h: x => '<button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(x.paciente_nome) + '</button>' },
+  gradeF($('#cb-tab'), { dados: l, f: CB.gf = CB.gf || [], vazio: 'Nenhum paciente nesta régua.', maxH: cobAlt(), clique: x => abrirPaciente({ id: x.paciente_id, nome: x.paciente_nome, nome_social: null }), cols: [
+    { t: 'Paciente', v: x => x.paciente_nome, h: x => '<b>' + esc(x.paciente_nome) + '</b>' },
     { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—', h: x => x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : '—' },
-    { t: 'Status', v: x => x.status },
+    { t: 'Status', v: x => x.status, h: x => '<span class="pill ' + (PILL_ST[x.status] || 'nu') + '">' + esc(x.status || '—') + '</span>' },
     { t: 'Régua', v: x => rg(x.regua)[1], h: x => '<span class="pill ' + rg(x.regua)[3] + '">' + rg(x.regua)[1] + '</span>' },
     { t: 'Parcelas em atraso', r: 1, k: x => x.qtd_atraso, v: x => String(x.qtd_atraso) },
     { t: 'Valor em atraso', n: 1, k: x => Number(x.valor_atraso), soma: x => x.valor_atraso, v: x => reais(x.valor_atraso) },
     { t: 'A vencer no mês', n: 1, k: x => Number(x.a_vencer_mes), soma: x => x.a_vencer_mes, v: x => reais(x.a_vencer_mes) },
     { t: 'Vencimento mais antigo', k: x => x.venc_antigo || '', v: x => vd(x.venc_antigo) },
     { t: 'Dias de atraso', r: 1, k: x => x.dias_atraso, v: x => x.dias_atraso > 0 ? String(x.dias_atraso) : '—' },
-    { t: 'Último pagamento', k: x => x.ultimo_pgto || '', v: x => vd(x.ultimo_pgto), h: x => x.ultimo_pgto ? dBR(x.ultimo_pgto) + '<br><small style="color:var(--muted)">' + reais(x.ultimo_valor) + '</small>' : '—' },
+    { t: 'Último pagamento', k: x => x.ultimo_pgto || '', v: x => vd(x.ultimo_pgto), h: x => x.ultimo_pgto ? dBR(x.ultimo_pgto) + ' <small style="color:var(--muted)">' + reais(x.ultimo_valor) + '</small>' : '—' },
     { t: 'Plano', v: x => x.plano || '—' }],
     acao: baixa ? x => '<button class="btn sm" type="button" data-rec="' + x.paciente_id + '">' + (pode('financeiro.baixar') ? 'Receber' : 'Gerar link') + '</button>' : null,
     liga: box => { $$('[data-pac]', box).forEach(b => b.addEventListener('click', () => abrirPaciente({ id: Number(b.dataset.pac), nome: b.dataset.nm, nome_social: null })));
@@ -4424,7 +4467,11 @@ function cbAcao(x, msg){
 function cbUltimo(x){
   if (!x.ultimo_contato) return '<span style="color:var(--muted)">Nunca</span>';
   const d = new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }), n = cbDias(d);
-  return dBR(d) + ' <small style="color:var(--muted)">' + (n === 0 ? 'hoje' : n === 1 ? 'ontem' : 'há ' + n + ' d') + '</small><br><select class="cbres" data-cid="' + x.ultimo_contato_id + '" aria-label="Resultado do contato">' + CB_RES.map(r => '<option value="' + r[0] + '"' + (r[0] === x.ultimo_resultado ? ' selected' : '') + '>' + r[1] + '</option>').join('') + '</select>';
+  return dBR(d) + ' <small style="color:var(--muted)">' + (n === 0 ? 'hoje' : n === 1 ? 'ontem' : 'há ' + n + ' d') + '</small>';
+}
+function cbResultado(x){
+  if (!x.ultimo_contato) return '<span style="color:var(--muted)">—</span>';
+  return '<select class="cbres" data-cid="' + x.ultimo_contato_id + '" aria-label="Resultado do contato">' + CB_RES.map(r => '<option value="' + r[0] + '"' + (r[0] === x.ultimo_resultado ? ' selected' : '') + '>' + r[1] + '</option>').join('') + '</select>';
 }
 function cbLigaEnvio(root, get, origem, campanha, tplFn, depois){
   root.addEventListener('click', async e => {
@@ -4482,13 +4529,15 @@ function cbFilaCorpo(){
     .map(k => '<div class="kpi ' + k[2] + '"><span>' + k[0] + '</span><b>' + k[1] + '</b></div>').join('');
   const cv = F.conv; $('#cb-conv').textContent = cv && cv.n ? 'Últimos 30 dias: ' + cv.n + ' contato' + (cv.n === 1 ? '' : 's') + ', ' + cv.ok + ' paciente' + (cv.ok === 1 ? '' : 's') + ' com consulta marcada depois (' + Math.round(cv.ok / cv.n * 100) + '%).' : 'Ainda não há contatos registrados nos últimos 30 dias.';
   const col2 = x => cfg.regua ? (x.regua ? (CB_REGUAS.find(r => r[0] === x.regua) || [0, x.regua])[1] : '—') : x.ultima_visita ? dBR(x.ultima_visita) : 'Sem atendimento';
-  gradeF($('#cb-ftab'), { dados: vis, f: F.gf = F.gf || [], vazio: d.length ? 'Todos os pacientes desta lista já receberam mensagem recentemente.' : (cfg.vazio || 'Nenhum paciente nesta lista. Bom sinal.'), maxH: 560, cols: [
-    { t: 'Paciente', v: x => cbCap(x.nome), h: x => '<button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.nome) + '">' + esc(cbCap(x.nome)) + '</button><br><small style="color:var(--muted)">' + esc(x.status) + '</small>' },
+  gradeF($('#cb-ftab'), { dados: vis, f: F.gf = F.gf || [], vazio: d.length ? 'Todos os pacientes desta lista já receberam mensagem recentemente.' : (cfg.vazio || 'Nenhum paciente nesta lista. Bom sinal.'), maxH: 520, clique: x => abrirPaciente({ id: x.paciente_id, nome: x.nome, nome_social: null }), cols: [
+    { t: 'Paciente', v: x => cbCap(x.nome), h: x => '<b>' + esc(cbCap(x.nome)) + '</b>' },
+    { t: 'Status', v: x => x.status || '—', h: x => '<span class="pill ' + (PILL_ST[x.status] || 'nu') + '">' + esc(x.status || '—') + '</span>' },
     { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—', h: x => x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.nome) : '—' },
     { t: 'WhatsApp', v: x => (CB_WPP[x.whatsapp] || CB_WPP.sem_registro)[1], h: x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro; return '<span class="pill ' + w[0] + '">' + w[1] + '</span>'; } },
     { t: cfg.col2 || 'Última visita', k: x => cfg.regua ? (x.valor_atraso != null ? Number(x.valor_atraso) : 0) : (x.ultima_visita || ''), v: col2,
       h: x => cfg.regua ? (x.regua ? '<span class="pill nu">' + esc(col2(x)) + '</span> ' + (x.valor_atraso != null ? reais(x.valor_atraso) : '') : '—') : x.ultima_visita ? dBR(x.ultima_visita) + ' <small style="color:var(--muted)">há ' + cbDias(x.ultima_visita) + ' d</small>' : '<span style="color:var(--muted)">Sem atendimento</span>' },
-    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo }],
+    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo },
+    { t: 'Resultado', v: x => x.ultimo_contato ? (CB_RES.find(r => r[0] === x.ultimo_resultado) || [0, '—'])[1] : '—', h: cbResultado }],
     acao: x => cbAcao(x, cobMsg(cfg.tpl, x, cfg.extra)) });
 }
 async function cbSemAg(){
@@ -4532,14 +4581,16 @@ function cbFaltasTela(){
 function cbFaltasCorpo(){
   const L = CBX.fl, q = relNorm(L.q.trim()), v = L.lista.filter(x => (!L.so || !x.remarcado_para) && (!q || relNorm(x.paciente_nome).includes(q)));
   const hm = x => String(Math.floor(x.ini_min / 60)).padStart(2, '0') + ':' + String(x.ini_min % 60).padStart(2, '0');
-  gradeF($('#fl-tab'), { dados: v, f: L.gf = L.gf || [], vazio: L.lista.length ? 'Nenhuma falta com estes filtros.' : 'Nenhuma falta no período.', maxH: 560, cols: [
+  gradeF($('#fl-tab'), { dados: v, f: L.gf = L.gf || [], vazio: L.lista.length ? 'Nenhuma falta com estes filtros.' : 'Nenhuma falta no período.', maxH: 520, clique: x => abrirPaciente({ id: x.paciente_id, nome: x.paciente_nome, nome_social: null }), cols: [
     { t: 'Quando', k: x => x.data + String(x.ini_min).padStart(5, '0'), v: x => dBR(x.data) + ' ' + hm(x), h: x => dBR(x.data) + ' <small style="color:var(--muted)">' + hm(x) + '</small>' },
-    { t: 'Paciente', v: x => cbCap(x.paciente_nome), h: x => '<button class="link" type="button" data-pac="' + x.paciente_id + '" data-nm="' + esc(x.paciente_nome) + '">' + esc(cbCap(x.paciente_nome)) + '</button><br><small style="color:var(--muted)">' + (x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : 'Sem telefone') + '</small>' },
+    { t: 'Paciente', v: x => cbCap(x.paciente_nome), h: x => '<b>' + esc(cbCap(x.paciente_nome)) + '</b>' },
+    { t: 'Telefone', v: x => x.telefone ? mTel(x.telefone) : '—', h: x => x.telefone ? mTel(x.telefone) + waIc(x.telefone, x.paciente_nome) : '—' },
     { t: 'Procedimento', v: x => x.procedimento || '—' },
     { t: 'Dentista', v: x => x.dentista_nome || '—' },
     { t: 'Remarcado para', k: x => x.remarcado_para || '', v: x => x.remarcado_para ? dBR(x.remarcado_para) : 'Não remarcou', h: x => x.remarcado_para ? '<span class="pill on">' + dBR(x.remarcado_para) + '</span>' : '<span class="pill off">Não remarcou</span>' },
     { t: 'WhatsApp', v: x => (CB_WPP[x.whatsapp] || CB_WPP.sem_registro)[1], h: x => { const w = CB_WPP[x.whatsapp] || CB_WPP.sem_registro; return '<span class="pill ' + w[0] + '">' + w[1] + '</span>'; } },
-    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo }],
+    { t: 'Último contato', k: x => x.ultimo_contato || '', v: x => x.ultimo_contato ? dBR(new Date(x.ultimo_contato).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })) : 'Nunca', h: cbUltimo },
+    { t: 'Resultado', v: x => x.ultimo_contato ? (CB_RES.find(r => r[0] === x.ultimo_resultado) || [0, '—'])[1] : '—', h: cbResultado }],
     acao: x => cbAcao(Object.assign({}, x, { nome: x.paciente_nome }), cobMsg(CBX.cfg.msg_falta, x)) });
 }
 
@@ -5794,7 +5845,7 @@ function gradeCorpo(box, cfg, corpo){
   const fi = cols.findIndex(c => c.n), filtrando = cfg.f.some(Boolean), txt = cfg.remoto ? cfg.remoto.rodape() : 'Totais · ' + d.length + (d.length === 1 ? ' linha' : ' linhas') + (filtrando ? ' de ' + cfg.dados.length : '');
   box.querySelector('tfoot tr').innerHTML = fi < 0 ? '<td colspan="' + nc + '">' + txt + '</td>'
     : '<td colspan="' + fi + '">' + txt + '</td>' + cols.slice(fi).map(c => '<td' + (c.n ? ' class="n"' : '') + '>' + (c.n ? reais(Math.round(d.reduce((t, x) => t + Number(c.soma(x)), 0) * 100) / 100) : '') + '</td>').join('') + (cfg.acao ? '<td></td>' : '');
-  if (cfg.clique) $$('tbody tr[data-i]', box).forEach(tr => { const go = () => cfg.clique(cfg.dados[Number(tr.dataset.i)]); tr.addEventListener('click', e => { if (!e.target.closest('button,a')) go(); }); tr.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }); });
+  if (cfg.clique) $$('tbody tr[data-i]', box).forEach(tr => { const go = () => cfg.clique(cfg.dados[Number(tr.dataset.i)]); tr.addEventListener('click', e => { if (!e.target.closest('button,a,select,input,label')) go(); }); tr.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target === tr) go(); }); });
   if (cfg.liga) cfg.liga(box);
 }
 
@@ -6050,7 +6101,7 @@ async function painelCarregar(){
     + '<div class="pn-top"><div><h1>Painel</h1><small>' + esc(un ? un.sigla + ' · ' : '') + 'mês de ' + new Date(d.mes_atual + '-15T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) + ' · dia ' + d.dia + ' · atualizado às ' + hora + '</small></div><button class="btn ghost sm" type="button" id="pn-at">Atualizar</button></div>'
     + '<div class="pn-al">'
     + alerta('r', al.vencidas_qtd, 'Parcelas vencidas', al.vencidas_qtd ? brl(al.vencidas_valor) + ' em aberto' : 'Nenhuma em atraso', 'cobranca')
-    + alerta('w', al.faltas, 'Faltas sem reagendar', 'Últimos 14 dias', 'inicio')
+    + alerta('w', al.faltas, 'Faltas sem reagendar', 'Últimos 14 dias', 'faltas')
     + alerta('w', al.transferencias, 'Transferências', al.transferencias ? 'Aguardando seu aceite' : 'Nada pendente', 'transferencias')
     + alerta('w', al.prospects_parados, 'Prospects parados', 'Sem avaliação há 7+ dias', 'prospects') + '</div>'
     + '<div class="pn-k">'
