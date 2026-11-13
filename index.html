@@ -402,7 +402,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .anam canvas{width:100%;height:170px;border:1.5px dashed var(--muted,#888);border-radius:12px;background:#fff;touch-action:none;cursor:crosshair}.anam .err{color:var(--red,#c0392b);margin:8px 0}.anam .ok{text-align:center;padding:40px 10px}
 .anpr{white-space:pre-wrap;font:14px/1.5 system-ui;margin:0}.anr dt{font-weight:600;margin-top:8px}.anr dd{margin:0 0 2px;color:var(--muted)}
 /* cobrança: linhas do grid mais baixas */
-#cb-tab .rl td,#cb-ftab .rl td,#fl-tab .rl td{padding:3px 7px}#cb-tab .rl .btn.sm,#cb-ftab .rl .btn.sm,#fl-tab .rl .btn.sm{min-height:24px;height:24px;padding:0 10px;font-size:11.5px;border-radius:7px}#cb-tab .rl .cbres,#cb-ftab .rl .cbres,#fl-tab .rl .cbres{min-height:24px;height:24px;font-size:11.5px;padding:0 4px;border-radius:7px}#cb-tab .rl .wa-ic,#cb-ftab .rl .wa-ic,#fl-tab .rl .wa-ic{padding:0;margin-left:5px}#cb-tab .rl .wa-ic svg,#cb-ftab .rl .wa-ic svg,#fl-tab .rl .wa-ic svg{width:15px;height:15px}#cb-tab .rl td .pill,#cb-ftab .rl td .pill,#fl-tab .rl td .pill{padding:1px 8px}
+.rlg .rl td{padding:3px 7px}.rlg .rl .btn.sm{min-height:24px;height:24px;padding:0 10px;font-size:11.5px;border-radius:7px}.rlg .rl .cbres{min-height:24px;height:24px;font-size:11.5px;padding:0 4px;border-radius:7px}.rlg .rl .wa-ic{padding:0;margin-left:5px}.rlg .rl .wa-ic svg{width:15px;height:15px}.rlg .rl td .pill{padding:1px 8px}.rlg .rl th{padding:6px 7px}
 .rl tr.clk{cursor:pointer}.rl tr.clk:hover td,.rl tr.clk:focus td{background:rgba(127,127,127,.12)}.rlg{overflow:auto;border-radius:inherit}.rl{margin:0;font-size:12.5px}.rl th,.rl td{white-space:nowrap;padding:9px 7px}.rl th{font-size:11px}.rl td .pill{font-size:11px;padding:2px 8px}.rl .n{text-align:right}.rl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--line)}.rl tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;z-index:2;box-shadow:0 -1px 0 var(--line)}
 .rl .flt th{padding:4px 5px;font-weight:400;background:var(--surface)}.rl .flt input{width:100%;min-width:64px;padding:5px 7px;font-size:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
 .rl .th{display:inline-flex;align-items:center;gap:6px}.rl .fx{border:0;background:transparent;color:var(--muted);padding:3px;border-radius:5px;cursor:pointer;line-height:0}.rl .fx:hover{background:var(--surface-2);color:var(--ink)}.rl .fx.on{color:var(--accent-ink);background:var(--accent)}.rl-pop{position:fixed;z-index:80;width:260px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:10px;font-size:13px}.rl-pop .pq input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px}.rl-pop .chk{display:flex;gap:8px;align-items:center;padding:4px 2px;min-height:26px;font-size:13px;font-weight:500}.rl-pop .pl{max-height:210px;overflow:auto;margin:2px 0}.rl-pop .pn{margin:6px 2px;font-size:12px;font-weight:700;color:var(--muted)}.rl-pop .pb{display:flex;gap:8px}
@@ -1297,6 +1297,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.82.0', '2026-11-12', 'Grids padronizados: Caixa, Vendas (as quatro abas), Grupos, Usuários da plataforma e Convites enviados agora usam o mesmo grid da Cobrança, com funil de filtro em cada coluna, linhas mais compactas e totais no rodapé.'],
   ['0.81.0', '2026-11-12', 'Financeiro › Recebimentos: os cartões de totais ficaram menores e ficam todos em uma única linha, e o gráfico por dia foi retirado (o dia a dia continua na tabela).'],
   ['0.80.1', '2026-11-12', 'Paciente inativo: só agenda Limpeza, Raspagem, Reavaliação do tratamento e Remoção do aparelho, e só nas agendas/cadeiras que fazem esses procedimentos, para qualquer perfil de acesso (antes a permissão de agendar inativos liberava tudo).'],
   ['0.80.0', '2026-11-12', 'Novo módulo Financiamento próprio (liga e desliga por unidade, em Unidades › Módulos, só o Diretor). Menu Financiamento: Carteira (pago, executado e crédito de cada paciente, parcelas, atraso, boletos e aviso de tratamento aguardando crédito), Vencimentos e boletos (todas as parcelas por período, baixa pelo botão Receber ou automática pelo Asaas, gerar e ver boleto), Régua de cobrança própria (a vencer, 1-15, 16-30, 31-60 e +60 dias, com WhatsApp de 1 toque e registro do contato) e a Previsão de recebimento. Ao fechar um orçamento com financiamento próprio, o carnê de boletos de todas as parcelas é gerado no Asaas (também pelo botão Gerar boletos na Carteira).'],
@@ -2577,10 +2578,11 @@ async function funCarregar(){
 }
 const nomePerfil = id => (D.perfis.find(p => p.id === id) || {}).nome || '—';
 const extDe = id => (D.ext || []).find(x => x.funcionario_id === id);
+const FUNX = { fc: [] };
 function funLista(){
   $('#area').innerHTML = '<div class="head"><div><h1>Funcionários</h1><p class="sub">Quem trabalha na rede e o que cada um pode acessar.</p></div>' + (pode('funcionarios.criar') ? '<div class="tools"><button class="btn ghost" type="button" id="f-imp" title="Incluir nesta unidade alguém que já está cadastrado em outra unidade da empresa">Importar cadastro</button><button class="btn" type="button" id="f-novo">+ Novo funcionário</button></div>' : '') + '</div>'
     + '<div class="card"><div class="tools"><input id="f-q" type="search" placeholder="Buscar por nome, login ou cargo" aria-label="Buscar funcionários"><select id="f-st" aria-label="Situação"><option value="a">Ativos</option><option value="i">Inativos</option><option value="t">Todos</option></select></div><div class="lista" id="f-lista"></div></div>'
-    + ((D.conv || []).length ? '<div class="card" id="f-conv" style="margin-top:16px"><h2 style="margin:0 0 6px;font-size:16px">Convites enviados, aguardando aceite</h2>' + D.conv.map(c => '<div class="row f"><b>' + esc(c.funcionario_nome) + '</b><span class="m x">' + esc(c.perfil) + (c.cargo ? ' · ' + esc(c.cargo) : '') + '</span><span class="m x">' + esc(c.unidades || '') + '</span><span class="m x">até ' + dBR(String(c.expira_em).slice(0, 10)) + '</span>' + (pode('funcionarios.criar') ? '<button class="btn ghost sm" type="button" data-cc="' + c.id + '">Cancelar convite</button>' : '') + '</div>').join('') + '</div>' : '');
+    + ((D.conv || []).length ? '<div class="card" id="f-conv" style="margin-top:16px"><h2 style="margin:0 0 6px;font-size:16px">Convites enviados, aguardando aceite</h2><div id="f-conv-g"></div></div>' : '');
   const desenhar = () => {
     const q = $('#f-q').value.trim().toLowerCase(), st = $('#f-st').value;
     const l = D.func.filter(f => (st === 't' || (st === 'a') === !inativoEm(f.data_inativacao)) && (!q || [f.nome, f.login, f.cargo].join(' ').toLowerCase().includes(q)));
@@ -2592,7 +2594,11 @@ function funLista(){
   $('#f-q').addEventListener('input', desenhar); $('#f-st').addEventListener('change', desenhar); desenhar();
   const n = $('#f-novo'); if (n) n.addEventListener('click', () => funForm(null));
   const im = $('#f-imp'); if (im) im.addEventListener('click', () => funImportar());
-  $$('#f-conv [data-cc]').forEach(b => b.addEventListener('click', async () => { const q = await sb.rpc('convite_cancelar', { p_id: Number(b.dataset.cc) }); if (q.error) { toast(erroTxt(q.error)); return; } toast('Convite cancelado.'); funCarregar(); }));
+  if ($('#f-conv-g')) gradeF($('#f-conv-g'), { dados: D.conv, f: FUNX.fc = FUNX.fc || [], vazio: '', maxH: 300, cols: [
+    { t: 'Funcionário', v: c => c.funcionario_nome }, { t: 'Perfil e cargo', v: c => c.perfil + (c.cargo ? ' · ' + c.cargo : '') }, { t: 'Unidades', v: c => c.unidades || '' }, { t: 'Válido até', v: c => dBR(String(c.expira_em).slice(0, 10)) }],
+    acao: c => pode('funcionarios.criar') ? '<button class="btn ghost sm" type="button" data-cc="' + c.id + '">Cancelar convite</button>' : '',
+    liga: bx => $$('[data-cc]', bx).forEach(b => b.addEventListener('click', async () => { const q = await sb.rpc('convite_cancelar', { p_id: Number(b.dataset.cc) }); if (q.error) { toast(erroTxt(q.error)); return; } toast('Convite cancelado.'); funCarregar(); })) });
+  /* (convites: tratado em gradeF acima) */ $$('#f-conv-x [data-cc]').forEach(b => b.addEventListener('click', async () => { const q = await sb.rpc('convite_cancelar', { p_id: Number(b.dataset.cc) }); if (q.error) { toast(erroTxt(q.error)); return; } toast('Convite cancelado.'); funCarregar(); }));
 }
 /* importar o cadastro de quem já trabalha em outra unidade da empresa, pelo CPF */
 function funImportar(pre){
@@ -3769,14 +3775,18 @@ async function plEntrar(grupo, unidade){
   if (unidade) { try { localStorage.setItem('og_un_' + (EU.id || EU.login), String(unidade)); } catch (_) {} }
   await entrarNoApp(true);
 }
+const PGR = { f: [] };
 async function pgrCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const r = await sb.rpc('plataforma_grupos');
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
   D.grupos = r.data || [];
   $('#area').innerHTML = '<div class="head"><div><h1>Grupos</h1><p class="sub">Cada grupo é uma empresa ou sociedade independente, com as suas unidades. Os grupos não se enxergam.</p></div>' + (ehMaster() ? '<button class="btn" type="button" id="pg-novo">+ Novo grupo</button>' : '') + '</div>'
-    + '<div class="card"><div class="lista" id="pg-lista">' + (D.grupos.length ? D.grupos.map(g => '<button class="row f" type="button" data-id="' + g.id + '"><b>' + esc(g.nome) + '</b><span class="m x">' + g.unidades + ' unid. · ' + g.funcionarios + ' func.</span><span class="m x">' + g.dentistas + ' dent. · ' + g.pacientes + ' pac.</span><span class="m x">' + esc(g.diretores || 'sem Diretor') + '</span><span class="pill ' + (g.ativo ? 'on' : 'off') + '">' + (g.ativo ? 'Ativo' : 'Suspenso') + '</span></button>').join('') : '<div class="vazio">Nenhum grupo cadastrado ainda.</div>') + '</div></div>';
-  $$('#pg-lista .row').forEach(b => b.addEventListener('click', () => { const g = D.grupos.find(x => x.id === Number(b.dataset.id)); irPara('p-grupo', { chave: 'p-grupo:' + g.id, titulo: g.nome.split(' ').slice(0, 2).join(' '), id: g.id }); }));
+    + '<div class="card" style="padding:0;overflow:hidden"><div id="pg-lista"></div></div>';
+  gradeF($('#pg-lista'), { dados: D.grupos, f: PGR.f = PGR.f || [], vazio: 'Nenhum grupo cadastrado ainda.', maxH: 560, clique: g => irPara('p-grupo', { chave: 'p-grupo:' + g.id, titulo: g.nome.split(' ').slice(0, 2).join(' '), id: g.id }), cols: [
+    { t: 'Grupo', v: g => g.nome, h: g => '<b>' + esc(g.nome) + '</b>' }, { t: 'Unidades', v: g => String(g.unidades) }, { t: 'Funcionários', v: g => String(g.funcionarios) },
+    { t: 'Dentistas', v: g => String(g.dentistas) }, { t: 'Pacientes', v: g => String(g.pacientes) }, { t: 'Diretor(es)', v: g => g.diretores || 'sem Diretor' },
+    { t: 'Situação', v: g => g.ativo ? 'Ativo' : 'Suspenso', h: g => '<span class="pill ' + (g.ativo ? 'on' : 'off') + '">' + (g.ativo ? 'Ativo' : 'Suspenso') + '</span>' }] });
   const n = $('#pg-novo'); if (n) n.addEventListener('click', pgrNovo);
 }
 function pgrNovo(){
@@ -3815,10 +3825,15 @@ async function pgrFicha(id){
   $('#area').innerHTML = '<div class="card tit"><h1>' + esc(g.nome) + ' <span class="pill ' + (g.ativo ? 'on' : 'off') + '">' + (g.ativo ? 'Ativo' : 'Suspenso') + '</span></h1><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" id="gf-entrar">Entrar neste grupo</button>'
     + (ehMaster() ? '<button class="btn ghost sm" type="button" id="gf-ren">Renomear</button><button class="btn ghost sm" type="button" id="gf-und">+ Nova unidade</button><button class="btn ' + (g.ativo ? 'danger' : 'ghost') + ' sm" type="button" id="gf-atv">' + (g.ativo ? 'Suspender grupo' : 'Reativar grupo') + '</button>' : '') + '</div></div>'
     + '<div class="ficha" style="margin-top:16px"><div class="card"><div class="kv"><span>Diretor(es)</span><b>' + esc(g.diretores || '—') + '</b><span>Unidades</span><b>' + g.unidades + '</b><span>Funcionários</span><b>' + g.funcionarios + '</b><span>Dentistas</span><b>' + g.dentistas + '</b><span>Pacientes</span><b>' + g.pacientes + '</b><span>Criado em</span><b>' + esc(dtHora(g.criado_em).slice(0, 10)) + '</b></div></div>'
-    + '<div class="card"><h2 style="margin:0 0 8px">Unidades</h2><div class="lista">' + (us.length ? us.map(u => '<div class="row f" style="cursor:default"><b><span class="sig" style="margin-right:8px">' + esc(u.sigla) + '</span>' + esc(u.razao_social) + '</b><span class="m x">' + esc([u.cidade, u.uf].filter(Boolean).join(' / ')) + '</span><span class="m x">' + (u.telefone ? mTel(u.telefone) + waIc(u.telefone, u.sigla) : '') + '</span><span class="pill ' + (u.ativa ? 'on' : 'off') + '">' + (u.ativa ? 'Ativa' : 'Inativa') + '</span><button class="btn ghost sm" type="button" data-ent="' + u.id + '">Entrar</button></div>').join('') : '<div class="vazio">Este grupo ainda não tem unidades.</div>') + '</div></div></div>';
+    + '<div class="card"><h2 style="margin:0 0 8px">Unidades</h2><div id="gf-un"></div></div></div>';
   const recarrega = () => { if (ROTA_ATIVA() === 'p-grupo') pgrFicha(id); };
+  gradeF($('#gf-un'), { dados: us, f: PGR.fu = PGR.fu || [], vazio: 'Este grupo ainda não tem unidades.', maxH: 420, cols: [
+    { t: 'Unidade', v: u => u.sigla + ' ' + u.razao_social, h: u => '<b><span class="sig" style="margin-right:8px">' + esc(u.sigla) + '</span>' + esc(u.razao_social) + '</b>' },
+    { t: 'Cidade', v: u => [u.cidade, u.uf].filter(Boolean).join(' / ') }, { t: 'Telefone', v: u => u.telefone ? mTel(u.telefone) : '', h: u => u.telefone ? mTel(u.telefone) + waIc(u.telefone, u.sigla) : '' },
+    { t: 'Situação', v: u => u.ativa ? 'Ativa' : 'Inativa', h: u => '<span class="pill ' + (u.ativa ? 'on' : 'off') + '">' + (u.ativa ? 'Ativa' : 'Inativa') + '</span>' }],
+    acao: u => '<button class="btn ghost sm" type="button" data-ent="' + u.id + '">Entrar</button>',
+    liga: bx => $$('[data-ent]', bx).forEach(b => b.addEventListener('click', () => plEntrar(id, Number(b.dataset.ent)))) });
   $('#gf-entrar').addEventListener('click', () => plEntrar(id, us[0] && us[0].id));
-  $$('[data-ent]').forEach(b => b.addEventListener('click', () => plEntrar(id, Number(b.dataset.ent))));
   const ren = $('#gf-ren'); if (ren) ren.addEventListener('click', () => {
     abrirJanela('Renomear grupo', '<form id="pr-form" novalidate><div class="db">' + fld('pr-nome', 'Nome do grupo', g.nome, 'maxlength="80" autocomplete="off"') + '<div class="err" id="pr-err" role="alert"></div></div><div class="df"><button class="btn ghost" type="button" id="pr-cancel">Cancelar</button><button class="btn" type="submit">Salvar</button></div></form>');
     $('#pr-cancel').addEventListener('click', fecharJanela);
@@ -3850,8 +3865,10 @@ async function pusCarregar(){
   if (r.error) { $('#area').innerHTML = '<div class="card"><div class="err">' + esc(erroTxt(r.error)) + '</div></div>'; return; }
   D.pus = r.data || [];
   $('#area').innerHTML = '<div class="head"><div><h1>Usuários da plataforma</h1><p class="sub">Master cria grupos e usuários. Suporte entra nas unidades para ajudar, mas não cria grupos.</p></div><button class="btn" type="button" id="pu-novo">+ Novo usuário</button></div>'
-    + '<div class="card"><div class="lista" id="pu-lista">' + D.pus.map(u => '<button class="row f" type="button" data-id="' + esc(u.auth_id) + '"><b>' + esc(u.nome) + '</b><span class="m x">' + esc(u.login) + '</span><span class="m x"></span><span class="m x"></span><span class="pill ' + (u.papel === 'master' ? 'nu' : 'wr') + '">' + (u.papel === 'master' ? 'Master' : 'Suporte') + '</span></button>').join('') + '</div></div>';
-  $$('#pu-lista .row').forEach(b => b.addEventListener('click', () => pusForm(D.pus.find(u => u.auth_id === b.dataset.id))));
+    + '<div class="card" style="padding:0;overflow:hidden"><div id="pu-lista"></div></div>';
+  gradeF($('#pu-lista'), { dados: D.pus, f: PGR.fp = PGR.fp || [], vazio: 'Nenhum usuário.', maxH: 560, clique: u => pusForm(u), cols: [
+    { t: 'Nome', v: u => u.nome, h: u => '<b>' + esc(u.nome) + '</b>' }, { t: 'Login', v: u => u.login },
+    { t: 'Papel', v: u => u.papel === 'master' ? 'Master' : 'Suporte', h: u => '<span class="pill ' + (u.papel === 'master' ? 'nu' : 'wr') + '">' + (u.papel === 'master' ? 'Master' : 'Suporte') + '</span>' }] });
   $('#pu-novo').addEventListener('click', () => pusForm(null));
 }
 function pusForm(u){
@@ -4117,18 +4134,27 @@ function vdLista(){
     + '<div class="card"><div class="tools" id="vd-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (VD.aba === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (VD.aba === a[0]) + '" data-aba="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join('') + '</div><div class="lista" id="vd-lista"></div></div>';
   const nome = f => esc(f.nome_social || f.nome) + (f.nome_social ? ' <small style="font-weight:400;color:var(--muted)">(' + esc(f.nome) + ')</small>' : '');
   const av = f => '<span class="m x">Avaliado por ' + esc(f.dentista_nome || '—') + ' · ' + dtHora(f.concluida_em) + '</span><span class="m x">Clínico concomitante: ' + (f.tratamento_clinico ? 'sim' : 'não') + ' · Limpeza profunda: ' + (f.limpeza_profunda ? 'sim' : 'não') + '</span>';
-  let h = '';
-  if (VD.aba === 'lib') h = lib.length ? lib.map(f => '<div class="row f" data-pid="' + f.paciente_id + '"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.canal_venda) + '</span>'
-      + (pode('vendas.registrar') ? '<button class="btn sm" type="button" data-vender="' + f.paciente_id + '">Iniciar tratamento</button>' : '<span></span>') + '</div>').join('') : '<div class="vazio">Ninguém liberado para venda agora. Quando o dentista concluir uma avaliação como apto, o paciente aparece aqui.</div>';
-  else if (VD.aba === 'nao') h = nao.length ? nao.map(f => '<div class="row f"><b>' + nome(f) + '</b>' + av(f) + '<span class="m x">' + esc(f.observacao || '') + '</span><button class="btn ghost sm" type="button" data-ficha="' + f.paciente_id + '">Abrir ficha</button></div>').join('') : '<div class="vazio">Nenhum paciente não apto em acompanhamento.</div>';
-  else if (VD.aba === 'avul') h = (D.avulsas || []).length ? (D.avulsas || []).map(x => '<div class="row f"><b>' + esc(x.paciente_nome) + '</b><span class="m x">' + esc(x.descricao) + (x.observacao ? ' · ' + esc(x.observacao) : '') + '</span><span class="m x">' + reais(x.valor_cheio) + '</span><span class="m x">' + (x.status === 'paga' ? dBR(x.pago_em) + ' · ' + esc(x.forma_pagamento || '') : dtHora(x.criado_em)) + '</span><span class="pill ' + (x.status === 'paga' ? 'on' : 'off') + '">' + ({ paga: 'Recebida', aberta: 'A receber', cancelada: 'Cancelada', isenta: 'Isenta' }[x.status] || esc(x.status)) + '</span></div>').join('') : '<div class="vazio">Nenhuma venda avulsa ainda. Use o botão Venda avulsa para vender um produto ou serviço sem contrato.</div>';
-  else h = D.vendas.length ? D.vendas.map(v => '<button class="row f" type="button" data-venda="' + v.id + '"><b>' + esc(v.paciente_nome) + '</b><span class="m x">' + esc(v.plano_nome) + '</span><span class="m x">' + reais(v.valor) + '/mês' + (v.prazo_meses ? ' · ' + v.prazo_meses + ' meses' : '') + '</span><span class="m x">' + esc(v.vendedor_nome || '') + ' · ' + dtHora(v.criado_em) + '</span><span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span></button>').join('') : '<div class="vazio">Nenhuma venda registrada ainda.</div>';
-  $('#vd-lista').innerHTML = h;
+  const box = $('#vd-lista'), fk = (VD.gf = VD.gf || {}), fx = (fk[VD.aba] = fk[VD.aba] || []);
+  const nm = f => f.nome_social ? f.nome_social + ' (' + f.nome + ')' : f.nome, sn = x => x ? 'sim' : 'não';
+  const colsAv = [{ t: 'Paciente', v: nm, h: f => nome(f) }, { t: 'Avaliado por', v: f => f.dentista_nome || '—' }, { t: 'Avaliada em', v: f => dtHora(f.concluida_em) }, { t: 'Clínico concomitante', v: f => sn(f.tratamento_clinico) }, { t: 'Limpeza profunda', v: f => sn(f.limpeza_profunda) }];
+  if (VD.aba === 'lib') gradeF(box, { dados: lib, f: fx, vazio: 'Ninguém liberado para venda agora. Quando o dentista concluir uma avaliação como apto, o paciente aparece aqui.', maxH: 560, cols: colsAv.concat([{ t: 'Canal', v: f => f.canal_venda || '' }]),
+    acao: f => pode('vendas.registrar') ? '<button class="btn sm" type="button" data-vender="' + f.paciente_id + '">Iniciar tratamento</button>' : '',
+    liga: bx => $$('[data-vender]', bx).forEach(b => b.addEventListener('click', () => vdVender(D.fila.find(f => f.paciente_id === Number(b.dataset.vender))))) });
+  else if (VD.aba === 'nao') gradeF(box, { dados: nao, f: fx, vazio: 'Nenhum paciente não apto em acompanhamento.', maxH: 560, cols: colsAv.concat([{ t: 'Observação', v: f => f.observacao || '' }]),
+    acao: f => '<button class="btn ghost sm" type="button" data-ficha="' + f.paciente_id + '">Abrir ficha</button>',
+    liga: bx => $$('[data-ficha]', bx).forEach(b => b.addEventListener('click', () => { const f = D.fila.find(x => x.paciente_id === Number(b.dataset.ficha)); abrirPaciente({ id: f.paciente_id, nome: f.nome, nome_social: f.nome_social }); })) });
+  else if (VD.aba === 'avul') gradeF(box, { dados: D.avulsas || [], f: fx, vazio: 'Nenhuma venda avulsa ainda. Use o botão Venda avulsa para vender um produto ou serviço sem contrato.', maxH: 560, cols: [
+    { t: 'Paciente', v: x => x.paciente_nome }, { t: 'Descrição', v: x => x.descricao + (x.observacao ? ' · ' + x.observacao : '') },
+    { t: 'Valor', n: 1, v: x => reais(x.valor_cheio), soma: x => x.valor_cheio },
+    { t: 'Data', v: x => x.status === 'paga' ? dBR(x.pago_em) + ' · ' + (x.forma_pagamento || '') : dtHora(x.criado_em) },
+    { t: 'Situação', v: x => ({ paga: 'Recebida', aberta: 'A receber', cancelada: 'Cancelada', isenta: 'Isenta' }[x.status] || x.status), h: x => '<span class="pill ' + (x.status === 'paga' ? 'on' : 'off') + '">' + esc(({ paga: 'Recebida', aberta: 'A receber', cancelada: 'Cancelada', isenta: 'Isenta' }[x.status] || x.status)) + '</span>' }] });
+  else gradeF(box, { dados: D.vendas, f: fx, vazio: 'Nenhuma venda registrada ainda.', maxH: 560, clique: v => vdDetalhe(v), cols: [
+    { t: 'Paciente', v: v => v.paciente_nome }, { t: 'Plano', v: v => v.plano_nome || '' },
+    { t: 'Mensalidade', n: 1, v: v => reais(v.valor), soma: v => v.valor }, { t: 'Prazo', v: v => v.prazo_meses ? v.prazo_meses + ' meses' : '' },
+    { t: 'Vendedor', v: v => v.vendedor_nome || '' }, { t: 'Quando', v: v => dtHora(v.criado_em) },
+    { t: 'Situação', v: v => v.status === 'ativa' ? 'Ativa' : 'Cancelada', h: v => '<span class="pill ' + (v.status === 'ativa' ? 'on' : 'off') + '">' + (v.status === 'ativa' ? 'Ativa' : 'Cancelada') + '</span>' }] });
   $$('#vd-abas [data-aba]').forEach(b => b.addEventListener('click', () => { VD.aba = b.dataset.aba; vdLista(); }));
   const va = $('#vd-avulsa'); if (va) va.addEventListener('click', () => vendaAvulsaDialogo(null, null, () => { fecharJanela(); VD.aba = 'avul'; vdCarregar(); }));
-  $$('[data-vender]').forEach(b => b.addEventListener('click', () => vdVender(D.fila.find(f => f.paciente_id === Number(b.dataset.vender)))));
-  $$('[data-ficha]').forEach(b => b.addEventListener('click', () => { const f = D.fila.find(x => x.paciente_id === Number(b.dataset.ficha)); abrirPaciente({ id: f.paciente_id, nome: f.nome, nome_social: f.nome_social }); }));
-  $$('[data-venda]').forEach(b => b.addEventListener('click', () => vdDetalhe(D.vendas.find(v => v.id === Number(b.dataset.venda)))));
 }
 const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
 // vencimento da 1ª mensalidade (espelha a regra do banco): mês seguinte à venda; venda depois do dia 20 → dia 20
@@ -5910,7 +5936,7 @@ function relPop(i, btn, R, cols, corpo){
   $('#rp-ok').addEventListener('click', () => { R.f[i] = sel.size ? new Set(sel) : null; relPopFecha(); corpo(); });
   $('#rp-limpa').addEventListener('click', () => { R.f[i] = null; relPopFecha(); corpo(); });
   document.addEventListener('mousedown', relPopFora, true); document.addEventListener('keydown', relPopTecla, true);
-  pinta(); $('#rp-q').focus();
+  pinta(); const ajusta = () => { const h = o.offsetHeight, topo = parseFloat(o.style.top) || 0; o.style.top = Math.max(8, Math.min(topo, window.innerHeight - h - 8)) + 'px'; }; ajusta(); $('#rp-lista').addEventListener('change', ajusta); $('#rp-q').addEventListener('input', ajusta); $('#rp-q').focus();
 }
 function relCsv(R){
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', cols = relCols(), n = v => String(Number(v || 0).toFixed(2)).replace('.', ',');
@@ -6044,11 +6070,21 @@ function caixaLista(){
       + '<label class="field" for="cx-q" style="margin-top:12px">Receber de um paciente<input id="cx-q" type="search" placeholder="Nome, CPF ou código do paciente" autocomplete="off"></label><div class="lista" id="cx-achados"></div></div>'
       : (!velho && pode('financeiro.baixar') ? '<div class="card"><b>Você não tem caixa aberto hoje.</b><p class="sub" style="margin:4px 0 0">Para receber parcelas, peça ao gerente para abrir o seu caixa.</p></div>' : ''))
     + '<div class="card"><div class="tools"><div id="cx-abas" role="tablist">' + abas.map(a => '<button class="btn ' + (CX.f === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CX.f === a[0]) + '" data-f="' + a[0] + '">' + a[1] + ' (' + D.cxs.filter(fl[a[0]]).length + ')</button>').join(' ') + '</div></div><div class="lista" id="cx-lista"></div></div>';
-  $('#cx-lista').innerHTML = lista.length ? lista.map(c => '<div class="row f"><b>' + esc(c.responsavel_nome) + (c.meu ? ' <small style="color:var(--muted);font-weight:400">(você)</small>' : '') + '</b><span class="m x">' + dBR(c.data) + ' · abriu ' + hhmm(c.aberto_em) + '</span><span class="m x">' + reais(c.total) + ' · ' + c.qtd + ' pag.' + (c.status === 'fechado' && Number(c.diferenca) !== 0 ? '<br><small style="color:var(--red)">diferença ' + reais(c.diferenca) + '</small>' : '') + '</span><span>' + cxSit(c) + '</span>'
-      + '<span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" type="button" data-rel="' + c.id + '">Relatório</button>' + (c.status === 'aberto' && (c.meu || pode('caixa.fechar_todos')) && !(meu && meu.id === c.id) ? '<button class="btn sm" type="button" data-fechar="' + c.id + '">Fechar</button>' : '') + '</span></div>').join('') : '<div class="vazio">Nenhum caixa neste filtro.</div>';
-  $$('#cx-abas [data-f]').forEach(b => b.addEventListener('click', () => { CX.f = b.dataset.f; caixaLista(); }));
-  $$('[data-rel]').forEach(b => b.addEventListener('click', () => caixaRelatorio(Number(b.dataset.rel))));
-  $$('[data-fechar]').forEach(b => b.addEventListener('click', () => caixaFechar(D.cxs.find(c => c.id === Number(b.dataset.fechar)))));
+  gradeF($('#cx-lista'), { dados: lista, f: CX.gf = CX.gf || [], vazio: 'Nenhum caixa neste filtro.', maxH: 520, cols: [
+    { t: 'Responsável', v: c => c.responsavel_nome + (c.meu ? ' (você)' : '') },
+    { t: 'Data', v: c => dBR(c.data) },
+    { t: 'Abertura', v: c => hhmm(c.aberto_em) },
+    { t: 'Recebido', n: 1, v: c => reais(c.total), soma: c => c.total },
+    { t: 'Pagamentos', v: c => String(c.qtd) },
+    { t: 'Diferença', v: c => c.status === 'fechado' && Number(c.diferenca) !== 0 ? reais(c.diferenca) : '', h: c => c.status === 'fechado' && Number(c.diferenca) !== 0 ? '<span style="color:var(--red)">' + reais(c.diferenca) + '</span>' : '' },
+    { t: 'Situação', v: c => c.conciliado_em ? 'Conciliado' : c.status === 'fechado' ? 'Fechado · a conciliar' : 'Aberto', h: cxSit }
+  ], acao: c => '<span style="display:flex;gap:6px;flex-wrap:nowrap"><button class="btn ghost sm" type="button" data-rel="' + c.id + '">Relatório</button>' + (c.status === 'aberto' && (c.meu || pode('caixa.fechar_todos')) && !(meu && meu.id === c.id) ? '<button class="btn sm" type="button" data-fechar="' + c.id + '">Fechar</button>' : '') + '</span>',
+    liga: bx => {
+      $$('[data-rel]', bx).forEach(b => b.addEventListener('click', () => caixaRelatorio(Number(b.dataset.rel))));
+      $$('[data-fechar]', bx).forEach(b => b.addEventListener('click', () => caixaFechar(D.cxs.find(c => c.id === Number(b.dataset.fechar)))));
+    } });
+  $$('#cx-abas [data-f]').forEach(b => b.addEventListener('click', () => { CX.f = b.dataset.f; CX.gf = []; caixaLista(); }));
+  $$('#area .card > div > [data-fechar]').forEach(b => b.addEventListener('click', () => caixaFechar(D.cxs.find(c => c.id === Number(b.dataset.fechar)))));
   $$('#cx-pedidos [data-ped]').forEach(b => b.addEventListener('click', () => caixaAbrir(Number(b.dataset.ped))));
   const ab = $('#cx-abrir'); if (ab) ab.addEventListener('click', () => caixaAbrir());
   const q = $('#cx-q'); if (q) { let tm, seq = 0;
