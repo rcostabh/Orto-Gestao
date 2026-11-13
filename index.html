@@ -565,6 +565,10 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   .ch{grid-template-columns:minmax(0,1fr);height:calc(100vh - 150px);border-radius:16px}
   .ch .ch-r{display:none}.ch.conv .ch-l{display:none}.ch.conv .ch-r{display:flex}.ch .ch-vb{display:grid}
 }
+.mn-c{position:relative}.mn-b{position:absolute;z-index:2;top:6px;right:8px;width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:var(--muted,#888);cursor:pointer;padding:0}
+.mn-b:hover{background:rgba(127,127,127,.15);color:inherit}.mn-b svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.mn-min>.mn-b svg{transform:rotate(180deg)}.mn-t{display:none;font-size:12px;font-weight:700;padding-right:30px}
+.mn-min>.mn-h{display:none!important}.mn-min>.mn-t{display:block}.mn-min{padding-top:7px!important;padding-bottom:7px!important;min-height:0!important}
 </style>
 </head>
 <body>
@@ -1297,6 +1301,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.83.0', '2026-11-13', 'Botão minimizar (canto superior direito) nos cards de filtros e totais acima das listagens, como Cobrança, Pacientes, Vendas e Caixa. Minimizado, o card vira uma barra fina e a lista cresce para mostrar mais linhas. A tela sempre abre com os cards maximizados.'],
   ['0.82.0', '2026-11-12', 'Grids padronizados: Caixa, Vendas (as quatro abas), Grupos, Usuários da plataforma e Convites enviados agora usam o mesmo grid da Cobrança, com funil de filtro em cada coluna, linhas mais compactas e totais no rodapé.'],
   ['0.81.0', '2026-11-12', 'Financeiro › Recebimentos: os cartões de totais ficaram menores e ficam todos em uma única linha, e o gráfico por dia foi retirado (o dia a dia continua na tabela).'],
   ['0.80.1', '2026-11-12', 'Paciente inativo: só agenda Limpeza, Raspagem, Reavaliação do tratamento e Remoção do aparelho, e só nas agendas/cadeiras que fazem esses procedimentos, para qualquer perfil de acesso (antes a permissão de agendar inativos liberava tudo).'],
@@ -6040,6 +6045,49 @@ function gradeAuto(t){
   foot();
 }
 { let gaT = 0; new MutationObserver(() => { clearTimeout(gaT); gaT = setTimeout(() => $$('#area table:not([data-ga]), dialog table:not([data-ga])').forEach(gradeAuto), 30); }).observe(document.body, { childList: true, subtree: true }); }
+
+/* ---------- MINIMIZAR os cards acima de uma lista (filtros, totais): mais linhas visíveis. Sempre abre maximizado. ---------- */
+const MN = { tela: '', est: {} };
+const MN_GRADE = '.rlg, [id$="-tab"], [id$="-lista"], [id$="-grid"]';
+function mnSeta(){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>'; }
+function mnTopo(card){
+  const gr = [...card.children].find(c => c.matches && (c.matches(MN_GRADE) || c.querySelector(MN_GRADE)));
+  return gr ? [...card.children].slice(0, [...card.children].indexOf(gr)) : [...card.children];
+}
+function mnAplica(){
+  const area = $('#area'); if (!area) return;
+  const h1 = area.querySelector('.head h1'), tela = h1 ? h1.textContent : '';
+  if (tela !== MN.tela) { MN.tela = tela; MN.est = {}; }
+  const fil = [...area.children], ult = fil[fil.length - 1];
+  if (!ult || !(ult.matches(MN_GRADE) || ult.querySelector(MN_GRADE))) { mnFill(); return; }
+  fil.forEach((c, i) => {
+    if (c.classList.contains('head') || c.id === 'cb-abas' || !(c.classList.contains('card') || c.classList.contains('cbc') || c.classList.contains('kpis'))) return;
+    const temGrade = c === ult, topo = mnTopo(c).filter(x => !x.classList.contains('mn-b') && !x.classList.contains('mn-t'));
+    if (temGrade && !topo.length) return;
+    const k = tela + '#' + i;
+    if (!c.querySelector(':scope > .mn-b')) {
+      c.classList.add('mn-c');
+      const rot = c.querySelector('input,select,textarea') ? 'Filtros' : 'Resumo';
+      c.insertAdjacentHTML('afterbegin', '<span class="mn-t">' + rot + '</span><button type="button" class="mn-b" aria-expanded="true" aria-label="Minimizar ' + rot.toLowerCase() + '" title="Minimizar">' + mnSeta() + '</button>');
+      c.querySelector(':scope > .mn-b').addEventListener('click', () => { MN.est[k] = !c.classList.contains('mn-min'); mnAplica(); });
+    }
+    topo.forEach(x => x.classList.add('mn-h'));
+    const m = !!MN.est[k], b = c.querySelector(':scope > .mn-b'), rot = c.querySelector(':scope > .mn-t').textContent.toLowerCase();
+    c.classList.toggle('mn-min', m); b.setAttribute('aria-expanded', m ? 'false' : 'true');
+    b.setAttribute('aria-label', (m ? 'Expandir ' : 'Minimizar ') + rot); b.title = m ? 'Expandir' : 'Minimizar';
+  });
+  mnFill();
+}
+/* com algum card minimizado, a lista cresce até o fim da tela; maximizado, volta à altura de sempre */
+function mnFill(){
+  const area = $('#area'); if (!area) return;
+  const min = !!area.querySelector('.mn-c.mn-min');
+  $$('.rlg', area).forEach(g => {
+    if (min) { const t = g.getBoundingClientRect().top; g.style.setProperty('max-height', Math.max(260, Math.floor(window.innerHeight - t - 70)) + 'px', 'important'); }
+    else g.style.removeProperty('max-height');
+  });
+}
+{ let mnT = 0; new MutationObserver(() => { clearTimeout(mnT); mnT = setTimeout(() => { try { mnAplica(); } catch (e) {} }, 60); }).observe(document.body, { childList: true, subtree: true }); window.addEventListener('resize', () => { try { mnFill(); } catch (e) {} }); }
 
 /* ---------- CAIXA: abertura diária por responsável, painel do paciente, fechamento e conciliação ---------- */
 const CX = { f: 'hoje' };
