@@ -1301,6 +1301,7 @@ ladoAplica();
 
 /* ---------- versão do sistema ---------- */
 const VERSOES = [
+  ['0.84.0', '2026-11-13', 'Cobrança: novo card Pré-Ativo ao lado das réguas, com a quantidade de pacientes e o valor em aberto de quem pagou o início e ainda não pagou a 1ª mensalidade. Clicar no card filtra a lista; clicar de novo limpa.'],
   ['0.83.0', '2026-11-13', 'Botão minimizar (canto superior direito) nos cards de filtros e totais acima das listagens, como Cobrança, Pacientes, Vendas e Caixa. Minimizado, o card vira uma barra fina e a lista cresce para mostrar mais linhas. A tela sempre abre com os cards maximizados.'],
   ['0.82.0', '2026-11-12', 'Grids padronizados: Caixa, Vendas (as quatro abas), Grupos, Usuários da plataforma e Convites enviados agora usam o mesmo grid da Cobrança, com funil de filtro em cada coluna, linhas mais compactas e totais no rodapé.'],
   ['0.81.0', '2026-11-12', 'Financeiro › Recebimentos: os cartões de totais ficaram menores e ficam todos em uma única linha, e o gráfico por dia foi retirado (o dia a dia continua na tabela).'],
@@ -4514,7 +4515,7 @@ function finLista(){
 /* ---------- COBRANÇA: régua, painel por régua e previsão de faturamento ---------- */
 const REGUAS = [['preventivo', 'Preventiva', 'em dia · vencem este mês', 'on'], ['cob0', 'Cob 0', 'devem só o mês corrente', 'nu'], ['cob30', 'Cob 30', 'vencida do mês passado', 'wr'],
                 ['cob60', 'Cob 60', 'vencida há 2 meses', 'off'], ['cob90', 'Cob 90', 'vencida há 3 meses', 'off'], ['mais90', '+90', '4 meses ou mais · inativos', 'off']];
-const CB = { ini: null, fim: null, regua: 'todas', q: '', vi: '', vf: '', dados: [], res: null };
+const CB = { ini: null, fim: null, regua: 'todas', st: '', q: '', vi: '', vf: '', dados: [], res: null };
 async function cobCarregar(){
   $('#area').innerHTML = '<div class="card"><p class="sub">Carregando...</p></div>';
   const ru = await sb.from('unidades').select('*').order('sigla');
@@ -4543,7 +4544,8 @@ function cobTela(){
     + '<p class="sub" id="cb-det">Recuperado de meses anteriores: <b>' + reais(R.recuperado || 0) + '</b>' + (Number(R.antecipado) > 0 ? ' · Antecipado (vence depois do período): <b>' + reais(R.antecipado) + '</b>' : '') + ' · Parcelas já geradas no período: <b>' + reais(R.previsto_geradas || 0) + '</b>' + (Number(R.previsto_projetado) > 0 ? ' · Projeção dos meses ainda sem parcela: <b>' + reais(R.previsto_projetado) + '</b>' : '') + '</p>'
     + '</div></div>'
 
-    + '<div class="cbc" id="cb-cards">' + REGUAS.filter(r => r[0] !== 'mais90').map(r => '<button type="button" class="cbc1 ' + (CB.regua === r[0] ? 'on' : '') + '" data-rg="' + r[0] + '"><span class="pill ' + r[3] + '">' + r[1] + '</span><b>' + por(r[0]).length + (por(r[0]).length === 1 ? ' paciente' : ' pacientes') + '</b><strong>' + reais(soma(por(r[0]))) + '</strong><small>' + r[2] + '</small></button>').join('') + '</div>'
+    + '<div class="cbc" id="cb-cards">' + REGUAS.filter(r => r[0] !== 'mais90').map(r => '<button type="button" class="cbc1 ' + (CB.regua === r[0] ? 'on' : '') + '" data-rg="' + r[0] + '"><span class="pill ' + r[3] + '">' + r[1] + '</span><b>' + por(r[0]).length + (por(r[0]).length === 1 ? ' paciente' : ' pacientes') + '</b><strong>' + reais(soma(por(r[0]))) + '</strong><small>' + r[2] + '</small></button>').join('')
+      + (() => { const pa = d.filter(x => x.status === 'Pré-Ativo'); return '<button type="button" class="cbc1 ' + (CB.st === 'Pré-Ativo' ? 'on' : '') + '" data-st="Pré-Ativo" aria-pressed="' + (CB.st === 'Pré-Ativo') + '"><span class="pill ' + (PILL_ST['Pré-Ativo'] || 'nu') + '">Pré-Ativo</span><b>' + pa.length + (pa.length === 1 ? ' paciente' : ' pacientes') + '</b><strong>' + reais(soma(pa)) + '</strong><small>pagaram o início · sem a 1ª mensalidade paga</small></button>'; })() + '</div>'
     + '<div class="card"><div class="tools"><div id="cb-abas" role="tablist">' + [['todas', 'Todas', d.length]].concat(REGUAS.map(r => [r[0], r[1], por(r[0]).length])).map(a => '<button class="btn ' + (CB.regua === a[0] ? '' : 'ghost ') + 'sm" type="button" role="tab" aria-selected="' + (CB.regua === a[0]) + '" data-rg="' + a[0] + '">' + a[1] + ' (' + a[2] + ')</button>').join(' ') + '</div>'
     + '<input id="cb-q" type="search" placeholder="Buscar paciente" aria-label="Buscar paciente" value="' + esc(CB.q) + '"></div>'
     + '<div class="tools cbv" style="gap:8px;align-items:end;margin-bottom:8px"><label class="field" for="cb-vi" style="margin:0">Parcela mais antiga vence entre<input id="cb-vi" type="date" value="' + esc(CB.vi) + '"></label><label class="field" for="cb-vf" style="margin:0">e<input id="cb-vf" type="date" value="' + esc(CB.vf) + '"></label><button class="btn ghost sm" type="button" id="cb-vl">Limpar datas</button></div>'
@@ -4554,6 +4556,7 @@ function cobTela(){
     CB.ini = i; CB.fim = f; const b = $('#cb-ok'); b.disabled = true; await cobCarregar();
   });
   $('#cb-mes').addEventListener('click', () => { const l = mesLimites(); CB.ini = l[0]; CB.fim = l[1]; cobCarregar(); });
+  $$('[data-st]').forEach(b => b.addEventListener('click', () => { CB.st = CB.st === b.dataset.st ? '' : b.dataset.st; CB.gf = []; cobTela(); }));
   $$('[data-rg]').forEach(b => b.addEventListener('click', () => { CB.regua = CB.regua === b.dataset.rg && b.classList.contains('cbc1') ? 'todas' : b.dataset.rg; CB.gf = []; cobTela(); }));
   $('#cb-q').addEventListener('input', e => { CB.q = e.target.value; cobCorpo(); });
   $('#cb-vi').addEventListener('change', e => { CB.vi = e.target.value; cobCorpo(); }); $('#cb-vf').addEventListener('change', e => { CB.vf = e.target.value; cobCorpo(); });
@@ -4564,7 +4567,7 @@ const cobAlt = () => 520;
 function cobAjusta(){ const g = $('#cb-tab .rlg'); if (g) g.style.maxHeight = cobAlt() + 'px'; }
 window.addEventListener('resize', () => { try { cobAjusta(); } catch (e) {} });
 function cobCorpo(){
-  const q = relNorm(CB.q.trim()); let l = CB.dados.filter(x => CB.regua === 'todas' || x.regua === CB.regua);
+  const q = relNorm(CB.q.trim()); let l = CB.dados.filter(x => (CB.regua === 'todas' || x.regua === CB.regua) && (!CB.st || x.status === CB.st));
   if (q) l = l.filter(x => relNorm(x.paciente_nome).includes(q));
   if (CB.vi) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '') >= CB.vi); if (CB.vf) l = l.filter(x => (x.venc_antigo || x.proximo_venc || '9999') <= CB.vf);
   const rg = k => REGUAS.find(r => r[0] === k), baixa = podeCobrar();
