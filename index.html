@@ -1142,6 +1142,159 @@ async function anamBoot(tk){
   };
   if (d.exige_cpf) passoCpf(); else passoForm();
 }
+const reais = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dBR = d => d ? d.split('-').reverse().join('/') : '';
+/* ---------- CNPJ e contrato de prestação de serviços odontológicos ---------- */
+const mCnpj = s => { const d = dig(s).slice(0, 14); return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); };
+function cnpjOk(p){
+  const d = dig(p || ''); if (d.length !== 14 || /^(\d)\1{13}$/.test(d)) return false;
+  const dv = n => { const pe = n === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; let s = 0; for (let i = 0; i < n; i++) s += Number(d[i]) * pe[i]; const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(12) === Number(d[12]) && dv(13) === Number(d[13]);
+}
+const mCpfTxt = s => { const d = dig(s || '').slice(0, 11); return d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : d; };
+const MESES_EXT = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const dExt = iso => { const [a, m, d] = String(iso).slice(0, 10).split('-').map(Number); return d + ' de ' + MESES_EXT[m - 1] + ' de ' + a; };
+const endTxt = o => [[o.logradouro, o.numero].filter(Boolean).join(', '), o.complemento, o.bairro, [o.cidade, o.uf].filter(Boolean).join('/'), o.cep ? 'CEP ' + String(o.cep).replace(/^(\d{5})(\d{3})$/, '$1-$2') : ''].filter(Boolean).join(' — ');
+
+function contratoHtml(d){
+  const u = d.unidade, p = d.paciente, dn = d.dentista, n = d.prazo_meses || 30, m = Number(d.mensalidade), desc = Number(d.desconto || 0), ini = d.inicio == null ? null : Number(d.inicio);
+  const liq = m - desc, total = (ini || 0) + n * m, parteTrat = Math.round(total * 70) / 100, parteMens = Math.round((total - parteTrat) * 100) / 100;
+  const nome = esc(p.nome) + (p.nome_social ? ' (nome social: ' + esc(p.nome_social) + ')' : '');
+  const resp = p.resp_nome ? ', representado(a) por seu responsável legal <b>' + esc(p.resp_nome) + '</b>' + (p.resp_cpf ? ', CPF ' + mCpfTxt(p.resp_cpf) : '') : '';
+  const A = x => '<span class="fa">' + x + '</span>';
+  const cl = [];
+  const aviso = '<b>aviso prévio de 90 (noventa) dias</b>';
+  cl.push(['Objeto', [
+    'O presente contrato tem por objeto a prestação de serviços de <b>ortodontia</b> pela CONTRATADA, por meio de profissionais legalmente habilitados, consistentes no fornecimento e na instalação de aparelho(s) ortodôntico(s) e no acompanhamento do tratamento das anomalias dento-craniofaciais e dos desvios dentais do CONTRATANTE, com a finalidade de correção total ou parcial das posições dentárias, conforme o plano de tratamento “<b>' + esc(d.plano) + '</b>” definido na avaliação inicial, que poderá ser atualizado ao longo do tratamento.',
+    'O contrato é formado por duas partes inseparáveis: <b>70% (setenta por cento)</b> do seu valor total corresponde ao <b>plano de tratamento</b> (diagnóstico, planejamento, instalação e condução clínica do tratamento, que é o trabalho técnico do cirurgião-dentista) e <b>30% (trinta por cento)</b> corresponde às <b>mensalidades</b> (acompanhamento, consultas de manutenção e estrutura de atendimento).',
+    'A ortodontia é obrigação de meio e não de resultado: a evolução e a eficácia do tratamento dependem também da colaboração do CONTRATANTE, do uso correto e contínuo do aparelho e do comparecimento às consultas de manutenção.',
+    'A documentação ortodôntica necessária ao diagnóstico inicial está incluída no valor do contrato e permanece com a CONTRATADA durante a vigência, podendo o CONTRATANTE pedir a sua retirada ao fim do tratamento. A documentação adicional durante o tratamento não está incluída e será cobrada conforme a tabela vigente.',
+    'No ato da assinatura o CONTRATANTE preenche a Ficha do Paciente (anamnese), mantém-na atualizada e toma ciência dos procedimentos que serão adotados.',
+    'Os procedimentos serão realizados na sede da CONTRATADA, em horário por ela divulgado e mediante prévio agendamento. As revisões são agendadas a critério do dentista, que verifica a necessidade e a periodicidade de retorno.',
+    'O tratamento é exclusivamente ortodôntico. Ficam excluídos os procedimentos de outras especialidades que venham a ser necessários (como extrações, restaurações, ajuste oclusal, tratamento periodontal e radiografias periapicais), que correm por conta do CONTRATANTE.']]);
+  cl.push(['Do tratamento', [
+    'O tempo estimado de tratamento é definido pelo profissional após a avaliação e pode variar conforme a colaboração e a resposta biológica do paciente. Em pacientes adultos, o tempo pode ser maior em razão da idade, da maturidade e da calcificação óssea.',
+    'O tratamento poderá ultrapassar o tempo estimado em caso de quebra do aparelho ou de peça, padrão anormal de crescimento, falta de cooperação no uso do aparelho e acessórios, ausência a uma ou mais consultas periódicas ou complicações que exijam tratamentos complementares.',
+    'A conservação do aparelho e das peças ortodônticas é de responsabilidade exclusiva do CONTRATANTE. Havendo necessidade de reparo ou substituição por mau uso ou acidente, ainda que sem culpa do CONTRATANTE, ele pagará conforme os valores vigentes à época, que poderão ser incluídos na parcela do mês seguinte.',
+    'Se o paciente quebrar um dente, deve restaurá-lo imediatamente, sem prejudicar a continuidade do tratamento. Nesse caso poderá ser necessária a revisão do plano, com possíveis custos adicionais previamente informados.',
+    'A CONTRATADA fica isenta de responsabilidade se o paciente permitir que outro profissional, não autorizado por ela, manuseie a aparelhagem sem prévio consentimento.',
+    'Ao final do tratamento serão instalados dispositivos de contenção, para manter os dentes nas novas posições. O valor da contenção é cobrado conforme a tabela vigente à época da instalação. O encerramento do tratamento se dá com o atestado de alta do dentista responsável e a instalação da contenção, cuja conservação é responsabilidade do CONTRATANTE.',
+    'Após a contenção, o paciente se obriga a retornar à sede nos intervalos de 1 (um), 3 (três) e 6 (seis) meses e, depois, uma vez por ano, para avaliação pós-tratamento, paga conforme a tabela vigente. Se não retornar, a CONTRATADA e o ortodontista ficam isentos de responsabilidade pelo controle pós-tratamento.',
+    'O CONTRATANTE declara ter sido informado dos riscos do tratamento, ainda que não esperados, como manchas brancas definitivas no esmalte, reabsorção radicular, arredondamento de ápice e outros efeitos metabólicos, cuja ocorrência não pode ser prevista, e os aceita.']]);
+  cl.push(['Do prazo e da renovação', [
+    'O contrato vigora por <b>' + n + ' (' + ({ 30: 'trinta' }[n] || n) + ') meses</b>, contados da data de sua assinatura.',
+    'Com o <b>pagamento da ' + n + 'ª mensalidade</b>, o contrato é <b>renovado automaticamente</b>, por igual período e nas mesmas condições, salvo se o CONTRATANTE tiver formalizado, antes disso, o aviso prévio da cláusula 8, ou se o tratamento tiver terminado com a carta de alta da cláusula 4.']]);
+  cl.push(['Do término do tratamento e da carta de alta', [
+    'O tratamento termina com a emissão, pelo dentista responsável, da <b>carta de alta</b> ao paciente, a qualquer tempo, <b>independentemente do prazo</b> de ' + n + ' meses contratado e de suas renovações.',
+    'A carta de alta <b>rescinde o contrato automaticamente</b>, na data de sua emissão, sem multa e sem necessidade de aviso prévio. Se o tratamento terminar antes do prazo, as mensalidades que venceriam depois da data da alta <b>deixam de existir</b>: não serão cobradas e a CONTRATADA cancela as parcelas futuras.',
+    'Permanecem devidas apenas as parcelas vencidas até a data da alta e os serviços fora do contrato, como a contenção e as consultas de retorno, cobrados conforme a tabela vigente.',
+    'Com a alta, o paciente passa à fase de <b>contenção</b>, sem mensalidades. Emitida a carta de alta, o contrato não é renovado.']]);
+  cl.push(['Do preço e da forma de pagamento', [
+    (ini != null ? 'No ato da assinatura, o CONTRATANTE paga à CONTRATADA a <b>entrada de ' + reais(ini) + '</b>, integralmente, referente à consulta inicial e ao planejamento do tratamento ortodôntico. ' : '') + 'Em seguida paga <b>' + n + ' (' + ({ 30: 'trinta' }[n] || n) + ') mensalidades</b>, todo dia <b>' + d.dia_vencimento + '</b> de cada mês, cada uma no <b>valor integral de ' + reais(m) + '</b>, devidas independentemente do comparecimento às consultas.',
+    'O valor total do contrato, somando a entrada e ' + n + ' mensalidades integrais, é, no prazo completo, de <b>' + reais(total) + '</b> (valor que se reduz se o tratamento terminar antes, pela carta de alta da cláusula 4), sendo ' + reais(parteTrat) + ' (70%) referentes ao plano de tratamento e ' + reais(parteMens) + ' (30%) referentes às mensalidades.',
+    desc > 0 ? 'A CONTRATADA concede <b>desconto de ' + reais(desc) + '</b> sobre cada mensalidade, <b>exclusivamente</b> quando o pagamento é feito <b>até a data do vencimento</b>, resultando em ' + reais(liq) + '. O desconto é um benefício de pontualidade: o pagamento após o vencimento é devido pelo valor integral, e o desconto não se incorpora ao valor do contrato.' : 'O pagamento das mensalidades após o vencimento é devido pelo valor integral.',
+    'Se o CONTRATANTE desistir ou rescindir o contrato antes do início efetivo do uso do aparelho, a entrada não será ressarcida, em razão da natureza dos serviços prestados e dos custos operacionais e profissionais envolvidos.',
+    'Os valores deste contrato serão reajustados anualmente, no aniversário do contrato, pela variação acumulada do IGPM-FGV (Índice Geral de Preços da Fundação Getulio Vargas) no período, ou por outro índice que venha a substituí-lo.',
+    'Em caso de atraso, o CONTRATANTE fica sujeito à suspensão dos serviços, à inclusão de seu nome nos cadastros de proteção ao crédito, a multa de <b>2% (dois por cento)</b> sobre o valor devido e a juros moratórios de <b>1% (um por cento) ao mês</b> até o pagamento, sem prejuízo de perdas e danos. As despesas de cobrança judicial ou extrajudicial correm por conta do CONTRATANTE, nos limites da lei.',
+    'Enquanto houver parcela vencida e não paga, ou o CONTRATANTE não cumprir o cronograma do tratamento, os atendimentos ficam suspensos, só sendo retomados após a regularização com a quitação dos débitos. A suspensão não libera o CONTRATANTE da dívida assumida.',
+    'A suspensão por mais de 90 (noventa) dias nessas hipóteses implica rescisão por culpa do CONTRATANTE, aplicando-se a multa da cláusula 8.2, sem prejuízo das parcelas já vencidas.',
+    'O CONTRATANTE reconhece que os valores deste contrato constituem dívida líquida, certa e exigível, podendo o contrato servir de título executivo extrajudicial.']]);
+  cl.push(['Das obrigações da contratada', [
+    'Prestar os serviços contratados de acordo com a legislação vigente e cumprir rigorosamente o objeto do contrato; manter, durante toda a vigência, as condições de qualificação exigidas para a execução dos serviços; e resguardar o sigilo do CONTRATANTE e de suas informações, salvo autorização dele ou determinação judicial.']]);
+  cl.push(['Das obrigações do contratante', [
+    'Prestar informações necessárias e verdadeiras, seguir as recomendações profissionais, relatar ao profissional qualquer desconforto e colaborar com o tratamento, ciente das consequências do mau uso do aparelho.',
+    'Comparecer pontualmente às consultas ou justificar a falta com 24 horas (vinte e quatro horas) de antecedência; comunicar imediatamente à CONTRATADA qualquer fato que possa influenciar o tratamento; e responder por qualquer serviço ou produto adicional ao previsto neste contrato, como nova documentação ou substituição de aparelho.',
+    'Se o CONTRATANTE não seguir o cronograma do tratamento e, por isso, for necessário refazê-lo, a CONTRATADA poderá reajustar o prazo e os valores aplicados.']]);
+  cl.push(['Da desistência, do aviso prévio e da multa', [
+    'Se o CONTRATANTE manifestar o interesse de encerrar o contrato, ele passa a cumprir ' + aviso + ', contados da data em que comunicar a CONTRATADA, por escrito ou pelos canais de atendimento. Durante o aviso prévio o tratamento continua e as mensalidades que vencerem no período continuam devidas. Encerrado o aviso, o contrato é extinto sem outros encargos, o paciente passa à situação de inativo e as parcelas futuras deixam de ser cobradas.',
+    'Se o CONTRATANTE decidir encerrar o contrato <b>sem cumprir o aviso prévio</b>, pagará à CONTRATADA multa equivalente a <b>3 (três) mensalidades integrais, no valor total de ' + reais(3 * m) + '</b>, em substituição ao período de aviso que não cumprir. A multa não é devida quando o contrato é encerrado por culpa da CONTRATADA ou nos demais casos previstos em lei.',
+    'A rescisão antecipada, por qualquer motivo, não desobriga o CONTRATANTE do pagamento das parcelas vencidas e de outros débitos existentes até a data da rescisão. O CONTRATANTE deverá comparecer à sede para a inativação ou remoção do aparelho e arcar com a consulta e as despesas, conforme a tabela vigente.',
+    'Havendo desistência depois de iniciado o tratamento, o CONTRATANTE assinará termo de desistência do tratamento ortodôntico em andamento, isentando a CONTRATADA de responsabilidade por complicações decorrentes da interrupção, inclusive recidivas.']]);
+  cl.push(['Das restrições técnicas', [
+    'O CONTRATANTE aceita eventuais restrições técnicas detectadas pela CONTRATADA, que não terá de pagar, reembolsar ou ressarcir procedimentos não realizados por esse motivo.',
+    'Em procedimentos de grande complexidade, diferentes do contratado, será feito orçamento prévio, que depende da aprovação do CONTRATANTE para ser executado.']]);
+  cl.push(['Das disposições gerais', [
+    'Se o CONTRATANTE buscar atendimento com outro profissional, não terá direito a reembolso dos procedimentos já realizados pela CONTRATADA, ainda que em caráter de urgência.',
+    'O CONTRATANTE autoriza o uso da documentação ortodôntica (telerradiografias, radiografias, modelos, escaneamentos e fotos) para consulta profissional, pesquisa, educação e publicação em revista ou jornal especializado.',
+    'A CONTRATADA não se responsabiliza por recidiva ou retorno da má oclusão decorrente do mau uso do aparelho ou dos mantenedores entregues após a alta.',
+    'Nos termos da Lei nº 13.709/2018 (LGPD), o CONTRATANTE consente que a CONTRATADA trate seus dados pessoais e de saúde, coletados em formulários e demais documentos, em meio físico ou digital, exclusivamente para a prestação do serviço, a cobrança e o cumprimento de obrigações legais e do Conselho de Odontologia, observados a necessidade, a adequação e a finalidade. Os direitos do titular podem ser exercidos pelos canais de atendimento da unidade.']]);
+  cl.push(['Do foro', [
+    'As partes elegem o <b>foro da Comarca de Belo Horizonte, Estado de Minas Gerais</b>, para dirimir quaisquer questões oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.']]);
+  const ORD = ['Primeira', 'Segunda', 'Terceira', 'Quarta', 'Quinta', 'Sexta', 'Sétima', 'Oitava', 'Nona', 'Décima', 'Décima Primeira'];
+  const ciencia = ['Estou ciente de que, para iniciar o tratamento, são necessários exames radiológicos e que o dentista poderá solicitar radiografias ao longo do tratamento, sendo o custo desses exames de minha responsabilidade.',
+    'Estou ciente de que o tratamento só terá início com a apresentação dos documentos de identificação exigidos (RG, CPF, comprovante de residência) e dos exames, e do tratamento clínico, caso seja identificada a necessidade.',
+    'Estou ciente de que a avaliação bucal considera apenas a especialidade de ortodontia e de que os custos de procedimentos de outras especialidades são de minha responsabilidade.',
+    'Estou ciente da data de vencimento (todo dia ' + d.dia_vencimento + '), da forma e do local de pagamento.',
+    'Estou ciente de que será cobrado o valor integral da mensalidade após a data do vencimento e de que o desconto vale somente para o pagamento em dia.',
+    'Estou ciente de que sou responsável por qualquer dano ao aparelho.',
+    'Estou ciente de que as mensalidades serão cobradas mesmo que eu não compareça às consultas.',
+    'Estou ciente de que o atendimento somente será realizado com as mensalidades em dia.',
+    'Estou ciente de que a clínica tem um serviço de atendimento ao cliente (SAC) para esclarecer qualquer dúvida.',
+    'Sobre o rompimento do contrato antes do término: (a) estou ciente de que serão cobrados os valores em aberto (vencidos) até o momento; (b) estou ciente de que é necessário solicitar o cancelamento com aviso prévio de 90 dias, e de que, se eu não o cumprir, será aplicada multa de 3 mensalidades, conforme a cláusula 8.',
+    'Estou ciente de que, com a carta de alta do dentista, o contrato é encerrado automaticamente, ainda que antes do prazo, e as mensalidades futuras deixam de ser cobradas.',
+    'Estou ciente de que os valores das mensalidades são reajustados anualmente pelo IGPM-FGV, no aniversário do contrato.',
+    'Estou ciente de que as mensalidades vencem todo dia ' + d.dia_vencimento + ', até o encerramento do contrato financeiro acordado.'];
+  const corpo = cl.map((c, i) => '<h3>Cláusula ' + ORD[i] + ' — ' + c[0] + '</h3>' + c[1].map((t, j) => '<p><span class="nm">' + (i + 1) + '.' + (j + 1) + '</span> ' + t + '</p>').join('')).join('');
+  const css = 'body{font:14px/1.55 Georgia,"Times New Roman",serif;color:#111;margin:0;background:#eee}.pg{max-width:800px;margin:0 auto;background:#fff;padding:40px 52px}.bar{max-width:800px;margin:0 auto;padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;font-family:sans-serif}.bar button{font:600 14px sans-serif;padding:9px 16px;border-radius:8px;border:0;background:#0b6b6b;color:#fff;cursor:pointer}'
+    + 'h1{font-size:19px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em}.sub{text-align:center;color:#555;margin:0 0 22px;font-size:13px}h3{font-size:14px;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.04em}p{margin:0 0 8px;text-align:justify}.nm{font-weight:700;margin-right:4px}.par{border:1px solid #bbb;border-radius:6px;padding:10px 14px;margin:0 0 10px}.par b{font-weight:700}'
+    + '.ass{display:grid;grid-template-columns:1fr 1fr;gap:34px 36px;margin-top:46px;page-break-inside:avoid}.ass div{border-top:1px solid #111;padding-top:6px;font-size:13px;text-align:center}.loc{margin-top:26px;text-align:center}.anx{page-break-before:always;margin-top:40px}.anx h2{font-size:16px;text-align:center;text-transform:uppercase;margin:0 0 14px}.ci{margin:0 0 9px}.sn{white-space:nowrap;font-family:sans-serif;font-size:12px;margin-left:6px}@media print{body{background:#fff}.pg{padding:0;max-width:none}.bar{display:none}@page{margin:18mm 16mm}}@media(max-width:620px){.pg{padding:22px 18px}.ass{grid-template-columns:1fr}}';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contrato — ' + esc(p.nome) + '</title><style>' + css + '</style></head><body>'
+    + '<div class="bar"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><div class="pg">'
+    + '<h1>Contrato de prestação de serviços odontológicos</h1><p class="sub">Tratamento ortodôntico · Contrato nº ' + esc(d.venda_id) + '</p>'
+    + '<div class="par"><b>CONTRATADA:</b> ' + esc(u.razao_social) + ', inscrita no CNPJ sob o nº <b>' + (u.cnpj ? mCnpj(u.cnpj) : '__.___.___/____-__') + '</b>, com sede em ' + esc(endTxt(u) || '—') + '.</div>'
+    + '<div class="par"><b>CONTRATANTE:</b> ' + nome + ', CPF ' + (p.cpf ? mCpfTxt(p.cpf) : '___.___.___-__') + (p.rg ? ', RG ' + esc(p.rg) : '') + (p.nascimento ? ', nascido(a) em ' + dBR(p.nascimento) : '') + ', residente em ' + esc(endTxt(p) || '—') + (p.telefone ? ', telefone ' + mTel(p.telefone) : '') + (p.email ? ', e-mail ' + esc(p.email) : '') + resp + '.</div>'
+    + '<p>As partes acima identificadas têm entre si justo e contratado o que segue, de acordo com as cláusulas abaixo.</p>' + corpo
+    + '<p class="loc">' + esc(u.cidade || 'Belo Horizonte') + ', ' + dExt(d.data_venda) + '.</p>'
+    + (d.assinatura ? '<div style="margin:26px auto 0;max-width:420px;text-align:center"><img alt="Assinatura do contratante" src="' + esc(d.assinatura.png) + '" style="max-width:100%;max-height:110px"><p style="text-align:center;font:12px sans-serif;color:#444;margin:4px 0 0">Assinado eletronicamente por <b>' + esc(d.assinatura.nome) + '</b> (' + (d.assinatura.tipo === 'responsavel' ? 'responsável legal' : 'paciente') + ') em ' + esc(dtHora(d.assinatura.em)) + (d.assinatura.por ? ', registrado por ' + esc(d.assinatura.por) : '') + '. Declarações de ciência do anexo aceitas na assinatura.</p></div>' : '')
+    + '<div class="ass"><div>' + esc(p.nome) + '<br>CONTRATANTE' + (p.resp_nome ? '<br><small>Responsável: ' + esc(p.resp_nome) + '</small>' : '') + '</div><div>' + esc(u.razao_social) + '<br>CONTRATADA' + (u.cnpj ? '<br><small>CNPJ ' + mCnpj(u.cnpj) + '</small>' : '') + '</div>'
+    + '<div>Testemunha 1<br><small>Nome e CPF</small></div><div>Testemunha 2<br><small>Nome e CPF</small></div></div>'
+    + '<div class="anx"><h2>Anexo — Declarações de ciência do paciente</h2>' + ciencia.map((t, i) => '<p class="ci"><span class="nm">' + (i + 1) + '.</span> ' + t + ' <span class="sn">☐ Sim &nbsp; ☐ Não</span></p>').join('') + '<p>Li e estou de acordo com os itens acima e com o contrato.</p>'
+    + '<div class="ass"><div>Paciente</div><div>Responsável</div><div>Funcionário da clínica</div></div></div></div></body></html>';
+}
+
+/* <publico-contrato> página pública: o paciente assina o contrato no celular dele (link ou QR Code) */
+async function ctrBoot(tk){
+  ['v-login', 'v-app', 'v-conf'].forEach(i => { const e = document.getElementById(i); if (e) e.hidden = true; });
+  const v = $('#v-anam'); v.hidden = false; v.innerHTML = '<div class="anam"><p>Carregando...</p></div>';
+  const MSG = { invalido: 'Este link não é válido. Peça um novo à clínica.', assinado: 'Este contrato já foi assinado. Obrigado!', expirado: 'Este link expirou. Peça um novo à clínica.', bloqueado: 'Este link foi bloqueado por CPF errado. Peça um novo à clínica.' };
+  const r = await sb.rpc('contrato_publico', { p_token: tk });
+  if (r.error || !r.data) { v.innerHTML = '<div class="anam"><h1>Contrato</h1><p class="err">Não foi possível abrir agora. Tente novamente em instantes.</p></div>'; return; }
+  const d = r.data; if (d.situacao !== 'ok') { v.innerHTML = '<div class="anam"><h1>Contrato</h1><p>' + esc(MSG[d.situacao] || MSG.invalido) + '</p></div>'; return; }
+  let cpf = '';
+  v.innerHTML = '<div class="anam"><h1>Olá, ' + esc(d.primeiro_nome) + '!</h1><p class="sub">Este é o contrato do seu tratamento com a ' + esc(d.clinica) + '. Confirme o CPF para ler e assinar.</p>'
+    + '<form id="ct-cpf" class="sec" novalidate><h2>Confirme que é você</h2><label class="t" for="ct-c">Digite o CPF do paciente' + (d.menor ? ' ou do responsável' : '') + '</label><input id="ct-c" inputmode="numeric" maxlength="14" autocomplete="off"><div class="err" id="ct-ce" role="alert"></div><button class="btn" type="submit" id="ct-cb" style="width:100%;margin-top:10px">Continuar</button></form></div>';
+  $('#ct-c').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#ct-cpf').addEventListener('submit', async e => {
+    e.preventDefault(); const c = dig($('#ct-c').value); if (c.length !== 11) { $('#ct-ce').textContent = 'Digite os 11 números do CPF.'; return; }
+    const b = $('#ct-cb'); b.disabled = true; const x = await sb.rpc('contrato_conferir', { p_token: tk, p_cpf: c }); b.disabled = false;
+    if (x.error) { $('#ct-ce').textContent = erroTxt(x.error); return; } if (x.data && x.data.erro) { $('#ct-ce').textContent = x.data.erro; return; }
+    cpf = c; ler(x.data.contrato);
+  });
+  const ler = ct => {
+    const p = ct.paciente || {}, menor = !!p.resp_nome;
+    v.innerHTML = '<div class="anam"><h1>Contrato</h1><p class="sub">Leia com atenção. Role o contrato até o fim e depois assine com o dedo.</p>'
+      + '<iframe id="ct-doc" title="Contrato" sandbox="allow-same-origin" style="width:100%;height:60vh;border:1px solid #d5d9e0;border-radius:12px;background:#fff"></iframe>'
+      + '<form id="ct-form" class="sec" novalidate><label class="chk"><input type="checkbox" id="ct-li"> Li e concordo com o contrato e com as declarações de ciência do anexo. *</label>'
+      + (menor ? '<div class="q"><label class="t">Quem está assinando? *</label><span class="opt"><label><input type="radio" name="ct-tp" value="responsavel" checked><span>O responsável legal</span></label><label><input type="radio" name="ct-tp" value="paciente"><span>O próprio paciente</span></label></span></div>' : '')
+      + '<div class="q"><label class="t" for="ct-nome">Nome completo de quem assina *</label><input id="ct-nome" maxlength="120" autocomplete="name" value="' + esc(menor ? p.resp_nome : (p.nome || '')) + '"></div>'
+      + '<div class="q"><label class="t">Assine no quadro com o dedo *</label><canvas id="ct-cv" aria-label="Quadro de assinatura"></canvas><button type="button" class="btn ghost sm" id="ct-limpa" style="margin-top:6px">Limpar assinatura</button></div>'
+      + '<p class="sub">Ao assinar, o sistema registra a data, a hora e o aparelho usado.</p><div class="err" id="ct-err" role="alert"></div><button class="btn" type="submit" id="ct-ok" style="width:100%">Assinar o contrato</button></form></div>';
+    $('#ct-doc').srcdoc = contratoHtml(ct);
+    const limpa = assinaturaLiga($('#ct-cv')); $('#ct-limpa').addEventListener('click', limpa);
+    $('#ct-form').addEventListener('submit', async e => {
+      e.preventDefault(); const er = $('#ct-err'); er.textContent = '';
+      if (!$('#ct-li').checked) { er.textContent = 'Marque que leu e concorda com o contrato.'; return; }
+      const nome = $('#ct-nome').value.trim(); if (nome.length < 5) { er.textContent = 'Digite o nome completo de quem assina.'; return; }
+      if ($('#ct-cv').dataset.tem !== '1') { er.textContent = 'Faça a assinatura no quadro.'; return; }
+      const tp = menor ? ($('input[name="ct-tp"]:checked') || {}).value : 'paciente';
+      const b = $('#ct-ok'); b.disabled = true;
+      const x = await sb.rpc('contrato_assinar_link', { p_token: tk, p_cpf: cpf, p_nome: nome, p_tipo: tp, p_png: $('#ct-cv').toDataURL('image/png'), p_ua: navigator.userAgent });
+      b.disabled = false; if (x.error) { er.textContent = erroTxt(x.error); return; }
+      v.innerHTML = '<div class="anam"><div class="sec ok"><h1>Contrato assinado!</h1><p>Obrigado, ' + esc(d.primeiro_nome) + '. Seu contrato foi assinado e gravado com segurança na ' + esc(d.clinica) + '. Você já pode fechar esta página.</p></div></div>';
+    });
+  };
+}
+
 
 const C = window.CONFIG || {};
 const DOMINIO = C.LOGIN_DOMAIN || 'acesso.orto.app';
@@ -1161,6 +1314,7 @@ async function iniciar(){
   if (!C.SUPABASE_URL || !C.SUPABASE_ANON_KEY || !window.supabase) { $('#v-conf').hidden = false; return; }
   sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   const tkA = new URLSearchParams(location.search).get('anamnese'); if (tkA) return anamBoot(tkA);
+  const tkC = new URLSearchParams(location.search).get('contrato'); if (tkC) return ctrBoot(tkC);
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
     let ok = false; try { ok = await carregarApp(); } catch (_) {}
