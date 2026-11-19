@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Gestor+ · Plataforma Orto+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#07050A;--o:#FFB25A;--o2:#FF9A2E;--c:#7DF7FF;--c2:#4CF2FF;--r:#FF4D7A;--g:#5CF2A6;--txt:#F6EBDD;--mut:#CDBFAE;--dim:#A99B8B;--line:rgba(255,255,255,.12);--panel:rgba(255,255,255,.045)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:'Montserrat',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(900px 500px at 10% 0%,rgba(76,242,255,.10),transparent 60%),radial-gradient(1000px 700px at 100% 100%,rgba(255,140,30,.14),transparent 60%),var(--bg);background-attachment:fixed}
+.gx-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,154,46,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,154,46,.06) 1px,transparent 1px);background-size:48px 48px;-webkit-mask:radial-gradient(ellipse at 50% 30%,#000 25%,transparent 80%);mask:radial-gradient(ellipse at 50% 30%,#000 25%,transparent 80%);pointer-events:none;z-index:0}
+.gx-scan{position:fixed;left:0;right:0;height:160px;background:linear-gradient(to bottom,transparent,rgba(255,154,46,.05),transparent);animation:gx-scan 9s linear infinite;pointer-events:none;z-index:0}
+@keyframes gx-scan{from{top:-160px}to{top:100%}}
+.serif{font-family:'DM Serif Display',Georgia,serif;font-weight:400}.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.neon-o{color:var(--o);text-shadow:0 0 6px rgba(255,154,46,.9),0 0 22px rgba(255,140,30,.6)}
+.neon-c{color:var(--c);text-shadow:0 0 6px rgba(76,242,255,.9),0 0 22px rgba(76,242,255,.55)}
+.neon-r{color:#FF8FAA;text-shadow:0 0 6px rgba(255,77,122,.9),0 0 18px rgba(255,77,122,.55)}
+.neon-g{color:var(--g);text-shadow:0 0 6px rgba(92,242,166,.9),0 0 18px rgba(92,242,166,.5)}
+.label{font-size:11.5px;letter-spacing:.22em;text-transform:uppercase}
+.panel{position:relative;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 1px rgba(255,154,46,.22),0 30px 80px -30px rgba(0,0,0,.8)}
+.panel.c{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 1px rgba(76,242,255,.3),0 0 50px -24px rgba(76,242,255,.55)}
+.panel.r{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 1px rgba(255,77,122,.4),0 0 50px -24px rgba(255,77,122,.6)}
+button{font-family:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 18px;border-radius:999px;border:0;cursor:pointer;font:700 13.5px 'Montserrat',sans-serif;color:#1A0E04;background:linear-gradient(135deg,#FFC46E,#FF9A2E);box-shadow:0 0 18px rgba(255,154,46,.55)}
+.btn:hover{filter:brightness(1.08)}.btn:disabled{opacity:.5;cursor:default}
+.btn.g{color:var(--txt);background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.btn.g:hover{background:rgba(255,255,255,.12)}
+.btn.sm{min-height:34px;padding:0 14px;font-size:12.5px}
+.btn:focus-visible,.nav button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+input,select,textarea{width:100%;min-height:42px;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.35);color:var(--txt);font:500 14px 'Montserrat',sans-serif}
+select option{background:#140d08;color:var(--txt)}
+textarea{min-height:84px;resize:vertical}
+.f{display:grid;gap:6px;font-size:12.5px;font-weight:600;color:var(--mut)}
+.f small{font-weight:500;color:var(--dim)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.chk{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);cursor:pointer;font-size:13.5px}
+.chk input{width:18px;height:18px;min-height:0;margin-top:2px;accent-color:#FF9A2E}
+.chk small{display:block;color:var(--dim);font-size:12px;margin-top:2px}
+.err{color:#FF8FAA;font-size:13px;min-height:18px}
+/* login */
+#v-login{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.lg{width:min(440px,100%);padding:36px;display:flex;flex-direction:column;gap:18px}
+.logo{display:flex;align-items:baseline;gap:2px;line-height:1}
+.logo b{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:44px;color:#FFF6EC}
+.logo i{font-style:normal;font-family:'DM Serif Display',Georgia,serif;font-size:52px}
+/* app */
+#v-app{position:relative;z-index:1;display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+@media (max-width:900px){#v-app{grid-template-columns:1fr}.side{position:static!important;height:auto!important}}
+.side{position:sticky;top:0;height:100vh;padding:24px 16px;display:flex;flex-direction:column;gap:18px;border-right:1px solid rgba(255,154,46,.18);background:rgba(0,0,0,.25)}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav .grp{margin:14px 10px 4px;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.nav button{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 12px;border-radius:12px;border:0;background:transparent;color:var(--mut);font:600 14px 'Montserrat',sans-serif;cursor:pointer;text-align:left}
+.nav button:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav button[aria-current="page"]{color:#fff;background:linear-gradient(100deg,rgba(255,154,46,.22),rgba(76,242,255,.10));box-shadow:inset 0 0 0 1px rgba(255,182,92,.55),0 0 22px -6px rgba(255,154,46,.7)}
+.nav button svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav .tag{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--c);box-shadow:inset 0 0 0 1px rgba(76,242,255,.5);border-radius:999px;padding:2px 7px}
+.eu{margin-top:auto;padding:14px;border-radius:16px;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);display:flex;flex-direction:column;gap:8px}
+.eu b{font-size:14px}.eu small{color:var(--dim);font-size:12px}
+main{padding:clamp(20px,3vw,40px);display:flex;flex-direction:column;gap:24px;min-width:0}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.head h1{margin:6px 0 0;font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:clamp(32px,3.6vw,48px);line-height:1.05;color:#FFF6EC}
+.head p{margin:6px 0 0;color:var(--mut);font-size:14.5px;max-width:680px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.kpi b{font-size:30px;font-weight:700;line-height:1.1}.kpi small{color:var(--dim);font-size:12px}
+.row{display:flex;flex-wrap:wrap;gap:20px}
+.pad{padding:clamp(18px,2.6vw,30px)}
+.sec-t{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tb-box{overflow-x:auto}
+table.tb{width:100%;min-width:640px;border-collapse:separate;border-spacing:0 8px;font-size:14px}
+.tb th{text-align:left;font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding:0 14px 2px;white-space:nowrap}
+.tb td{padding:13px 14px;background:rgba(255,255,255,.035)}
+.tb td:first-child{border-radius:14px 0 0 14px}.tb td:last-child{border-radius:0 14px 14px 0}
+.tb tr.clk{cursor:pointer}.tb tr.clk:hover td{background:rgba(255,154,46,.08)}
+.tb td.n{text-align:right;font-variant-numeric:tabular-nums}.tb th.n{text-align:right}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%}
+.st-ativo{color:var(--g);box-shadow:inset 0 0 0 1px rgba(92,242,166,.5)}.st-ativo i{background:var(--g);box-shadow:0 0 10px var(--g)}
+.st-teste{color:var(--c);box-shadow:inset 0 0 0 1px rgba(76,242,255,.5)}.st-teste i{background:var(--c);box-shadow:0 0 10px var(--c2)}
+.st-suspenso{color:var(--o);box-shadow:inset 0 0 0 1px rgba(255,182,92,.6)}.st-suspenso i{background:var(--o);box-shadow:0 0 10px var(--o2);animation:blink 1.2s steps(1) infinite}
+.st-cancelado{color:#FF8FAA;box-shadow:inset 0 0 0 1px rgba(255,77,122,.5)}.st-cancelado i{background:var(--r)}
+@keyframes blink{50%{opacity:.25}}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:36px;padding:0 14px;border-radius:999px;border:0;cursor:pointer;font:600 12.5px 'Montserrat',sans-serif;color:var(--mut);background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.chip[aria-pressed="true"]{color:#fff;background:rgba(255,154,46,.18);box-shadow:inset 0 0 0 1px rgba(255,182,92,.7),0 0 20px -6px rgba(255,154,46,.8)}
+.mods{display:flex;flex-wrap:wrap;gap:6px}
+.mod{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;color:var(--c);box-shadow:inset 0 0 0 1px rgba(76,242,255,.35)}
+.planos{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.plano{padding:24px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .2s}
+.plano:hover{transform:translateY(-3px)}
+.plano.dest{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 1px rgba(255,182,92,.7),0 0 60px -18px rgba(255,154,46,.9)}
+.plano .pr{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700}
+.plano ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:13px;color:var(--mut)}
+.plano li::before{content:'✓ ';color:var(--c)}
+.vazio{padding:28px;text-align:center;color:var(--dim);font-size:14px}
+.log{display:flex;flex-direction:column;gap:8px}
+.log div{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03)}
+.log span{color:var(--dim)}
+.ring{position:relative;width:180px;height:180px;flex:none}
+.arc{transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 0 8px #FF9A2E) drop-shadow(0 0 18px rgba(255,140,30,.6))}
+.spin{animation:spin 18s linear infinite;transform-origin:50% 50%}@keyframes spin{to{transform:rotate(360deg)}}
+.pulse{animation:pulse 2.4s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+/* janela */
+dialog{border:0;padding:0;background:transparent;color:var(--txt);width:min(860px,calc(100vw - 24px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(5,3,7,.72);backdrop-filter:blur(4px)}
+.dlg{display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+.dlg-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:22px 26px;border-bottom:1px solid var(--line)}
+.dlg-h h2{margin:0;font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:28px}
+.dlg-b{padding:22px 26px;overflow:auto;display:grid;gap:16px}
+.dlg-f{display:flex;justify-content:flex-end;gap:10px;padding:16px 26px;border-top:1px solid var(--line);flex-wrap:wrap}
+.dlg-f .esq{margin-right:auto}
+.sub-t{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--o);margin:6px 0 -4px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:50;padding:12px 20px;border-radius:999px;background:#140d08;color:#fff;box-shadow:0 0 0 1px rgba(255,182,92,.6),0 0 30px -6px rgba(255,154,46,.8);font-size:14px;font-weight:600}
+.soon{padding:28px;display:grid;gap:14px}
+.soon ul{margin:0;padding-left:20px;color:var(--mut);display:grid;gap:8px;font-size:14px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="gx-grid"></div><div class="gx-scan"></div>
+<div id="v-conf" hidden style="position:relative;z-index:1;padding:40px"><div class="panel pad"><b>Configuração pendente.</b> Preencha o config.js com o endereço e a chave pública do Supabase.</div></div>
+<div id="v-login" hidden>
+  <form class="panel c lg" id="form-entrar" novalidate>
+    <div><span class="mono label neon-c">Plataforma Orto+</span><div class="logo"><b>Gestor</b><i class="neon-o">+</i></div><p style="margin:6px 0 0;color:var(--mut);font-size:14px">Backoffice da plataforma: clientes, planos, módulos, cobrança e segurança.</p></div>
+    <label class="f" for="l-login">Login<input id="l-login" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+    <label class="f" for="l-senha">Senha<input id="l-senha" type="password" autocomplete="current-password"></label>
+    <div class="err" id="l-err" role="alert"></div>
+    <button class="btn" type="submit" id="l-btn">Entrar</button>
+    <small style="color:var(--dim);font-size:12px">Acesso restrito à equipe da plataforma. Todo acesso é registrado.</small>
+  </form>
+</div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){'use strict';
+const $=s=>document.querySelector(s);const C=window.CONFIG||{},DOMINIO=C.LOGIN_DOMAIN||'acesso.orto.app';let sb=null;
+async function carregar(){const [rb,rk]=await Promise.all([fetch('gestor.bin',{cache:'no-cache'}),sb.rpc('gs_chave')]);if(rk.error||!rk.data||!rb.ok)return false;
+const raw=Uint8Array.from(atob(rk.data),c=>c.charCodeAt(0)),buf=new Uint8Array(await rb.arrayBuffer());const k=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
+const gz=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12)},k,buf.slice(12));const txt=await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+document.open();document.write(txt);document.close();return true;}
+const NEGA='Este login não tem acesso ao Gestor+.';
+(async()=>{if(!C.SUPABASE_URL||!C.SUPABASE_ANON_KEY||!window.supabase){$('#v-conf').hidden=false;return;}
+sb=window.supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'gestor-plus-auth'}});
+const {data}=await sb.auth.getSession();if(data&&data.session){let ok=false;try{ok=await carregar();}catch(_){}if(!ok){await sb.auth.signOut();$('#v-login').hidden=false;$('#l-err').textContent=NEGA;}}else $('#v-login').hidden=false;})();
+$('#form-entrar').addEventListener('submit',async e=>{e.preventDefault();const login=$('#l-login').value.trim().toLowerCase(),senha=$('#l-senha').value,er=$('#l-err');er.textContent='';
+if(!login||!senha){er.textContent='Digite o login e a senha.';return;}const b=$('#l-btn');b.disabled=true;b.textContent='Entrando...';
+const {error}=await sb.auth.signInWithPassword({email:login.includes('@')?login:login+'@'+DOMINIO,password:senha});
+if(error){b.disabled=false;b.textContent='Entrar';er.textContent=/invalid login credentials/i.test(String(error.message))?'Login ou senha incorretos.':'Não foi possível entrar. Tente de novo.';return;}
+let ok=false;try{ok=await carregar();}catch(_){}if(!ok){b.disabled=false;b.textContent='Entrar';await sb.auth.signOut();er.textContent=NEGA;}});
+})();</script>
+</body>
+</html>
