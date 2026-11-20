@@ -2180,6 +2180,51 @@ async function ctrBoot(tk){
   };
 }
 
+/* <publico-lgpd> página pública: o paciente autoriza o uso dos dados (LGPD) e assina no celular dele (QR Code ou link) */
+async function lgpdBoot(tk){
+  ['v-login', 'v-app', 'v-conf'].forEach(i => { const e = document.getElementById(i); if (e) e.hidden = true; });
+  const v = $('#v-anam'); v.hidden = false; v.innerHTML = '<div class="anam"><p>Carregando...</p></div>';
+  const MSG = { invalido: 'Este link não é válido. Peça um novo à clínica.', assinado: 'Estas autorizações já foram assinadas. Obrigado!', expirado: 'Este link expirou. Peça um novo à clínica.', bloqueado: 'Este link foi bloqueado por CPF errado. Peça um novo à clínica.' };
+  const ITENS = [['tratamento', 'Uso dos meus dados para o atendimento, a agenda e a cobrança do tratamento'], ['whatsapp', 'Contato por WhatsApp (lembretes de consulta, avisos de falta e cobrança)'], ['sms', 'Contato por SMS para os mesmos fins'], ['imagem', 'Uso de imagens do meu tratamento para divulgação']];
+  const r = await sb.rpc('lgpd_publico', { p_token: tk });
+  if (r.error || !r.data) { v.innerHTML = '<div class="anam"><h1>Privacidade</h1><p class="err">Não foi possível abrir agora. Tente novamente em instantes.</p></div>'; return; }
+  const d = r.data; if (d.situacao !== 'ok') { v.innerHTML = '<div class="anam"><h1>Privacidade</h1><p>' + esc(MSG[d.situacao] || MSG.invalido) + '</p></div>'; return; }
+  let cpf = '';
+  v.innerHTML = '<div class="anam"><h1>Olá, ' + esc(d.primeiro_nome) + '!</h1><p class="sub">A ' + esc(d.clinica) + ' precisa da sua autorização para usar os seus dados, como manda a Lei Geral de Proteção de Dados (LGPD). Confirme o CPF para continuar.</p>'
+    + '<form id="lg-cpf" class="sec" novalidate><h2>Confirme que é você</h2><label class="t" for="lg-c">Digite o CPF do paciente' + (d.menor ? ' ou do responsável' : '') + '</label><input id="lg-c" inputmode="numeric" maxlength="14" autocomplete="off"><div class="err" id="lg-ce" role="alert"></div><button class="btn" type="submit" id="lg-cb" style="width:100%;margin-top:10px">Continuar</button></form></div>';
+  $('#lg-c').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#lg-cpf').addEventListener('submit', async e => {
+    e.preventDefault(); const c = dig($('#lg-c').value); if (c.length !== 11) { $('#lg-ce').textContent = 'Digite os 11 números do CPF.'; return; }
+    const b = $('#lg-cb'); b.disabled = true; const x = await sb.rpc('lgpd_conferir', { p_token: tk, p_cpf: c }); b.disabled = false;
+    if (x.error) { $('#lg-ce').textContent = erroTxt(x.error); return; } if (x.data && x.data.erro) { $('#lg-ce').textContent = x.data.erro; return; }
+    cpf = c; ler(x.data);
+  });
+  const ler = t => {
+    const menor = !!t.resp_nome, txt = s => '<div style="white-space:pre-wrap;font-size:14.5px;line-height:1.5">' + esc(s || '') + '</div>';
+    v.innerHTML = '<div class="anam"><h1>Privacidade dos seus dados</h1><p class="sub">Leia, responda Sim ou Não para cada autorização e assine com o dedo. Você pode mudar de ideia quando quiser, falando com a clínica.</p>'
+      + '<details class="sec"><summary style="cursor:pointer;font-weight:600">Política de privacidade (toque para ler)</summary>' + txt(t.politica && t.politica.texto) + '</details>'
+      + '<div class="sec">' + txt(t.termo && t.termo.texto) + '</div>'
+      + '<form id="lg-form" class="sec" novalidate><h2>Suas autorizações</h2>'
+      + ITENS.map(([k, rot]) => '<div class="q" data-it="' + k + '"><label class="t">' + esc(rot) + ' *</label><span class="opt"><label><input type="radio" name="lg-' + k + '" value="1"><span>Sim, autorizo</span></label><label><input type="radio" name="lg-' + k + '" value="0"><span>Não autorizo</span></label></span></div>').join('')
+      + (menor ? '<div class="q"><label class="t">Quem está assinando? *</label><span class="opt"><label><input type="radio" name="lg-tp" value="responsavel" checked><span>O responsável legal</span></label><label><input type="radio" name="lg-tp" value="paciente"><span>O próprio paciente</span></label></span></div>' : '')
+      + '<div class="q"><label class="t" for="lg-nome">Nome completo de quem assina *</label><input id="lg-nome" maxlength="120" autocomplete="name" value="' + esc(menor ? t.resp_nome : (t.nome || '')) + '"></div>'
+      + '<div class="q"><label class="t">Assine no quadro com o dedo *</label><canvas id="lg-cv" aria-label="Quadro de assinatura"></canvas><button type="button" class="btn ghost sm" id="lg-limpa" style="margin-top:6px">Limpar assinatura</button></div>'
+      + '<p class="sub">Ao assinar, o sistema registra a data, a hora e o aparelho usado.</p><div class="err" id="lg-err" role="alert"></div><button class="btn" type="submit" id="lg-ok" style="width:100%">Assinar as autorizações</button></form></div>';
+    const limpa = assinaturaLiga($('#lg-cv')); $('#lg-limpa').addEventListener('click', limpa);
+    $('#lg-form').addEventListener('submit', async e => {
+      e.preventDefault(); const er = $('#lg-err'); er.textContent = ''; const esc2 = {};
+      for (const [k] of ITENS) { const m = $('input[name="lg-' + k + '"]:checked'); if (!m) { er.textContent = 'Responda Sim ou Não para cada autorização.'; $('[data-it="' + k + '"]').scrollIntoView({ block: 'center' }); return; } esc2[k] = m.value === '1'; }
+      const nome = $('#lg-nome').value.trim(); if (nome.length < 5) { er.textContent = 'Digite o nome completo de quem assina.'; return; }
+      if ($('#lg-cv').dataset.tem !== '1') { er.textContent = 'Faça a assinatura no quadro.'; return; }
+      const tp = menor ? ($('input[name="lg-tp"]:checked') || {}).value : 'paciente';
+      const b = $('#lg-ok'); b.disabled = true;
+      const x = await sb.rpc('lgpd_assinar_link', { p_token: tk, p_cpf: cpf, p_nome: nome, p_tipo: tp, p_escolhas: esc2, p_png: $('#lg-cv').toDataURL('image/png'), p_ua: navigator.userAgent });
+      b.disabled = false; if (x.error) { er.textContent = erroTxt(x.error); return; }
+      v.innerHTML = '<div class="anam"><div class="sec ok"><h1>Tudo certo!</h1><p>Obrigado, ' + esc(d.primeiro_nome) + '. Suas autorizações foram assinadas e gravadas com segurança na ' + esc(d.clinica) + '. Você já pode fechar esta página.</p></div></div>';
+    });
+  };
+}
+
 
 const C = window.CONFIG || {};
 const DOMINIO = C.LOGIN_DOMAIN || 'acesso.orto.app';
@@ -2200,6 +2245,7 @@ async function iniciar(){
   sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   const tkA = new URLSearchParams(location.search).get('anamnese'); if (tkA) return anamBoot(tkA);
   const tkC = new URLSearchParams(location.search).get('contrato'); if (tkC) return ctrBoot(tkC);
+  const tkL = new URLSearchParams(location.search).get('lgpd'); if (tkL) return lgpdBoot(tkL);
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
     let ok = false; try { ok = await carregarApp(); } catch (_) {}
