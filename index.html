@@ -1816,6 +1816,48 @@ html[data-premium] .ficha h1, html[data-premium] #area h1 { text-transform: none
 
 html[data-premium] .ag .hc .rs { text-transform: none; letter-spacing: normal; font: 500 13px/18px var(--fonte); color: var(--cor-texto-2); }
 
+/* ---------- 13. v0.115.1: números que cabem no cartão (encolhem com a largura do cartão) ---------- */
+html[data-premium] .dsx .dk, html[data-premium] .dsx .pm { container-type: inline-size; min-width: 0; }
+html[data-premium] .dsx .dk .v b { font-size: clamp(16px, 10cqi, 24px); line-height: 1.25; white-space: nowrap; }
+html[data-premium] .dsx .dk .v { flex-wrap: wrap; row-gap: 2px; }
+html[data-premium] .dsx .dk .pmv { font-size: clamp(16px, 11cqi, 24px); line-height: 1.25; white-space: nowrap; }
+html[data-premium] .dsx .dk .pm1.ant .pmv { font-size: clamp(14px, 7.5cqi, 17px); }
+html[data-premium] .dsx .dk.hero .big { font-size: clamp(32px, 10cqi, 48px); line-height: 1.15; }
+html[data-premium] .dsx .dk { padding: 16px; }
+html[data-premium] .dsx .dk.hero.lap-heroi { padding: 20px; min-height: 180px; }
+html[data-premium] .dsx .dk .dhj, html[data-premium] .dsx .dk .v span { font-size: 12px; line-height: 16px; }
+html[data-premium] .dsx .dl { white-space: normal; }
+
+/* ---------- 14. Logo 3D da Orto+ no herói do Início ---------- */
+html[data-premium] .dk.hero.lap-heroi { container-type: inline-size; }
+html[data-premium] .dk.hero .lap-heroi-texto { position: relative; z-index: 2; max-width: calc(100% - 172px); }
+html[data-premium] .prem-logo3d { position: absolute; right: 24px; top: 50%; width: 136px; height: 136px; margin-top: -68px; perspective: 700px; pointer-events: none; z-index: 1; }
+html[data-premium] .prem-logo3d .pl-flut { position: absolute; inset: 0; transform-style: preserve-3d; animation: pl-flut 9s ease-in-out infinite; }
+html[data-premium] .prem-logo3d .pl-pilha { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(16deg) rotateY(-32deg) rotateZ(-3deg); transition: transform .6s var(--lap-curva); animation: pl-entra .9s var(--lap-curva) both; }
+html[data-premium] .dk.hero:hover .prem-logo3d .pl-pilha { transform: rotateX(8deg) rotateY(-10deg) rotateZ(-1deg) translateZ(10px); }
+html[data-premium] .prem-logo3d :is(.pl-c, .pl-frente, .pl-brilho) { position: absolute; inset: 0; background: var(--pl-img) center / contain no-repeat; backface-visibility: hidden; }
+html[data-premium] .prem-logo3d .pl-c { transform: translate3d(calc(var(--i) * .75px), calc(var(--i) * .6px), calc(var(--i) * -1.6px)); filter: brightness(calc(.6 - var(--i) * .024)) saturate(1.2); }
+html[data-premium] .prem-logo3d .pl-c:first-child { filter: brightness(.12) blur(3px); opacity: .8; }
+html[data-premium] .prem-logo3d .pl-frente { transform: translateZ(1px); filter: brightness(1.06) contrast(1.05); }
+html[data-premium] .prem-logo3d .pl-brilho {
+  transform: translateZ(1.5px); opacity: .55;
+  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / .6) 48%, transparent 58%) 0 0 / 260% 100% no-repeat;
+  -webkit-mask: var(--pl-img) center / contain no-repeat; mask: var(--pl-img) center / contain no-repeat;
+  animation: pl-brilho 7s ease-in-out infinite;
+}
+html[data-premium] .prem-logo3d .pl-chao { position: absolute; left: 6%; right: 6%; bottom: -26px; height: 36px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in oklch, var(--cor-marca) 55%, transparent), transparent); filter: blur(12px); opacity: .8; }
+@keyframes pl-flut { 0%, 100% { transform: translateY(0) rotateY(-5deg); } 50% { transform: translateY(-6px) rotateY(7deg); } }
+@keyframes pl-brilho { 0%, 55% { background-position: 130% 0; } 100% { background-position: -40% 0; } }
+@keyframes pl-entra { from { opacity: 0; transform: rotateX(40deg) rotateY(-60deg) translateY(16px); } }
+@container (max-width: 440px) {
+  html[data-premium] .prem-logo3d { width: 96px; height: 96px; top: 20px; margin-top: 0; right: 16px; }
+  html[data-premium] .dk.hero .lap-heroi-texto { max-width: none; }
+  html[data-premium] .dk.hero .lap-heroi-texto .big, html[data-premium] .dk.hero .lap-heroi-texto .prem-pct { max-width: calc(100% - 108px); }
+}
+@media (prefers-reduced-motion: reduce) { html[data-premium] .prem-logo3d * { animation: none !important; transition: none !important; } }
+@media (max-width: 767px) { html[data-premium] .dsx .dk.hero.lap-heroi { min-height: 0; height: auto; } }
+html[data-premium] .dk.hero .lap-heroi-texto { padding-bottom: 0 !important; }
+
 </style>
 </head>
 <body>
