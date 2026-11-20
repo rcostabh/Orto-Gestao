@@ -483,6 +483,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .orow{position:relative;display:flex;gap:14px;align-items:center;transform-style:preserve-3d}
 .odo .orow:first-child{transform:rotateX(14deg)}.odo .oline~.orow{transform:rotateX(-14deg)}
 .oh{display:flex;gap:4px;flex:1 1 0;min-width:0;transform-style:preserve-3d}.osep{display:none}
+/* no 3D, as fileiras (transparentes) ficavam na frente dos dentes inclinados e roubavam o mouse: só o dente recebe o clique */
+.odo .orow,.odo .oh,.odo .oline,.ot .tt{pointer-events:none}.odo .ot{pointer-events:auto}
 .oline{height:2px;margin:6px 0;background:linear-gradient(90deg,transparent,#22d3ee,#ff7a1a,#22d3ee,transparent);box-shadow:0 0 14px rgba(34,211,238,.7);opacity:.8;border:0}
 .ot{--c:#22d3ee;--ry:0deg;--tz:0px;position:relative;flex:1 1 0;min-width:0;aspect-ratio:5/8;max-height:112px;border:0;background:transparent;color:var(--c);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:0;padding:0 0 3px;font:inherit;cursor:pointer;transform:rotateY(var(--ry)) translateZ(var(--tz));transition:transform .28s cubic-bezier(.22,.8,.3,1),filter .25s}
 .odo .oline~.orow .ot{justify-content:flex-start;padding:3px 0 0}
