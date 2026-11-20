@@ -1901,6 +1901,27 @@ html[data-premium] .dsx .prem-logo3d { width: 92px; height: 92px; top: 50%; marg
 html[data-premium] .dsx .dk.hero .lap-heroi-texto, html[data-premium] .dsx .dk.hero .lap-heroi-texto :is(.lb, .big, .prem-pct) { max-width: calc(100% - 112px); }
 html[data-premium] .dsx .dnota { font-size: 11px; line-height: 15px; margin: 6px 0 0; }
 
+
+/* v0.118.1: com mapa (desktop), o título das unidades sobe para a faixa do título; mapa ao lado de Pacientes ativos e Faturamento; os 4 indicadores menores ficam numa linha embaixo */
+@media (min-width: 1001px) {
+  html[data-premium] .dsx.com-mapa .dwrap { position: relative; display: grid !important; grid-template-columns: repeat(12, minmax(0, 1fr)) !important; gap: 10px !important; align-items: stretch !important; }
+  html[data-premium] .dsx.com-mapa .dkp, html[data-premium] .dsx.com-mapa .dkp .dgrid { display: contents !important; }
+  html[data-premium] .dsx.com-mapa .dmapa { grid-column: 1 / span 5; grid-row: 1 / span 2; position: static; min-height: 0 !important; display: flex; flex-direction: column; }
+  html[data-premium] .dsx.com-mapa #dm-svg { flex: 1; min-height: 0 !important; height: auto; }
+  html[data-premium] .dsx.com-mapa .dkp .dk.hero { grid-column: 6 / -1 !important; grid-row: 1; }
+  html[data-premium] .dsx.com-mapa .dkp .dk.fat { grid-column: 6 / -1 !important; grid-row: 2; }
+  html[data-premium] .dsx.com-mapa .dkp .dk:not(.hero):not(.fat) { grid-column: span 3 !important; grid-row: 3; padding: 10px 14px !important; }
+  html[data-premium] .dsx.com-mapa .dkcab { position: absolute; bottom: 100%; left: calc(5 / 12 * 100% + 4px); right: 0; margin-bottom: 10px; display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding-right: 210px; }
+  html[data-premium] .dsx.com-mapa .dkcab .dkh { margin: 0; align-items: center; gap: 10px; }
+  html[data-premium] .dsx.com-mapa .dkcab .dkh > div { display: flex; align-items: baseline; gap: 8px; }
+  html[data-premium] .dsx.com-mapa .dkcab .dkh h3 { font-size: 15px; line-height: 20px; margin: 0; }
+  html[data-premium] .dsx.com-mapa .dkcab .dchips { margin: 0; }
+  html[data-premium] .dsx.com-mapa .dkcab .dchips button { padding: 3px 12px; font-size: 12px; }
+  html[data-premium] .dsx.com-mapa #dm-sx { margin-top: 10px !important; }
+  html[data-premium] .dsx.com-mapa #dm-set { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px; }
+  html[data-premium] .dsx.com-mapa #dm-set > .dk { grid-column: auto !important; padding: 10px 14px !important; }
+  html[data-premium] .dsx.com-mapa #dm-set .dk .v b { font-size: clamp(14px, 8cqi, 18px); }
+}
 </style>
 </head>
 <body>
