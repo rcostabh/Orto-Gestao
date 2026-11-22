@@ -341,6 +341,21 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .aj-it{display:grid;grid-template-columns:38px 1fr;gap:6px 12px;align-items:start;margin:0}.aj-n{flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
 .aj-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.aj-tx small{color:var(--muted)}.aj-pf{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .pmt{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}.pmt b{color:var(--ink);font-weight:600}
+.bv-passos{margin:10px 0 18px;padding-left:20px;display:grid;gap:6px;color:var(--muted)}.bv-passos li.on{color:var(--ink)}
+.onb{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}.onb-nav{position:sticky;top:12px;padding:14px}.onb-nav ol{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
+.onb-nav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:8px;cursor:pointer;color:inherit;font:inherit}.onb-nav button:hover{background:var(--surface-2)}.onb-nav button.at{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.onb-nav small{display:block;color:var(--muted);font-size:11px;line-height:14px}.onb-n{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--surface-2);border:1px solid var(--line)}.onb-nav button.ok .onb-n{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok);border-color:transparent}
+.onb-pg{font-size:13px;display:grid;gap:6px}.onb-c{padding:20px 22px}.onb-h h2{margin:2px 0 12px;font-size:20px}.onb-k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.onb-pq{border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 10px 10px 0;padding:10px 14px;margin:0 0 14px;font-size:14px}.onb-pq p{margin:4px 0 0}.onb-dica{color:var(--muted)}
+.onb-pe{display:flex;justify-content:space-between;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}.onb-intro{font-size:16px;margin:0 0 10px}.onb-lista{margin:0 0 14px;padding-left:20px;display:grid;gap:4px}
+.onb-video{background:var(--surface-2);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}.onb-ja{font-size:14px;margin:0 0 12px}.onb-ja ul{margin:6px 0 0;padding-left:4px;list-style:none;display:grid;gap:2px}
+.onb-mini{border:1px dashed var(--line);border-radius:12px;padding:12px 14px}.onb-mini h3{margin:0 0 8px;font-size:15px}
+.onb-hrs{display:grid;gap:6px}.onb-hr{display:grid;grid-template-columns:120px repeat(4,auto);gap:8px 14px;align-items:center;font-size:13px}.onb-hr input[type=time]{margin-left:4px}.onb-hr.fechado label:not(.chk){opacity:.35;pointer-events:none}
+.onb-pl input{width:100%;min-width:70px}.onb-pl td,.onb-pl th{padding:4px 6px}.onb-dias{display:flex;flex-wrap:wrap;gap:4px 12px}
+.onb-esc{display:grid;grid-template-columns:1fr 1fr;gap:12px}.onb-op{text-align:left;border:1px solid var(--line);border-radius:12px;padding:14px;background:none;color:inherit;font:inherit;cursor:pointer;display:grid;gap:6px}.onb-op span{color:var(--muted);font-size:13px}.onb-op.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.onb-res{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.onb-res div{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}.onb-res b{display:block;font-size:24px}.onb-res span{font-size:12px;color:var(--muted)}.onb-falta{padding-left:0;list-style:none;display:grid;gap:6px}
+.onb-chip{position:fixed;left:16px;bottom:16px;z-index:40;display:flex;gap:8px;align-items:center;border:1px solid var(--accent);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;font:inherit;font-size:13px;overflow:hidden}.onb-chip i{position:absolute;left:0;bottom:0;height:3px;width:var(--p);background:var(--accent)}
+@media (max-width:900px){.onb{grid-template-columns:1fr}.onb-nav{position:static}.onb-esc,.onb-res{grid-template-columns:1fr 1fr}.onb-hr{grid-template-columns:1fr 1fr}}
 .aj-bar{height:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;overflow:hidden}.aj-bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}.aj-bar.ok>i{background:var(--ok)}
 .aj-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px 18px;align-items:center}.aj-top .aj-pc{font-size:34px;font-weight:700;line-height:1}.aj-mods{display:grid;gap:12px}.aj-mod h3{margin:0;font-size:15px}.aj-mh{display:grid;grid-template-columns:1fr 160px auto;gap:12px;align-items:center;margin-bottom:8px}
 .aj-ls{list-style:none;margin:0;padding:0;display:grid}.aj-ls li{display:grid;grid-template-columns:30px 1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.aj-ls .aj-n{width:30px;height:30px;border-radius:8px;font-size:12px}.aj-ls li.ok .aj-n{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}.aj-st{font-size:12px;color:var(--muted);white-space:nowrap}.aj-st.ok{color:var(--ok);font-weight:600}
@@ -2274,6 +2289,47 @@ async function lgpdBoot(tk){
   };
 }
 
+/* <publico-bemvindo> página pública: o Diretor da clínica nova abre o link de primeiro acesso e cria o login e a senha dele */
+async function bemvindoBoot(tk){
+  ['v-login', 'v-app', 'v-conf'].forEach(i => { const e = document.getElementById(i); if (e) e.hidden = true; });
+  const v = $('#v-anam'); v.hidden = false; v.innerHTML = '<div class="anam"><p>Carregando...</p></div>';
+  const MSG = { invalido: 'Este link não é válido. Confira se copiou o endereço inteiro ou peça um novo à Orto+.', usado: 'Este link já foi usado. Entre com o login e a senha que você criou.', vencido: 'Este link venceu. Peça um novo à Orto+ — leva um minuto.' };
+  const fn = async body => { try { const r = await sb.functions.invoke('onboarding', { body }); if (r.error) { let m = ''; try { m = (await r.error.context.json()).erro; } catch (_) {} return { erro: m || 'Não foi possível falar com o servidor. Tente de novo.' }; } return r.data || {}; } catch (_) { return { erro: 'Sem conexão. Tente de novo.' }; } };
+  const d = await fn({ acao: 'ver', token: tk });
+  if (d.erro) { v.innerHTML = '<div class="anam"><h1>Bem-vindo ao Orto+</h1><p class="err">' + esc(d.erro) + '</p></div>'; return; }
+  if (!d.ok) { v.innerHTML = '<div class="anam"><h1>Bem-vindo ao Orto+</h1><p>' + esc(MSG[d.motivo] || MSG.invalido) + '</p>' + (d.motivo === 'usado' ? '<p><a class="btn" href="' + location.pathname + '">Ir para a tela de entrada</a></p>' : '') + '</div>'; return; }
+  const nome1 = String(d.diretor || '').split(' ')[0];
+  const sug = String(d.diretor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/\s+/).filter(Boolean);
+  const loginSug = ((sug[0] || '') + (sug.length > 1 ? sug[sug.length - 1] : '')).replace(/[^a-z0-9]/g, '').slice(0, 20);
+  v.innerHTML = '<div class="anam"><h1>Olá, ' + esc(nome1) + '! Bem-vindo ao Orto+</h1>'
+    + '<p class="sub">A ' + esc(d.grupo) + ' já está criada no sistema. Agora são 3 passos rápidos:</p>'
+    + '<ol class="bv-passos"><li class="on"><b>Criar o seu acesso</b> (este passo, 1 minuto)</li><li><b>Configurar o básico da clínica</b> — dados, horários, dentistas, equipe e preços (uns 15 minutos, com explicação em cada tela)</li><li><b>Começar a usar</b> — agenda, pacientes e vendas</li></ol>'
+    + '<form id="bv-f" class="sec" novalidate><h2>Crie o seu login e a sua senha</h2>'
+    + '<p class="sub" style="margin-top:0">Você é o <b>Diretor</b>: tem acesso a tudo e cadastra o resto da equipe depois. Guarde bem estes dados — só você vai saber a senha.</p>'
+    + '<label class="t" for="bv-l">Login <small>(de 4 a 20 letras ou números, sem espaço)</small></label><input id="bv-l" maxlength="20" autocomplete="username" autocapitalize="none" value="' + esc(loginSug) + '">'
+    + '<label class="t" for="bv-s">Senha <small>(pelo menos 8 caracteres, com letras e números)</small></label><input id="bv-s" type="password" maxlength="64" autocomplete="new-password">'
+    + '<label class="t" for="bv-s2">Repita a senha</label><input id="bv-s2" type="password" maxlength="64" autocomplete="new-password">'
+    + '<label class="chk" style="margin-top:10px"><input type="checkbox" id="bv-ver"> Mostrar a senha</label>'
+    + '<div class="err" id="bv-e" role="alert"></div><button class="btn" type="submit" id="bv-b" style="width:100%;margin-top:12px">Criar meu acesso e continuar</button>'
+    + '<p class="sub" style="margin:10px 0 0;font-size:12px">Este link vale até ' + esc(new Date(d.expira_em).toLocaleDateString('pt-BR')) + ' e só pode ser usado uma vez.</p></form></div>';
+  $('#bv-l').addEventListener('input', e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''); });
+  $('#bv-ver').addEventListener('change', e => { ['bv-s', 'bv-s2'].forEach(i => { $('#' + i).type = e.target.checked ? 'text' : 'password'; }); });
+  $('#bv-f').addEventListener('submit', async e => {
+    e.preventDefault(); const er = $('#bv-e'); er.textContent = '';
+    const login = $('#bv-l').value, s1 = $('#bv-s').value, s2 = $('#bv-s2').value;
+    if (!/^[a-z0-9]{4,20}$/.test(login)) { er.textContent = 'O login precisa ter de 4 a 20 letras ou números, sem espaço.'; return; }
+    if (s1.length < 8 || !/[A-Za-z]/.test(s1) || !/[0-9]/.test(s1)) { er.textContent = 'A senha precisa ter pelo menos 8 caracteres, com letras e números.'; return; }
+    if (s1 !== s2) { er.textContent = 'As duas senhas não são iguais.'; return; }
+    const b = $('#bv-b'); b.disabled = true; b.textContent = 'Criando o seu acesso...';
+    const r = await fn({ acao: 'ativar', token: tk, login, senha: s1 });
+    if (r.erro || !r.ok) { b.disabled = false; b.textContent = 'Criar meu acesso e continuar'; er.textContent = r.erro || 'Não foi possível criar o acesso.'; return; }
+    b.textContent = 'Pronto! Entrando...';
+    const a = await sb.auth.signInWithPassword({ email: login + '@' + (d.dominio || DOMINIO), password: s1 });
+    if (a.error) { v.innerHTML = '<div class="anam"><h1>Acesso criado!</h1><p>Agora é só entrar com o login <b>' + esc(login) + '</b> e a senha que você criou.</p><p><a class="btn" href="' + location.pathname + '">Ir para a tela de entrada</a></p></div>'; return; }
+    location.replace(location.pathname);
+  });
+}
+
 
 const C = window.CONFIG || {};
 const DOMINIO = C.LOGIN_DOMAIN || 'acesso.orto.app';
@@ -2295,6 +2351,7 @@ async function iniciar(){
   const tkA = new URLSearchParams(location.search).get('anamnese'); if (tkA) return anamBoot(tkA);
   const tkC = new URLSearchParams(location.search).get('contrato'); if (tkC) return ctrBoot(tkC);
   const tkL = new URLSearchParams(location.search).get('lgpd'); if (tkL) return lgpdBoot(tkL);
+  const tkB = new URLSearchParams(location.search).get('bemvindo'); if (tkB) return bemvindoBoot(tkB);
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
     let ok = false; try { ok = await carregarApp(); } catch (_) {}
