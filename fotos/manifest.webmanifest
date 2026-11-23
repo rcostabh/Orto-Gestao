@@ -1,6 +1,6 @@
 {
-  "name": "Orto+ Fotos",
-  "short_name": "Orto+ Fotos",
+  "name": "Orbi Fotos",
+  "short_name": "Orbi Fotos",
   "description": "Fotografe o paciente e guarde as imagens na ficha.",
   "start_url": "./",
   "scope": "./",
