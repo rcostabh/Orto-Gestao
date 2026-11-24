@@ -2102,6 +2102,8 @@ async function anamBoot(tk){
   };
   if (d.exige_cpf) passoCpf(); else passoForm();
 }
+const mTel = s => { if (/\*/.test(String(s || ''))) return '(**) *****-****'; const d = dig(s).slice(0, 11); if (d.length <= 2) return d ? '(' + d : ''; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
+const dtHora = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' + d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }); };
 const reais = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dBR = d => d ? d.split('-').reverse().join('/') : '';
 /* ---------- CNPJ e contrato de prestação de serviços odontológicos ---------- */
@@ -2116,7 +2118,8 @@ const MESES_EXT = ['janeiro','fevereiro','março','abril','maio','junho','julho'
 const dExt = iso => { const [a, m, d] = String(iso).slice(0, 10).split('-').map(Number); return d + ' de ' + MESES_EXT[m - 1] + ' de ' + a; };
 const endTxt = o => [[o.logradouro, o.numero].filter(Boolean).join(', '), o.complemento, o.bairro, [o.cidade, o.uf].filter(Boolean).join('/'), o.cep ? 'CEP ' + String(o.cep).replace(/^(\d{5})(\d{3})$/, '$1-$2') : ''].filter(Boolean).join(' — ');
 
-function contratoHtml(d){
+function contratoHtml(d, o){
+  o = o || {}; // o.imprimir: mostra o botão; o.bloqueia: imprimir pelo navegador sai em branco; o.embutido: dentro de um quadro (sem barra)
   const u = d.unidade, p = d.paciente, dn = d.dentista, n = d.prazo_meses || 30, m = Number(d.mensalidade), desc = Number(d.desconto || 0), ini = d.inicio == null ? null : Number(d.inicio);
   const liq = m - desc, total = (ini || 0) + n * m, parteTrat = Math.round(total * 70) / 100, parteMens = Math.round((total - parteTrat) * 100) / 100;
   const nome = esc(p.nome) + (p.nome_social ? ' (nome social: ' + esc(p.nome_social) + ')' : '');
@@ -2199,14 +2202,15 @@ function contratoHtml(d){
     + 'h1{font-size:19px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em}.sub{text-align:center;color:#555;margin:0 0 22px;font-size:13px}h3{font-size:14px;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.04em}p{margin:0 0 8px;text-align:justify}.nm{font-weight:700;margin-right:4px}.par{border:1px solid #bbb;border-radius:6px;padding:10px 14px;margin:0 0 10px}.par b{font-weight:700}'
     + '.ass{display:grid;grid-template-columns:1fr 1fr;gap:34px 36px;margin-top:46px;page-break-inside:avoid}.ass div{border-top:1px solid #111;padding-top:6px;font-size:13px;text-align:center}.loc{margin-top:26px;text-align:center}.anx{page-break-before:always;margin-top:40px}.anx h2{font-size:16px;text-align:center;text-transform:uppercase;margin:0 0 14px}.ci{margin:0 0 9px}.sn{white-space:nowrap;font-family:sans-serif;font-size:12px;margin-left:6px}@media print{body{background:#fff}.pg{padding:0;max-width:none}.bar{display:none}@page{margin:18mm 16mm}}@media(max-width:620px){.pg{padding:22px 18px}.ass{grid-template-columns:1fr}}';
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contrato — ' + esc(p.nome) + '</title><style>' + css + '</style></head><body>'
-    + '<div class="bar"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><div class="pg">'
+    + (o.embutido ? '' : '<div class="bar">' + (o.imprimir ? '<button onclick="window.print()">' + (o.rotulo || 'Imprimir / salvar em PDF') + '</button>' : '<span style="font:13px sans-serif;color:#555">A impressão do contrato é liberada só para a gerência.</span>') + '</div>')
+    + (o.bloqueia ? '<style>@media print{.pg,.bar{display:none!important}body:after{content:"Impressão liberada só para a gerência.";display:block;font:16px sans-serif;margin:40px}}</style>' : '') + '<div class="pg">'
     + '<h1>Contrato de prestação de serviços odontológicos</h1><p class="sub">Tratamento ortodôntico · Contrato nº ' + esc(d.venda_id) + '</p>'
     + '<div class="par"><b>CONTRATADA:</b> ' + esc(u.razao_social) + ', inscrita no CNPJ sob o nº <b>' + (u.cnpj ? mCnpj(u.cnpj) : '__.___.___/____-__') + '</b>, com sede em ' + esc(endTxt(u) || '—') + '.</div>'
     + '<div class="par"><b>CONTRATANTE:</b> ' + nome + ', CPF ' + (p.cpf ? mCpfTxt(p.cpf) : '___.___.___-__') + (p.rg ? ', RG ' + esc(p.rg) : '') + (p.nascimento ? ', nascido(a) em ' + dBR(p.nascimento) : '') + ', residente em ' + esc(endTxt(p) || '—') + (p.telefone ? ', telefone ' + mTel(p.telefone) : '') + (p.email ? ', e-mail ' + esc(p.email) : '') + resp + '.</div>'
     + '<p>As partes acima identificadas têm entre si justo e contratado o que segue, de acordo com as cláusulas abaixo.</p>' + corpo
     + '<p class="loc">' + esc(u.cidade || 'Belo Horizonte') + ', ' + dExt(d.data_venda) + '.</p>'
     + (d.assinatura ? '<div style="margin:26px auto 0;max-width:420px;text-align:center"><img alt="Assinatura do contratante" src="' + esc(d.assinatura.png) + '" style="max-width:100%;max-height:110px"><p style="text-align:center;font:12px sans-serif;color:#444;margin:4px 0 0">Assinado eletronicamente por <b>' + esc(d.assinatura.nome) + '</b> (' + (d.assinatura.tipo === 'responsavel' ? 'responsável legal' : 'paciente') + ') em ' + esc(dtHora(d.assinatura.em)) + (d.assinatura.por ? ', registrado por ' + esc(d.assinatura.por) : '') + '. Declarações de ciência do anexo aceitas na assinatura.</p></div>' : '')
-    + '<div class="ass"><div>' + esc(p.nome) + '<br>CONTRATANTE' + (p.resp_nome ? '<br><small>Responsável: ' + esc(p.resp_nome) + '</small>' : '') + '</div><div>' + esc(u.razao_social) + '<br>CONTRATADA' + (u.cnpj ? '<br><small>CNPJ ' + mCnpj(u.cnpj) + '</small>' : '') + '</div>'
+    + '<div class="ass"><div>' + esc(p.nome) + '<br>CONTRATANTE' + (p.resp_nome ? '<br><small>Responsável: ' + esc(p.resp_nome) + '</small>' : '') + '</div><div style="position:relative">' + (d.clinica_assinatura ? '<img alt="Assinatura da clínica" src="' + esc(d.clinica_assinatura.png) + '" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);max-width:92%;max-height:86px">' : '') + esc(u.razao_social) + '<br>CONTRATADA' + (u.cnpj ? '<br><small>CNPJ ' + mCnpj(u.cnpj) + '</small>' : '') + (d.clinica_assinatura ? '<br><small>Assinado por ' + esc(d.clinica_assinatura.responsavel) + '</small>' : '') + '</div>'
     + '<div>Testemunha 1<br><small>Nome e CPF</small></div><div>Testemunha 2<br><small>Nome e CPF</small></div></div>'
     + '<div class="anx"><h2>Anexo — Declarações de ciência do paciente</h2>' + ciencia.map((t, i) => '<p class="ci"><span class="nm">' + (i + 1) + '.</span> ' + t + ' <span class="sn">☐ Sim &nbsp; ☐ Não</span></p>').join('') + '<p>Li e estou de acordo com os itens acima e com o contrato.</p>'
     + '<div class="ass"><div>Paciente</div><div>Responsável</div><div>Funcionário da clínica</div></div></div></div></body></html>';
@@ -2219,7 +2223,8 @@ async function ctrBoot(tk){
   const MSG = { invalido: 'Este link não é válido. Peça um novo à clínica.', assinado: 'Este contrato já foi assinado. Obrigado!', expirado: 'Este link expirou. Peça um novo à clínica.', bloqueado: 'Este link foi bloqueado por CPF errado. Peça um novo à clínica.' };
   const r = await sb.rpc('contrato_publico', { p_token: tk });
   if (r.error || !r.data) { v.innerHTML = '<div class="anam"><h1>Contrato</h1><p class="err">Não foi possível abrir agora. Tente novamente em instantes.</p></div>'; return; }
-  const d = r.data; if (d.situacao !== 'ok') { v.innerHTML = '<div class="anam"><h1>Contrato</h1><p>' + esc(MSG[d.situacao] || MSG.invalido) + '</p></div>'; return; }
+  const d = r.data; if (d.situacao === 'ver') return ctrVerBoot(tk, d, v);
+  if (d.situacao !== 'ok') { v.innerHTML = '<div class="anam"><h1>Contrato</h1><p>' + esc(MSG[d.situacao] || MSG.invalido) + '</p></div>'; return; }
   let cpf = '';
   v.innerHTML = '<div class="anam"><h1>Olá, ' + esc(d.primeiro_nome) + '!</h1><p class="sub">Este é o contrato do seu tratamento com a ' + esc(d.clinica) + '. Confirme o CPF para ler e assinar.</p>'
     + '<form id="ct-cpf" class="sec" novalidate><h2>Confirme que é você</h2><label class="t" for="ct-c">Digite o CPF do paciente' + (d.menor ? ' ou do responsável' : '') + '</label><input id="ct-c" inputmode="numeric" maxlength="14" autocomplete="off"><div class="err" id="ct-ce" role="alert"></div><button class="btn" type="submit" id="ct-cb" style="width:100%;margin-top:10px">Continuar</button></form></div>';
@@ -2239,7 +2244,7 @@ async function ctrBoot(tk){
       + '<div class="q"><label class="t" for="ct-nome">Nome completo de quem assina *</label><input id="ct-nome" maxlength="120" autocomplete="name" value="' + esc(menor ? p.resp_nome : (p.nome || '')) + '"></div>'
       + '<div class="q"><label class="t">Assine no quadro com o dedo *</label><canvas id="ct-cv" aria-label="Quadro de assinatura"></canvas><button type="button" class="btn ghost sm" id="ct-limpa" style="margin-top:6px">Limpar assinatura</button></div>'
       + '<p class="sub">Ao assinar, o sistema registra a data, a hora e o aparelho usado.</p><div class="err" id="ct-err" role="alert"></div><button class="btn" type="submit" id="ct-ok" style="width:100%">Assinar o contrato</button></form></div>';
-    $('#ct-doc').srcdoc = contratoHtml(ct);
+    $('#ct-doc').srcdoc = contratoHtml(ct, { embutido: true });
     const limpa = assinaturaLiga($('#ct-cv')); $('#ct-limpa').addEventListener('click', limpa);
     $('#ct-form').addEventListener('submit', async e => {
       e.preventDefault(); const er = $('#ct-err'); er.textContent = '';
@@ -2253,6 +2258,23 @@ async function ctrBoot(tk){
       v.innerHTML = '<div class="anam"><div class="sec ok"><h1>Contrato assinado!</h1><p>Obrigado, ' + esc(d.primeiro_nome) + '. Seu contrato foi assinado e gravado com segurança na ' + esc(d.clinica) + '. Você já pode fechar esta página.</p></div></div>';
     });
   };
+}
+/* link de leitura: o paciente confirma o CPF e vê o contrato assinado (com a assinatura da clínica); pode salvar em PDF */
+function ctrVerBoot(tk, d, v){
+  v.innerHTML = '<div class="anam"><h1>Olá, ' + esc(d.primeiro_nome) + '!</h1><p class="sub">Este é o seu contrato assinado com a ' + esc(d.clinica) + '. Confirme o CPF para abrir.</p>'
+    + '<form id="cv-cpf" class="sec" novalidate><h2>Confirme que é você</h2><label class="t" for="cv-c">Digite o CPF do paciente' + (d.menor ? ' ou do responsável' : '') + '</label><input id="cv-c" inputmode="numeric" maxlength="14" autocomplete="off"><div class="err" id="cv-ce" role="alert"></div><button class="btn" type="submit" id="cv-cb" style="width:100%;margin-top:10px">Abrir o contrato</button></form></div>';
+  $('#cv-c').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#cv-cpf').addEventListener('submit', async e => {
+    e.preventDefault(); const c = dig($('#cv-c').value); if (c.length !== 11) { $('#cv-ce').textContent = 'Digite os 11 números do CPF.'; return; }
+    const b = $('#cv-cb'); b.disabled = true; const x = await sb.rpc('contrato_ver', { p_token: tk, p_cpf: c }); b.disabled = false;
+    if (x.error) { $('#cv-ce').textContent = erroTxt(x.error); return; } if (x.data && x.data.erro) { $('#cv-ce').textContent = x.data.erro; return; }
+    const ct = x.data.contrato, html = contratoHtml(ct, { imprimir: true, rotulo: 'Salvar em PDF' });
+    v.innerHTML = '<div class="anam"><h1>Seu contrato</h1><p class="sub">Contrato assinado com a ' + esc(d.clinica) + '. Guarde uma cópia: toque em "Salvar em PDF".</p>'
+      + '<button class="btn" type="button" id="cv-pdf" style="width:100%;margin-bottom:10px">Salvar em PDF</button>'
+      + '<iframe id="cv-doc" title="Contrato" sandbox="allow-same-origin" style="width:100%;height:70vh;border:1px solid #d5d9e0;border-radius:12px;background:#fff"></iframe></div>';
+    $('#cv-doc').srcdoc = contratoHtml(ct, { embutido: true });
+    $('#cv-pdf').addEventListener('click', () => { const u = URL.createObjectURL(new Blob([html], { type: 'text/html' })); const w = window.open(u, '_blank'); if (!w) location.href = u; });
+  });
 }
 
 /* <publico-lgpd> página pública: o paciente autoriza o uso dos dados (LGPD) e assina no celular dele (QR Code ou link) */
