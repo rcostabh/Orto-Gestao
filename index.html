@@ -76,6 +76,14 @@ button{font-family:inherit}button.kpi,button.card{color:inherit}
 .login .field input:focus{outline:none;border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.18),0 0 24px rgba(34,211,238,.25)}
 .login .pw input{padding-right:84px}
 .login .pw button{background:rgba(255,255,255,.08);color:#eaf0ff;top:8px;right:8px}
+.mfa-passos{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px;line-height:1.45}
+.mfa-qr{display:flex;justify-content:center}.mfa-qr img{width:188px;height:188px;padding:10px;border-radius:14px;background:#fff}
+.mfa-chave{margin:0;font-size:12.5px;line-height:1.5;opacity:.85;text-align:center}.mfa-chave code{font-size:13px;letter-spacing:.04em;word-break:break-all;user-select:all}
+.mfa .mfa-cod{font-size:22px;letter-spacing:.35em;text-align:center;font-variant-numeric:tabular-nums}
+.login.mfa{gap:14px;padding:28px 28px 22px}.login .mfa-volta{margin-top:-4px;background:transparent!important;color:#93a0bd!important;box-shadow:none!important;border:0!important;text-decoration:underline;text-underline-offset:3px}.login .mfa-volta:hover{color:#eaf0ff!important}
+.form.mfa .mfa-volta{margin-top:-4px}
+#v-login:has(#v-mfa:not([hidden])){align-items:flex-start}#v-login:has(#v-mfa:not([hidden])) .lg-main{align-items:flex-start}
+.mfa-qr img{width:168px;height:168px}
 .login .btn{height:52px;border-radius:14px;background:linear-gradient(135deg,#ff8a33,#ff5a00);color:#140700;font-size:16px;font-weight:700;box-shadow:0 8px 30px rgba(255,106,0,.4);transition:transform .2s,box-shadow .2s}
 .login .btn:hover{transform:translateY(-2px);filter:none;box-shadow:0 0 0 1px rgba(255,138,51,.6),0 12px 40px rgba(255,106,0,.55)}
 .login .btn:disabled{background:linear-gradient(90deg,#ff5a00,#ffb27a,#ff5a00);background-size:200% 100%;animation:lgshim 1.2s linear infinite;opacity:1;transform:none}
@@ -1968,8 +1976,9 @@ html[data-premium] .dk .pmt b { color: var(--cor-texto-2); font-weight: 500; fon
           <div class="err" id="l-err" role="alert"></div>
           <button class="btn" id="l-btn" type="submit">Entrar</button>
         </div>
-        <p class="lg-sec"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Dados criptografados de ponta a ponta</p>
+        <p class="lg-sec"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><pathd="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Dados criptografados de ponta a ponta</p>
       </form>
+      <div id="v-mfa" hidden></div>
     </div>
   </div>
 </div>
@@ -2332,11 +2341,67 @@ async function bemvindoBoot(tk){
 }
 
 
+/* MFA-INICIO: verificação em duas etapas (Google Authenticator). O build copia este trecho para a tela de login do Orbi e do Gestor. */
+function mfaSit(e){ const m = String((e && (e.message || e.erro)) || e || ''); return /MFA_CODIGO/.test(m) ? 'codigo' : /MFA_CONFIGURAR/.test(m) ? 'configurar' : ''; }
+async function mfaPassar(cli, raiz, opc){
+  opc = opc || {};
+  const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const lf = await cli.auth.mfa.listFactors();
+  if (lf.error) throw lf.error;
+  const todos = (lf.data && lf.data.all) || [];
+  const ativo = todos.find(f => f.factor_type === 'totp' && f.status === 'verified');
+  let fid = '', qr = '', chave = '';
+  if (ativo && !opc.novo) fid = ativo.id;
+  else {
+    for (const f of todos.filter(f => f.factor_type === 'totp' && f.status !== 'verified')) { try { await cli.auth.mfa.unenroll({ factorId: f.id }); } catch (_) {} }
+    const en = await cli.auth.mfa.enroll({ factorType: 'totp', issuer: 'Orbi', friendlyName: 'Orbi ' + Date.now() });
+    if (en.error) throw en.error;
+    fid = en.data.id; qr = en.data.totp.qr_code; chave = en.data.totp.secret || '';
+  }
+  const novo = !!qr;
+  raiz.innerHTML = '<form class="' + (opc.classe || (opc.login === false ? 'form' : 'login')) + ' mfa" novalidate>'
+    + '<div><h2>' + (novo ? 'Ative a verificação em duas etapas' : 'Verificação em duas etapas') + '</h2>'
+    + '<p class="sub">' + h(novo ? (opc.motivo || 'Por segurança, quem tem acesso total ao sistema precisa usar o Google Authenticator. Leva 1 minuto.') : 'Abra o Google Authenticator no celular e digite o código de 6 números do Orbi.') + '</p></div>'
+    + (novo ? '<ol class="mfa-passos"><li>Instale o <b>Google Authenticator</b> no celular (App Store ou Play Store).</li><li>No app, toque em <b>+</b> e depois em <b>Ler código QR</b>.</li><li>Aponte a câmera para o código abaixo e digite os 6 números que aparecerem.</li></ol>'
+      + '<div class="mfa-qr"><img alt="Código QR para o Google Authenticator" src="' + h(qr) + '"></div>'
+      + (chave ? '<p class="mfa-chave">Sem câmera? Escolha <b>Inserir chave de configuração</b> e digite:<br><code>' + h(chave.replace(/(.{4})/g, '$1 ').trim()) + '</code></p>' : '') : '')
+    + '<label class="' + (opc.campo || 'field') + '">Código de 6 números<input class="mfa-cod" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></label>'
+    + '<div class="err mfa-err" role="alert"></div>'
+    + '<button class="btn mfa-ok" type="submit">Confirmar</button>'
+    + '<button class="btn ghost mfa-volta" type="button">' + h(opc.voltar || 'Voltar ao login') + '</button></form>';
+  const fm = raiz.querySelector('form'), inp = raiz.querySelector('.mfa-cod'), er = raiz.querySelector('.mfa-err'), bt = raiz.querySelector('.mfa-ok');
+  raiz.hidden = false; setTimeout(() => { try { inp.focus(); } catch (_) {} }, 60);
+  inp.addEventListener('input', () => { const d = inp.value.replace(/\D/g, '').slice(0, 6); if (inp.value !== d) inp.value = d; if (d.length === 6 && !bt.disabled) fm.requestSubmit(); });
+  return new Promise(res => {
+    fm.addEventListener('submit', async e => {
+      e.preventDefault(); if (bt.disabled) return; er.textContent = '';
+      const c = inp.value.replace(/\D/g, '');
+      if (c.length !== 6) { er.textContent = 'Digite os 6 números do Google Authenticator.'; return; }
+      bt.disabled = true; bt.textContent = 'Conferindo...';
+      let v; try { v = await cli.auth.mfa.challengeAndVerify({ factorId: fid, code: c }); } catch (x) { v = { error: x }; }
+      bt.disabled = false; bt.textContent = 'Confirmar';
+      if (v.error) { er.textContent = /invalid|expired|code/i.test(String(v.error.message)) ? 'Código incorreto ou vencido. Digite o código que está aparecendo agora (se errar sempre, deixe a hora do celular no automático).' : 'Não foi possível conferir: ' + (v.error.message || 'tente de novo'); inp.value = ''; inp.focus(); return; }
+      raiz.hidden = true; raiz.innerHTML = ''; res(true);
+    });
+    raiz.querySelector('.mfa-volta').addEventListener('click', () => { raiz.hidden = true; raiz.innerHTML = ''; res(false); });
+  });
+}
+// tela de login: esconde o formulário de senha enquanto pede o código; false = a pessoa voltou (a sessão é encerrada)
+async function mfaNoLogin(cli){
+  const fl = document.getElementById('form-entrar'), vm = document.getElementById('v-mfa'), vl = document.getElementById('v-login');
+  if (vl) vl.hidden = false; if (fl) fl.hidden = true;
+  let ok = false; try { ok = await mfaPassar(cli, vm, (fl && fl.classList.contains('lg')) ? { classe: 'panel c lg', campo: 'f' } : {}); } catch (x) { const e = document.getElementById('l-err'); if (e) e.textContent = 'Não foi possível abrir a verificação em duas etapas: ' + (x && x.message || x); }
+  if (fl) fl.hidden = false;
+  if (!ok) await cli.auth.signOut();
+  return ok;
+}
+/* MFA-FIM */
 const C = window.CONFIG || {};
 const DOMINIO = C.LOGIN_DOMAIN || 'acesso.orto.app';
 const MSG_INATIVO = 'Seu acesso está inativo ou ainda não foi liberado. Fale com a administração.';
 async function carregarApp(){
   const [rb, rk] = await Promise.all([fetch('app.bin', { cache: 'no-cache' }), sb.rpc('app_chave')]);
+  if (rk.error && mfaSit(rk.error)) return 'mfa';
   if (rk.error || !rk.data || !rb.ok) return false;
   const raw = Uint8Array.from(atob(rk.data), c => c.charCodeAt(0));
   const buf = new Uint8Array(await rb.arrayBuffer());
@@ -2345,6 +2410,13 @@ async function carregarApp(){
   const txt = await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
   document.open(); document.write(txt); document.close();
   return true;
+}
+async function abrirApp(){
+  let r = false; try { r = await carregarApp(); } catch (_) {}
+  if (r !== 'mfa') return r;
+  if (!(await mfaNoLogin(sb))) return 'voltou';
+  try { r = await carregarApp(); } catch (_) { r = false; }
+  return r === true;
 }
 async function iniciar(){
   if (!C.SUPABASE_URL || !C.SUPABASE_ANON_KEY || !window.supabase) { $('#v-conf').hidden = false; return; }
@@ -2355,8 +2427,9 @@ async function iniciar(){
   const tkB = new URLSearchParams(location.search).get('bemvindo'); if (tkB) return bemvindoBoot(tkB);
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
-    let ok = false; try { ok = await carregarApp(); } catch (_) {}
-    if (!ok) { await sb.auth.signOut(); $('#v-login').hidden = false; $('#l-err').textContent = MSG_INATIVO; }
+    const ok = await abrirApp();
+    if (ok === 'voltou') $('#v-login').hidden = false;
+    else if (!ok) { await sb.auth.signOut(); $('#v-login').hidden = false; $('#l-err').textContent = MSG_INATIVO; }
   } else $('#v-login').hidden = false;
 }
 $('#l-ver').addEventListener('click', () => { const i = $('#l-senha'); const v = i.type === 'password'; i.type = v ? 'text' : 'password'; $('#l-ver').textContent = v ? 'Ocultar' : 'Mostrar'; });
@@ -2372,7 +2445,8 @@ $('#form-entrar').addEventListener('submit', async e => {
     er.textContent = /invalid login credentials/i.test(m) ? 'Login ou senha incorretos.' : /not confirmed/i.test(m) ? 'Este acesso ainda não foi confirmado.' : /banned|ban/i.test(m) ? 'Este acesso está bloqueado.' : 'Não foi possível entrar. Tente de novo.';
     b.disabled = false; b.textContent = 'Entrar'; return;
   }
-  let ok = false; try { ok = await carregarApp(); } catch (_) {}
+  const ok = await abrirApp();
+  if (ok === 'voltou') { b.disabled = false; b.textContent = 'Entrar'; return; }
   if (!ok) { b.disabled = false; b.textContent = 'Entrar'; await sb.auth.signOut(); er.textContent = MSG_INATIVO; return; }
 });
 iniciar();

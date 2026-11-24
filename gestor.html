@@ -45,6 +45,12 @@ textarea{min-height:84px;resize:vertical}
 /* login */
 #v-login{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .lg{width:min(440px,100%);padding:36px;display:flex;flex-direction:column;gap:18px}
+.mfa h2{margin:0;font-size:24px}.mfa .sub{margin:6px 0 0;color:var(--dim);font-size:14px}
+.mfa-passos{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px;line-height:1.45}
+.mfa-qr{display:flex;justify-content:center}.mfa-qr img{width:188px;height:188px;padding:10px;border-radius:14px;background:#fff}
+.mfa-chave{margin:0;font-size:12.5px;line-height:1.5;opacity:.85;text-align:center}.mfa-chave code{font-size:13px;letter-spacing:.04em;word-break:break-all;user-select:all}
+.mfa .mfa-cod{font-size:22px;letter-spacing:.35em;text-align:center}
+.mfa .btn.ghost{color:var(--txt);background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
 .logo{display:flex;align-items:baseline;gap:2px;line-height:1}
 .logo b{font-family:'Space Grotesk','Inter',sans-serif;font-weight:700;letter-spacing:-.02em;font-size:44px;color:#FFF6EC}
 .logo i{font-style:normal;font-family:'Space Grotesk','Inter',sans-serif;font-size:52px}
@@ -153,32 +159,89 @@ dialog::backdrop{background:rgba(5,3,7,.72);backdrop-filter:blur(4px)}
 <div id="v-conf" hidden style="position:relative;z-index:1;padding:40px"><div class="panel pad"><b>Configuração pendente.</b> Preencha o config.js com o endereço e a chave pública do Supabase.</div></div>
 <div id="v-login" hidden>
   <form class="panel c lg" id="form-entrar" novalidate>
-    <div><span class="mono label neon-c">Plataforma Orbi</span><div class="logo3d" style="margin:10px 0 4px"><div class="row3d"><b style="font-size:46px">Gestor</b><svg class="mk" width="70" height="70" viewBox="-4 -4 62 62" aria-hidden="true"><defs><linearGradient id="gp-f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1D6"/><stop offset=".45" stop-color="#FFC46E"/><stop offset="1" stop-color="#FF8A1E"/></linearGradient><linearGradient id="gp-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><ellipse cx="30" cy="56" rx="22" ry="3.5" fill="#4CF2FF" opacity=".28"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(6.3 6.3)" fill="#2a1405"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(5.4 5.4)" fill="#3d1d07"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(4.5 4.5)" fill="#552a0b"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(3.6 3.6)" fill="#6e3810"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(2.7 2.7)" fill="#8a4815"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(1.8 1.8)" fill="#a65a1b"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(0.9 0.9)" fill="#c26c22"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" fill="url(#gp-f)" stroke="#FFE3B5" stroke-width=".8"/><path d="M18 4h12v14h14v5H30H18H4V18h14z" fill="url(#gp-h)" opacity=".55"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" fill="none" stroke="#7DF7FF" stroke-width=".6" opacity=".7"/></svg></div><span class="ver">v0.3.0</span></div><p style="margin:6px 0 0;color:var(--mut);font-size:14px">Backoffice da plataforma: clientes, planos, módulos, cobrança e segurança.</p></div>
+    <div><span class="mono label neon-c">Plataforma Orbi</span><div class="logo3d" style="margin:10px 0 4px"><div class="row3d"><b style="font-size:46px">Gestor</b><svg class="mk" width="70" height="70" viewBox="-4 -4 62 62" aria-hidden="true"><defs><linearGradient id="gp-f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1D6"/><stop offset=".45" stop-color="#FFC46E"/><stop offset="1" stop-color="#FF8A1E"/></linearGradient><linearGradient id="gp-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><ellipse cx="30" cy="56" rx="22" ry="3.5" fill="#4CF2FF" opacity=".28"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(6.3 6.3)" fill="#2a1405"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(5.4 5.4)" fill="#3d1d07"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(4.5 4.5)" fill="#552a0b"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(3.6 3.6)" fill="#6e3810"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(2.7 2.7)" fill="#8a4815"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(1.8 1.8)" fill="#a65a1b"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" transform="translate(0.9 0.9)" fill="#c26c22"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" fill="url(#gp-f)" stroke="#FFE3B5" stroke-width=".8"/><path d="M18 4h12v14h14v5H30H18H4V18h14z" fill="url(#gp-h)" opacity=".55"/><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" fill="none" stroke="#7DF7FF" stroke-width=".6" opacity=".7"/></svg></div><span class="ver">v0.4.0</span></div><p style="margin:6px 0 0;color:var(--mut);font-size:14px">Backoffice da plataforma: clientes, planos, módulos, cobrança e segurança.</p></div>
     <label class="f" for="l-login">Login<input id="l-login" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
     <label class="f" for="l-senha">Senha<input id="l-senha" type="password" autocomplete="current-password"></label>
     <div class="err" id="l-err" role="alert"></div>
     <button class="btn" type="submit" id="l-btn">Entrar</button>
     <small style="color:var(--dim);font-size:12px">Acesso restrito à equipe da plataforma. Todo acesso é registrado.</small>
   </form>
+  <div id="v-mfa" hidden></div>
 </div>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function(){'use strict';
 const $=s=>document.querySelector(s);const C=window.CONFIG||{},DOMINIO=C.LOGIN_DOMAIN||'acesso.orto.app';let sb=null;
-async function carregar(){const [rb,rk]=await Promise.all([fetch('gestor.bin',{cache:'no-cache'}),sb.rpc('gs_chave')]);if(rk.error||!rk.data||!rb.ok)return false;
+/* MFA-INICIO: verificação em duas etapas (Google Authenticator). O build copia este trecho para a tela de login do Orbi e do Gestor. */
+function mfaSit(e){ const m = String((e && (e.message || e.erro)) || e || ''); return /MFA_CODIGO/.test(m) ? 'codigo' : /MFA_CONFIGURAR/.test(m) ? 'configurar' : ''; }
+async function mfaPassar(cli, raiz, opc){
+  opc = opc || {};
+  const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const lf = await cli.auth.mfa.listFactors();
+  if (lf.error) throw lf.error;
+  const todos = (lf.data && lf.data.all) || [];
+  const ativo = todos.find(f => f.factor_type === 'totp' && f.status === 'verified');
+  let fid = '', qr = '', chave = '';
+  if (ativo && !opc.novo) fid = ativo.id;
+  else {
+    for (const f of todos.filter(f => f.factor_type === 'totp' && f.status !== 'verified')) { try { await cli.auth.mfa.unenroll({ factorId: f.id }); } catch (_) {} }
+    const en = await cli.auth.mfa.enroll({ factorType: 'totp', issuer: 'Orbi', friendlyName: 'Orbi ' + Date.now() });
+    if (en.error) throw en.error;
+    fid = en.data.id; qr = en.data.totp.qr_code; chave = en.data.totp.secret || '';
+  }
+  const novo = !!qr;
+  raiz.innerHTML = '<form class="' + (opc.classe || (opc.login === false ? 'form' : 'login')) + ' mfa" novalidate>'
+    + '<div><h2>' + (novo ? 'Ative a verificação em duas etapas' : 'Verificação em duas etapas') + '</h2>'
+    + '<p class="sub">' + h(novo ? (opc.motivo || 'Por segurança, quem tem acesso total ao sistema precisa usar o Google Authenticator. Leva 1 minuto.') : 'Abra o Google Authenticator no celular e digite o código de 6 números do Orbi.') + '</p></div>'
+    + (novo ? '<ol class="mfa-passos"><li>Instale o <b>Google Authenticator</b> no celular (App Store ou Play Store).</li><li>No app, toque em <b>+</b> e depois em <b>Ler código QR</b>.</li><li>Aponte a câmera para o código abaixo e digite os 6 números que aparecerem.</li></ol>'
+      + '<div class="mfa-qr"><img alt="Código QR para o Google Authenticator" src="' + h(qr) + '"></div>'
+      + (chave ? '<p class="mfa-chave">Sem câmera? Escolha <b>Inserir chave de configuração</b> e digite:<br><code>' + h(chave.replace(/(.{4})/g, '$1 ').trim()) + '</code></p>' : '') : '')
+    + '<label class="' + (opc.campo || 'field') + '">Código de 6 números<input class="mfa-cod" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></label>'
+    + '<div class="err mfa-err" role="alert"></div>'
+    + '<button class="btn mfa-ok" type="submit">Confirmar</button>'
+    + '<button class="btn ghost mfa-volta" type="button">' + h(opc.voltar || 'Voltar ao login') + '</button></form>';
+  const fm = raiz.querySelector('form'), inp = raiz.querySelector('.mfa-cod'), er = raiz.querySelector('.mfa-err'), bt = raiz.querySelector('.mfa-ok');
+  raiz.hidden = false; setTimeout(() => { try { inp.focus(); } catch (_) {} }, 60);
+  inp.addEventListener('input', () => { const d = inp.value.replace(/\D/g, '').slice(0, 6); if (inp.value !== d) inp.value = d; if (d.length === 6 && !bt.disabled) fm.requestSubmit(); });
+  return new Promise(res => {
+    fm.addEventListener('submit', async e => {
+      e.preventDefault(); if (bt.disabled) return; er.textContent = '';
+      const c = inp.value.replace(/\D/g, '');
+      if (c.length !== 6) { er.textContent = 'Digite os 6 números do Google Authenticator.'; return; }
+      bt.disabled = true; bt.textContent = 'Conferindo...';
+      let v; try { v = await cli.auth.mfa.challengeAndVerify({ factorId: fid, code: c }); } catch (x) { v = { error: x }; }
+      bt.disabled = false; bt.textContent = 'Confirmar';
+      if (v.error) { er.textContent = /invalid|expired|code/i.test(String(v.error.message)) ? 'Código incorreto ou vencido. Digite o código que está aparecendo agora (se errar sempre, deixe a hora do celular no automático).' : 'Não foi possível conferir: ' + (v.error.message || 'tente de novo'); inp.value = ''; inp.focus(); return; }
+      raiz.hidden = true; raiz.innerHTML = ''; res(true);
+    });
+    raiz.querySelector('.mfa-volta').addEventListener('click', () => { raiz.hidden = true; raiz.innerHTML = ''; res(false); });
+  });
+}
+// tela de login: esconde o formulário de senha enquanto pede o código; false = a pessoa voltou (a sessão é encerrada)
+async function mfaNoLogin(cli){
+  const fl = document.getElementById('form-entrar'), vm = document.getElementById('v-mfa'), vl = document.getElementById('v-login');
+  if (vl) vl.hidden = false; if (fl) fl.hidden = true;
+  let ok = false; try { ok = await mfaPassar(cli, vm, (fl && fl.classList.contains('lg')) ? { classe: 'panel c lg', campo: 'f' } : {}); } catch (x) { const e = document.getElementById('l-err'); if (e) e.textContent = 'Não foi possível abrir a verificação em duas etapas: ' + (x && x.message || x); }
+  if (fl) fl.hidden = false;
+  if (!ok) await cli.auth.signOut();
+  return ok;
+}
+/* MFA-FIM */
+async function carregar(){const [rb,rk]=await Promise.all([fetch('gestor.bin',{cache:'no-cache'}),sb.rpc('gs_chave')]);if(rk.error&&mfaSit(rk.error))return 'mfa';if(rk.error||!rk.data||!rb.ok)return false;
 const raw=Uint8Array.from(atob(rk.data),c=>c.charCodeAt(0)),buf=new Uint8Array(await rb.arrayBuffer());const k=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
 const gz=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12)},k,buf.slice(12));const txt=await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
 document.open();document.write(txt);document.close();return true;}
 const NEGA='Este login não tem acesso ao Orbi Gestor.';
+async function abrir(){let r=false;try{r=await carregar();}catch(_){}if(r!=='mfa')return r;if(!(await mfaNoLogin(sb)))return 'voltou';try{r=await carregar();}catch(_){r=false;}return r===true;}
 (async()=>{if(!C.SUPABASE_URL||!C.SUPABASE_ANON_KEY||!window.supabase){$('#v-conf').hidden=false;return;}
 sb=window.supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'gestor-plus-auth'}});
-const {data}=await sb.auth.getSession();if(data&&data.session){let ok=false;try{ok=await carregar();}catch(_){}if(!ok){await sb.auth.signOut();$('#v-login').hidden=false;$('#l-err').textContent=NEGA;}}else $('#v-login').hidden=false;})();
+const {data}=await sb.auth.getSession();if(data&&data.session){const ok=await abrir();if(ok==='voltou')$('#v-login').hidden=false;else if(!ok){await sb.auth.signOut();$('#v-login').hidden=false;$('#l-err').textContent=NEGA;}}else $('#v-login').hidden=false;})();
 $('#form-entrar').addEventListener('submit',async e=>{e.preventDefault();const login=$('#l-login').value.trim().toLowerCase(),senha=$('#l-senha').value,er=$('#l-err');er.textContent='';
 if(!login||!senha){er.textContent='Digite o login e a senha.';return;}const b=$('#l-btn');b.disabled=true;b.textContent='Entrando...';
 const {error}=await sb.auth.signInWithPassword({email:login.includes('@')?login:login+'@'+DOMINIO,password:senha});
 if(error){b.disabled=false;b.textContent='Entrar';er.textContent=/invalid login credentials/i.test(String(error.message))?'Login ou senha incorretos.':'Não foi possível entrar. Tente de novo.';return;}
-let ok=false;try{ok=await carregar();}catch(_){}if(!ok){b.disabled=false;b.textContent='Entrar';await sb.auth.signOut();er.textContent=NEGA;}});
+const ok=await abrir();if(ok==='voltou'){b.disabled=false;b.textContent='Entrar';return;}if(!ok){b.disabled=false;b.textContent='Entrar';await sb.auth.signOut();er.textContent=NEGA;}});
 })();</script>
 </body>
 </html>
