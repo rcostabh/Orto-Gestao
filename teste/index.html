@@ -325,7 +325,7 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
 .albt{margin-left:auto;display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:600 12.5px var(--font);cursor:pointer}.albt:hover{background:rgba(127,127,127,.15);color:var(--ink)}
 .albt svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}.albt.min svg{transform:rotate(180deg)}
 .alres{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--surface-2);border-radius:99px;padding:4px 12px;max-width:100%}
-.ag .c.gm{position:relative}.ag .c.gm.livre::after{content:'+';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-weight:800;color:var(--muted);opacity:0}.ag .c.gm.livre:hover::after{opacity:1}
+.ag .c.gm{position:relative}.ag .c.gm.livre::after{content:'+';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-weight:800;color:var(--muted);opacity:0}.ag .c.gm.livre:hover::after{opacity:1}.ag .c.gm.livre.oc::after{opacity:.55;color:var(--accent,#ff8a1f)}
 .ag .a:hover{filter:brightness(1.25)}.ag .a:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
 .atd{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px;margin:0 0 6px}
 .atc{text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:9px;padding:6px 11px;cursor:pointer;display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:1px 8px;font:inherit;box-shadow:var(--shadow);min-width:0;transition:transform .15s var(--ease)}
@@ -852,8 +852,8 @@ dialog[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 20px)}
   .ch .ch-r{display:none}.ch.conv .ch-l{display:none}.ch.conv .ch-r{display:flex}.ch .ch-vb{display:grid}
 }
 #ferr-atu.gira svg{animation:atu-gira .8s linear infinite}@keyframes atu-gira{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){#ferr-atu.gira svg{animation:none}}
-.pfoto{flex:none;width:44px;height:44px;border-radius:50%;padding:0;border:2px solid var(--line);background:var(--surface) center/cover no-repeat;color:var(--muted,#888);font:700 15px/1 inherit;display:inline-grid;place-items:center;cursor:pointer;overflow:hidden;position:relative}.pfoto::after{content:attr(data-ini)}.pfoto.tem::after{content:none}.pfoto img{width:100%;height:100%;object-fit:cover;display:block}.pfoto:hover{border-color:var(--cor-marca,#ff8a1f)}.pfoto:disabled{cursor:default}
-.pfw{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pfw .pfv{width:120px;height:120px;border-radius:50%;overflow:hidden;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;color:var(--muted,#888);font-size:12px;text-align:center;flex:none}.pfw .pfv img,.pfw .pfv video{width:100%;height:100%;object-fit:cover;display:block}.pfw .pfb{display:flex;flex-direction:column;gap:8px}
+.tit.tfoto{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:14px;row-gap:8px;align-items:center}.tit.tfoto>.pfoto{grid-row:1/span 2}.tit.tfoto>h1+div{justify-content:flex-end}@media (max-width:900px){.tit.tfoto{grid-template-columns:auto minmax(0,1fr)}.tit.tfoto>h1+div{grid-column:2;justify-content:flex-start}}.pfoto{flex:none;height:92px;width:69px;border-radius:10px;padding:0;border:2px solid var(--line);background:var(--surface) center/cover no-repeat;color:var(--muted,#888);font:700 15px/1 inherit;display:inline-grid;place-items:center;cursor:pointer;overflow:hidden;position:relative}.pfoto::after{content:attr(data-ini)}.pfoto.tem::after{content:none}.pfoto img{width:100%;height:100%;object-fit:cover;display:block}.pfoto:hover{border-color:var(--cor-marca,#ff8a1f)}.pfoto:disabled{cursor:default}
+.pfw{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pfw .pfv{width:120px;height:160px;border-radius:10px;overflow:hidden;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;color:var(--muted,#888);font-size:12px;text-align:center;flex:none}.pfw .pfv img,.pfw .pfv video{width:100%;height:100%;object-fit:cover;display:block}.pfw .pfb{display:flex;flex-direction:column;gap:8px}
 .mn-c{position:relative}.mn-b{position:absolute;z-index:2;top:6px;right:8px;width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:var(--muted,#888);cursor:pointer;padding:0}
 .mn-b:hover{background:rgba(127,127,127,.15);color:inherit}.mn-b svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
 .mn-min>.mn-b svg{transform:rotate(180deg)}.mn-t{display:none;font-size:12px;font-weight:700;padding-right:30px}
@@ -2402,6 +2402,107 @@ async function bemvindoBoot(tk){
   });
 }
 
+/* <publico-termo> termos para o paciente assinar (aviso prévio, atestado de alta, distrato): o texto (igual no sistema e no celular) e a página pública */
+const TM_TIT = { aviso_previo: 'Termo de ciência do aviso prévio', alta: 'Atestado de alta', distrato: 'Termo de distrato de contrato' };
+const TM_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const tmData = iso => { if (!iso) return '___/___/______'; const s = String(iso).slice(0, 10).split('-'); return s[2] + '/' + s[1] + '/' + s[0]; };
+const tmExt = iso => { const s = String(iso || '').slice(0, 10).split('-').map(Number); return s.length === 3 && s[0] ? s[2] + ' de ' + TM_MESES[s[1] - 1] + ' de ' + s[0] : ''; };
+const tmDiaSP = ts => { try { return new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); } catch (_) { return String(ts || '').slice(0, 10); } };
+function termoHtml(t, o){
+  o = o || {}; const S = t.snap || {}, U = S.unidade || {}, P = S.paciente || {}, C = S.contrato || {}, D = S.dentista, A = S.aviso || {}, k = t.tipo, obs = t.dados && t.dados.obs;
+  const cpf = x => x ? 'CPF ' + mCPF(x) : 'CPF não informado', menor = !!P.resp_nome, ctr = C.id ? 'nº ' + String(C.id).padStart(4, '0') + (C.data ? ', firmado em ' + tmData(C.data) : '') : '';
+  const quem = menor ? '<b>' + esc(P.resp_nome) + '</b>, ' + cpf(P.resp_cpf) + ', responsável legal pelo(a) paciente <b>' + esc(P.nome) + '</b>, ' + cpf(P.cpf) : '<b>' + esc(P.nome) + '</b>, ' + cpf(P.cpf);
+  const cli = '<b>' + esc(U.razao_social || '') + '</b>' + (U.cnpj ? ', inscrita no CNPJ sob o nº ' + mCnpj(U.cnpj) : '');
+  const end = [[U.logradouro, U.numero].filter(Boolean).join(', '), U.complemento, U.bairro, [U.cidade, U.uf].filter(Boolean).join('/')].filter(Boolean).join(' — ');
+  const li = l => '<ol>' + l.map(x => '<li>' + x + '</li>').join('') + '</ol>';
+  const emit = S.emitido || tmDiaSP(t.criado_em), mot = C.motivo || '', semRet = /sem retirada/i.test(mot), comRet = /com retirada/i.test(mot);
+  let corpo = '';
+  if (k === 'aviso_previo') corpo = '<p>Eu, ' + quem + ', CONTRATANTE do contrato de prestação de serviços odontológicos (ortodontia) ' + ctr + ' com ' + cli + ', comunico a minha decisão de encerrar o contrato e declaro estar ciente de que:</p>'
+    + li(['O aviso prévio é de <b>90 (noventa) dias</b>, começa em <b>' + tmData(A.inicio) + '</b> e termina em <b>' + tmData(A.fim) + '</b>, conforme a cláusula de desistência e aviso prévio do contrato.',
+      'Durante o aviso prévio o tratamento continua normalmente e <b>as mensalidades que vencerem no período continuam devidas</b>.',
+      'Ao fim do aviso prévio o contrato é encerrado sem outros encargos, passo à situação de inativo e as parcelas posteriores deixam de ser cobradas.',
+      'Se eu encerrar o contrato sem cumprir todo o aviso prévio, pagarei a multa prevista no contrato, de <b>3 (três) mensalidades integrais</b>.',
+      'Parcelas vencidas e outros débitos existentes até o encerramento continuam devidos.',
+      'Para a remoção ou inativação do aparelho devo comparecer à clínica, arcando com a consulta e as despesas conforme a tabela vigente.',
+      'A interrupção do tratamento ortodôntico antes do término pode causar recidiva e movimentação indesejada dos dentes, e a clínica não responde pelo resultado de um tratamento não concluído.']);
+  else if (k === 'alta') corpo = '<p>Atesto, para os devidos fins, que o(a) paciente <b>' + esc(P.nome) + '</b>, ' + cpf(P.cpf) + ', <b>concluiu o tratamento ortodôntico</b> realizado em ' + cli + (ctr ? ', referente ao contrato ' + ctr : '') + ', e recebeu <b>alta em ' + tmData(emit) + '</b>.</p>'
+    + '<p>Com a alta, o contrato de tratamento é encerrado e as mensalidades com vencimento posterior a esta data deixam de existir. O paciente passa à fase de contenção.</p>'
+    + '<h3>Orientações ao paciente</h3>' + li(['Use a contenção exatamente como orientado pelo dentista. O uso correto é o que mantém os dentes na nova posição.',
+      'Compareça às consultas de controle da contenção marcadas pela clínica.',
+      'Em caso de quebra, perda ou desconforto com a contenção, procure a clínica o quanto antes.',
+      'A clínica não se responsabiliza por recidiva ou retorno da má oclusão decorrente do mau uso ou do não uso da contenção.'])
+    + '<p>Declaro que recebi este atestado de alta e as orientações acima.</p>';
+  else corpo = '<p>Pelo presente instrumento, de um lado ' + cli + (end ? ', com sede em ' + esc(end) : '') + ', doravante CONTRATADA, e de outro ' + quem + ', doravante CONTRATANTE, resolvem <b>distratar</b> o contrato de prestação de serviços odontológicos (ortodontia) ' + ctr + ', nas condições abaixo:</p>'
+    + li(['O contrato fica encerrado a partir de <b>' + tmData(C.cancelada_em ? tmDiaSP(C.cancelada_em) : emit) + '</b>, por iniciativa do CONTRATANTE.' + (mot ? ' Motivo informado: <b>' + esc(mot) + '</b>.' : ''),
+      semRet ? 'O CONTRATANTE optou por <b>não retirar o aparelho</b> nesta clínica e assume integral responsabilidade pela sua conservação, higiene e futura remoção, ciente dos riscos de permanecer com o aparelho sem acompanhamento profissional.'
+        : comRet ? 'O aparelho ortodôntico foi ou será <b>removido pela CONTRATADA</b>, em consulta agendada para esse fim.' : 'A remoção ou inativação do aparelho segue o previsto no contrato.',
+      'O CONTRATANTE declara que foi orientado sobre os riscos da interrupção do tratamento ortodôntico antes do término, como recidiva, movimentação indesejada dos dentes, problemas nos dentes e na gengiva e resultado estético e funcional incompleto, e que a decisão de encerrar o tratamento é exclusivamente sua.',
+      'O CONTRATANTE <b>isenta a CONTRATADA de qualquer responsabilidade</b> pelo resultado do tratamento não concluído e pelas intercorrências decorrentes da interrupção' + (semRet ? ' e da permanência com o aparelho sem acompanhamento' : '') + '.',
+      'Parcelas vencidas e outros débitos existentes até a data do encerramento permanecem devidos, nos termos do contrato. As parcelas que venceriam depois dessa data foram canceladas.',
+      'Cumpridas as obrigações acima, as partes dão-se mútua quitação quanto ao contrato distratado, nada mais tendo a reclamar uma da outra a esse título.']);
+  if (obs) corpo += '<p class="ob"><b>Observação:</b> ' + esc(obs) + '</p>';
+  const ass = t.assinatura_png ? '<img alt="Assinatura" src="' + esc(t.assinatura_png) + '">' : '';
+  const assPac = '<div class="as">' + ass + '<i></i><span>' + esc(t.assinante_nome || (menor ? P.resp_nome : P.nome) || '') + '<br><small>' + (k === 'distrato' ? 'CONTRATANTE' : k === 'alta' ? 'Paciente ou responsável' : 'CONTRATANTE') + (t.assinante_tipo === 'responsavel' ? ' (responsável)' : '') + '</small></span></div>';
+  const assCli = k === 'alta' ? '<div class="as"><i></i><span>' + (D ? esc(D.nome) + '<br><small>Cirurgiã(o)-dentista' + (D.cro ? ' · CRO ' + esc(D.cro) : '') + '</small>' : esc(U.razao_social || '') + '<br><small>Dentista responsável</small>') + '</span></div>'
+    : '<div class="as"><i></i><span>' + esc(U.razao_social || '') + '<br><small>' + (k === 'distrato' ? 'CONTRATADA' : 'Clínica') + '</small></span></div>';
+  const rod = t.assinado_em ? 'Assinado eletronicamente por ' + esc(t.assinante_nome || '') + ' em ' + tmData(tmDiaSP(t.assinado_em)) + ' às ' + new Date(t.assinado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) + (t.ip ? ' · IP ' + esc(t.ip) : '') + ' · documento nº ' + t.id
+    : 'Documento nº ' + (t.id || '') + ' · emitido em ' + tmData(emit) + (o.pendente ? ' · aguardando assinatura' : '');
+  const css = '@page{size:A4;margin:16mm 16mm 14mm}*{box-sizing:border-box}body{margin:0;font:13.5px/1.55 Arial,Helvetica,sans-serif;color:#111;background:' + (o.embutido ? '#fff' : '#e9ebef') + '}'
+    + '.pg{background:#fff;max-width:210mm;margin:' + (o.embutido ? '0 auto' : '12px auto') + ';padding:' + (o.embutido ? '18px' : '16mm') + ';position:relative}'
+    + '.cab{display:flex;gap:16px;align-items:center;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:16px}.cab img{max-height:58px;max-width:200px;object-fit:contain}.cab .un{font-size:11.5px;color:#444;line-height:1.4}.cab .un b{font-size:13px;color:#111}'
+    + 'h1{font-size:19px;text-align:center;margin:6px 0 16px;text-transform:uppercase;letter-spacing:.04em}h3{font-size:14px;margin:16px 0 4px}ol{padding-left:22px;margin:6px 0 10px}li{margin:0 0 6px}p{margin:0 0 10px;text-align:justify}.ob{background:#f6f6f6;padding:8px 10px;border-radius:6px}'
+    + '.loc{margin:18px 0 6px;text-align:right}.ass{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin-top:40px}.as{position:relative;text-align:center;font-size:12.5px;display:flex;flex-direction:column;justify-content:flex-end;min-height:90px}.as img{max-width:92%;max-height:80px;margin:0 auto -6px;display:block}.as i{display:block;border-top:1px solid #111;margin-bottom:4px}.as small{color:#555}'
+    + '.rd{margin-top:28px;border-top:1px solid #ccc;padding-top:6px;font-size:10.5px;color:#666}.cn{position:absolute;top:40%;left:0;right:0;text-align:center;font:800 64px Arial;color:rgba(200,0,0,.18);transform:rotate(-18deg)}'
+    + '.bar{position:sticky;top:0;background:#1d1d24;padding:10px;text-align:center}.bar button{font:600 14px Arial;padding:8px 16px;border:0;border-radius:6px;background:#ff8a1f;color:#111;cursor:pointer}'
+    + '@media print{body{background:#fff}.bar{display:none}.pg{margin:0;padding:0;max-width:none}}';
+  const cab = '<div class="cab">' + (t.logo ? '<img alt="" src="' + esc(t.logo) + '">' : '') + '<div class="un"><b>' + esc(U.razao_social || '') + '</b>' + (U.cnpj ? '<br>CNPJ ' + mCnpj(U.cnpj) : '') + (end ? '<br>' + esc(end) : '') + (U.telefone ? '<br>' + mTel(U.telefone) : '') + '</div></div>';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + TM_TIT[k] + ' — ' + esc(P.nome || '') + '</title><style>' + css + '</style></head><body>'
+    + (o.imprimir ? '<div class="bar"><button onclick="window.print()">Imprimir / salvar em PDF</button></div>' : '')
+    + '<div class="pg">' + (t.cancelado_em ? '<div class="cn">CANCELADO</div>' : '') + cab + '<h1>' + TM_TIT[k] + '</h1>' + corpo
+    + '<p class="loc">' + esc(U.cidade || '') + ', ' + tmExt(t.assinado_em ? tmDiaSP(t.assinado_em) : emit) + '.</p><div class="ass">' + assPac + assCli + '</div><div class="rd">' + rod + '</div></div></body></html>';
+}
+async function termoBoot(tk){
+  ['v-login', 'v-app', 'v-conf'].forEach(i => { const e = document.getElementById(i); if (e) e.hidden = true; });
+  const v = $('#v-anam'); v.hidden = false; v.innerHTML = '<div class="anam"><p>Carregando...</p></div>';
+  const MSG = { invalido: 'Este link não é válido. Peça um novo à clínica.', assinado: 'Este documento já foi assinado. Obrigado!', expirado: 'Este link expirou. Peça um novo à clínica.', bloqueado: 'Este link foi bloqueado por CPF errado. Peça um novo à clínica.' };
+  const r = await sb.rpc('termo_publico', { p_token: tk });
+  if (r.error || !r.data) { v.innerHTML = '<div class="anam"><h1>Documento</h1><p class="err">Não foi possível abrir agora. Tente novamente em instantes.</p></div>'; return; }
+  const d = r.data; if (d.situacao !== 'ok') { v.innerHTML = '<div class="anam"><h1>Documento</h1><p>' + esc(MSG[d.situacao] || MSG.invalido) + '</p></div>'; return; }
+  const tit = TM_TIT[d.tipo] || 'Documento'; let cpf = '';
+  v.innerHTML = '<div class="anam"><h1>Olá, ' + esc(d.primeiro_nome) + '!</h1><p class="sub">A ' + esc(d.clinica) + ' enviou o documento <b>' + esc(tit) + '</b> para você ler e assinar. Confirme o CPF para continuar.</p>'
+    + '<form id="tm-cpf" class="sec" novalidate><h2>Confirme que é você</h2><label class="t" for="tm-c">Digite o CPF do paciente' + (d.menor ? ' ou do responsável' : '') + '</label><input id="tm-c" inputmode="numeric" maxlength="14" autocomplete="off"><div class="err" id="tm-ce" role="alert"></div><button class="btn" type="submit" id="tm-cb" style="width:100%;margin-top:10px">Continuar</button></form></div>';
+  $('#tm-c').addEventListener('input', e => { e.target.value = mCPF(e.target.value); });
+  $('#tm-cpf').addEventListener('submit', async e => {
+    e.preventDefault(); const c = dig($('#tm-c').value); if (c.length !== 11) { $('#tm-ce').textContent = 'Digite os 11 números do CPF.'; return; }
+    const b = $('#tm-cb'); b.disabled = true; const x = await sb.rpc('termo_conferir', { p_token: tk, p_cpf: c }); b.disabled = false;
+    if (x.error) { $('#tm-ce').textContent = erroTxt(x.error); return; } if (x.data && x.data.erro) { $('#tm-ce').textContent = x.data.erro; return; }
+    cpf = c; ler(x.data.termo);
+  });
+  const ler = t => {
+    const P = (t.snap && t.snap.paciente) || {}, menor = !!P.resp_nome;
+    v.innerHTML = '<div class="anam"><h1>' + esc(tit) + '</h1><p class="sub">Leia com atenção até o fim e depois assine com o dedo.</p>'
+      + '<iframe id="tm-doc" title="' + esc(tit) + '" sandbox="allow-same-origin" style="width:100%;height:60vh;border:1px solid #d5d9e0;border-radius:12px;background:#fff"></iframe>'
+      + '<form id="tm-form" class="sec" novalidate><label class="chk"><input type="checkbox" id="tm-li"> Li e estou de acordo com o documento. *</label>'
+      + (menor ? '<div class="q"><label class="t">Quem está assinando? *</label><span class="opt"><label><input type="radio" name="tm-tp" value="responsavel" checked><span>O responsável legal</span></label><label><input type="radio" name="tm-tp" value="paciente"><span>O próprio paciente</span></label></span></div>' : '')
+      + '<div class="q"><label class="t" for="tm-nome">Nome completo de quem assina *</label><input id="tm-nome" maxlength="120" autocomplete="name" value="' + esc(menor ? P.resp_nome : (P.nome || '')) + '"></div>'
+      + '<div class="q"><label class="t">Assine no quadro com o dedo *</label><canvas id="tm-cv" aria-label="Quadro de assinatura"></canvas><button type="button" class="btn ghost sm" id="tm-limpa" style="margin-top:6px">Limpar assinatura</button></div>'
+      + '<p class="sub">Ao assinar, o sistema registra a data, a hora e o aparelho usado.</p><div class="err" id="tm-err" role="alert"></div><button class="btn" type="submit" id="tm-ok" style="width:100%">Assinar</button></form></div>';
+    $('#tm-doc').srcdoc = termoHtml(t, { embutido: true, pendente: true });
+    const limpa = assinaturaLiga($('#tm-cv')); $('#tm-limpa').addEventListener('click', limpa);
+    $('#tm-form').addEventListener('submit', async e => {
+      e.preventDefault(); const er = $('#tm-err'); er.textContent = '';
+      if (!$('#tm-li').checked) { er.textContent = 'Marque que leu e está de acordo.'; return; }
+      const nome = $('#tm-nome').value.trim(); if (nome.length < 5) { er.textContent = 'Digite o nome completo de quem assina.'; return; }
+      if ($('#tm-cv').dataset.tem !== '1') { er.textContent = 'Faça a assinatura no quadro.'; return; }
+      const tp = menor ? ($('input[name="tm-tp"]:checked') || {}).value : 'paciente';
+      const b = $('#tm-ok'); b.disabled = true;
+      const x = await sb.rpc('termo_assinar_link', { p_token: tk, p_cpf: cpf, p_nome: nome, p_tipo: tp, p_png: $('#tm-cv').toDataURL('image/png'), p_ua: navigator.userAgent });
+      b.disabled = false; if (x.error) { er.textContent = erroTxt(x.error); return; }
+      v.innerHTML = '<div class="anam"><div class="sec ok"><h1>Documento assinado!</h1><p>Obrigado, ' + esc(d.primeiro_nome) + '. O documento foi assinado e gravado com segurança na ' + esc(d.clinica) + '. Você já pode fechar esta página.</p></div></div>';
+    });
+  };
+}
+
 
 /* MFA-INICIO: verificação em duas etapas (Google Authenticator). O build copia este trecho para a tela de login do Orbi e do Gestor. */
 function mfaSit(e){ const m = String((e && (e.message || e.erro)) || e || ''); return /MFA_CODIGO/.test(m) ? 'codigo' : /MFA_CONFIGURAR/.test(m) ? 'configurar' : ''; }
@@ -2487,6 +2588,7 @@ async function iniciar(){
   const tkC = new URLSearchParams(location.search).get('contrato'); if (tkC) return ctrBoot(tkC);
   const tkL = new URLSearchParams(location.search).get('lgpd'); if (tkL) return lgpdBoot(tkL);
   const tkB = new URLSearchParams(location.search).get('bemvindo'); if (tkB) return bemvindoBoot(tkB);
+  const tkT = new URLSearchParams(location.search).get('termo'); if (tkT) return termoBoot(tkT);
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
     const ok = await abrirApp();
