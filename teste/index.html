@@ -2136,6 +2136,19 @@ const MESES_EXT = ['janeiro','fevereiro','março','abril','maio','junho','julho'
 const dExt = iso => { const [a, m, d] = String(iso).slice(0, 10).split('-').map(Number); return d + ' de ' + MESES_EXT[m - 1] + ' de ' + a; };
 const endTxt = o => [[o.logradouro, o.numero].filter(Boolean).join(', '), o.complemento, o.bairro, [o.cidade, o.uf].filter(Boolean).join('/'), o.cep ? 'CEP ' + String(o.cep).replace(/^(\d{5})(\d{3})$/, '$1-$2') : ''].filter(Boolean).join(' — ');
 
+// declarações de ciência: Sim vem marcado; o.marcar = o paciente pode trocar (na assinatura); assinado = mostra o texto e a resposta guardados
+function ctrCiencias(lista, salvas, marcar){
+  if (Array.isArray(salvas) && salvas.length && salvas[0] && salvas[0].t)
+    return salvas.map((c, i) => '<p class="ci"><span class="nm">' + (i + 1) + '.</span> ' + esc(c.t) + ' <span class="sn">' + (c.r === 'N' ? '☐ Sim &nbsp; ☒ Não' : '☒ Sim &nbsp; ☐ Não') + '</span></p>').join('');
+  return lista.map((t, i) => '<p class="ci" data-ci="' + i + '"><span class="nm">' + (i + 1) + '.</span> ' + t + ' <span class="sn">'
+    + (marcar ? '<label><input type="radio" name="ci' + i + '" value="S" checked> Sim</label> &nbsp; <label><input type="radio" name="ci' + i + '" value="N"> Não</label>' : '☒ Sim &nbsp; ☐ Não') + '</span></p>').join('');
+}
+// lê as respostas marcadas no contrato dentro do quadro (texto sem as tags + Sim/Não)
+function ctrCienciasLer(fr){
+  try { const doc = fr.contentDocument; return [...doc.querySelectorAll('.ci[data-ci]')].map(p => { const i = p.dataset.ci, q = p.cloneNode(true); q.querySelectorAll('.nm,.sn').forEach(x => x.remove());
+    const c = doc.querySelector('input[name="ci' + i + '"]:checked'); return { t: q.textContent.trim(), r: c && c.value === 'N' ? 'N' : 'S' }; }); } catch (_) { return null; }
+}
+const UF_NOME = { AC: 'do Acre', AL: 'de Alagoas', AP: 'do Amapá', AM: 'do Amazonas', BA: 'da Bahia', CE: 'do Ceará', DF: 'do Distrito Federal', ES: 'do Espírito Santo', GO: 'de Goiás', MA: 'do Maranhão', MT: 'de Mato Grosso', MS: 'de Mato Grosso do Sul', MG: 'de Minas Gerais', PA: 'do Pará', PB: 'da Paraíba', PR: 'do Paraná', PE: 'de Pernambuco', PI: 'do Piauí', RJ: 'do Rio de Janeiro', RN: 'do Rio Grande do Norte', RS: 'do Rio Grande do Sul', RO: 'de Rondônia', RR: 'de Roraima', SC: 'de Santa Catarina', SP: 'de São Paulo', SE: 'de Sergipe', TO: 'do Tocantins' };
 function contratoHtml(d, o){
   o = o || {}; // o.imprimir: mostra o botão; o.bloqueia: imprimir pelo navegador sai em branco; o.embutido: dentro de um quadro (sem barra)
   const u = d.unidade, p = d.paciente, dn = d.dentista, n = d.prazo_meses || 30, m = Number(d.mensalidade), desc = Number(d.desconto || 0), ini = d.inicio == null ? null : Number(d.inicio);
@@ -2200,13 +2213,14 @@ function contratoHtml(d, o){
     'A CONTRATADA não se responsabiliza por recidiva ou retorno da má oclusão decorrente do mau uso do aparelho ou dos mantenedores entregues após a alta.',
     'Nos termos da Lei nº 13.709/2018 (LGPD), o CONTRATANTE consente que a CONTRATADA trate seus dados pessoais e de saúde, coletados em formulários e demais documentos, em meio físico ou digital, exclusivamente para a prestação do serviço, a cobrança e o cumprimento de obrigações legais e do Conselho de Odontologia, observados a necessidade, a adequação e a finalidade. Os direitos do titular podem ser exercidos pelos canais de atendimento da unidade.']]);
   cl.push(['Do foro', [
-    'As partes elegem o <b>foro da Comarca de Belo Horizonte, Estado de Minas Gerais</b>, para dirimir quaisquer questões oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.']]);
+    'As partes elegem o <b>foro da Comarca de ' + esc(u.cidade || '________') + (UF_NOME[u.uf] ? ', Estado ' + UF_NOME[u.uf] : u.uf ? '/' + esc(u.uf) : '') + '</b>, para dirimir quaisquer questões oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.']]);
   const ORD = ['Primeira', 'Segunda', 'Terceira', 'Quarta', 'Quinta', 'Sexta', 'Sétima', 'Oitava', 'Nona', 'Décima', 'Décima Primeira'];
   const ciencia = ['Estou ciente de que, para iniciar o tratamento, são necessários exames radiológicos e que o dentista poderá solicitar radiografias ao longo do tratamento, sendo o custo desses exames de minha responsabilidade.',
+    'Estou ciente de que, caso necessário, o dentista irá solicitar a realização de limpeza profunda, que não está incluída no valor pago pelo tratamento.',
     'Estou ciente de que o tratamento só terá início com a apresentação dos documentos de identificação exigidos (RG, CPF, comprovante de residência) e dos exames, e do tratamento clínico, caso seja identificada a necessidade.',
     'Estou ciente de que a avaliação bucal considera apenas a especialidade de ortodontia e de que os custos de procedimentos de outras especialidades são de minha responsabilidade.',
     'Estou ciente da data de vencimento (todo dia ' + d.dia_vencimento + '), da forma e do local de pagamento.',
-    'Estou ciente de que será cobrado o valor integral da mensalidade após a data do vencimento e de que o desconto vale somente para o pagamento em dia.',
+    'Estou ciente de que, se eu não pagar até a data do vencimento, a mensalidade passa a ser cobrada pelo valor integral de <b>' + reais(m) + '</b>' + (desc > 0 ? ' (sem o desconto de ' + reais(desc) + ')' : '') + ', e de que o desconto vale somente para o pagamento em dia.',
     'Estou ciente de que sou responsável por qualquer dano ao aparelho.',
     'Estou ciente de que as mensalidades serão cobradas mesmo que eu não compareça às consultas.',
     'Estou ciente de que o atendimento somente será realizado com as mensalidades em dia.',
@@ -2226,11 +2240,11 @@ function contratoHtml(d, o){
     + '<div class="par"><b>CONTRATADA:</b> ' + esc(u.razao_social) + ', inscrita no CNPJ sob o nº <b>' + (u.cnpj ? mCnpj(u.cnpj) : '__.___.___/____-__') + '</b>, com sede em ' + esc(endTxt(u) || '—') + '.</div>'
     + '<div class="par"><b>CONTRATANTE:</b> ' + nome + ', CPF ' + (p.cpf ? mCpfTxt(p.cpf) : '___.___.___-__') + (p.rg ? ', RG ' + esc(p.rg) : '') + (p.nascimento ? ', nascido(a) em ' + dBR(p.nascimento) : '') + ', residente em ' + esc(endTxt(p) || '—') + (p.telefone ? ', telefone ' + mTel(p.telefone) : '') + (p.email ? ', e-mail ' + esc(p.email) : '') + resp + '.</div>'
     + '<p>As partes acima identificadas têm entre si justo e contratado o que segue, de acordo com as cláusulas abaixo.</p>' + corpo
-    + '<p class="loc">' + esc(u.cidade || 'Belo Horizonte') + ', ' + dExt(d.data_venda) + '.</p>'
+    + '<p class="loc">' + esc(u.cidade || '________') + ', ' + dExt(d.data_venda) + '.</p>'
     + (d.assinatura ? '<div style="margin:26px auto 0;max-width:420px;text-align:center"><img alt="Assinatura do contratante" src="' + esc(d.assinatura.png) + '" style="max-width:100%;max-height:110px"><p style="text-align:center;font:12px sans-serif;color:#444;margin:4px 0 0">Assinado eletronicamente por <b>' + esc(d.assinatura.nome) + '</b> (' + (d.assinatura.tipo === 'responsavel' ? 'responsável legal' : 'paciente') + ') em ' + esc(dtHora(d.assinatura.em)) + (d.assinatura.por ? ', registrado por ' + esc(d.assinatura.por) : '') + '. Declarações de ciência do anexo aceitas na assinatura.</p></div>' : '')
     + '<div class="ass"><div>' + esc(p.nome) + '<br>CONTRATANTE' + (p.resp_nome ? '<br><small>Responsável: ' + esc(p.resp_nome) + '</small>' : '') + '</div><div style="position:relative">' + (d.clinica_assinatura ? '<img alt="Assinatura da clínica" src="' + esc(d.clinica_assinatura.png) + '" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);max-width:92%;max-height:86px">' : '') + esc(u.razao_social) + '<br>CONTRATADA' + (u.cnpj ? '<br><small>CNPJ ' + mCnpj(u.cnpj) + '</small>' : '') + (d.clinica_assinatura ? '<br><small>Assinado por ' + esc(d.clinica_assinatura.responsavel) + '</small>' : '') + '</div>'
     + '<div>Testemunha 1<br><small>Nome e CPF</small></div><div>Testemunha 2<br><small>Nome e CPF</small></div></div>'
-    + '<div class="anx"><h2>Anexo — Declarações de ciência do paciente</h2>' + ciencia.map((t, i) => '<p class="ci"><span class="nm">' + (i + 1) + '.</span> ' + t + ' <span class="sn">☐ Sim &nbsp; ☐ Não</span></p>').join('') + '<p>Li e estou de acordo com os itens acima e com o contrato.</p>'
+    + '<div class="anx"><h2>Anexo — Declarações de ciência do paciente</h2>' + ctrCiencias(ciencia, d.assinatura && d.assinatura.ciencias, o.marcar) + '<p>Li e estou de acordo com os itens acima e com o contrato.</p>'
     + '<div class="ass"><div>Paciente</div><div>Responsável</div><div>Funcionário da clínica</div></div></div></div></body></html>';
 }
 
@@ -2262,7 +2276,7 @@ async function ctrBoot(tk){
       + '<div class="q"><label class="t" for="ct-nome">Nome completo de quem assina *</label><input id="ct-nome" maxlength="120" autocomplete="name" value="' + esc(menor ? p.resp_nome : (p.nome || '')) + '"></div>'
       + '<div class="q"><label class="t">Assine no quadro com o dedo *</label><canvas id="ct-cv" aria-label="Quadro de assinatura"></canvas><button type="button" class="btn ghost sm" id="ct-limpa" style="margin-top:6px">Limpar assinatura</button></div>'
       + '<p class="sub">Ao assinar, o sistema registra a data, a hora e o aparelho usado.</p><div class="err" id="ct-err" role="alert"></div><button class="btn" type="submit" id="ct-ok" style="width:100%">Assinar o contrato</button></form></div>';
-    $('#ct-doc').srcdoc = contratoHtml(ct, { embutido: true });
+    $('#ct-doc').srcdoc = contratoHtml(ct, { embutido: true, marcar: true });
     const limpa = assinaturaLiga($('#ct-cv')); $('#ct-limpa').addEventListener('click', limpa);
     $('#ct-form').addEventListener('submit', async e => {
       e.preventDefault(); const er = $('#ct-err'); er.textContent = '';
@@ -2271,7 +2285,7 @@ async function ctrBoot(tk){
       if ($('#ct-cv').dataset.tem !== '1') { er.textContent = 'Faça a assinatura no quadro.'; return; }
       const tp = menor ? ($('input[name="ct-tp"]:checked') || {}).value : 'paciente';
       const b = $('#ct-ok'); b.disabled = true;
-      const x = await sb.rpc('contrato_assinar_link', { p_token: tk, p_cpf: cpf, p_nome: nome, p_tipo: tp, p_png: $('#ct-cv').toDataURL('image/png'), p_ua: navigator.userAgent });
+      const x = await sb.rpc('contrato_assinar_link', { p_token: tk, p_cpf: cpf, p_nome: nome, p_tipo: tp, p_png: $('#ct-cv').toDataURL('image/png'), p_ua: navigator.userAgent, p_ciencias: ctrCienciasLer($('#ct-doc')) });
       b.disabled = false; if (x.error) { er.textContent = erroTxt(x.error); return; }
       v.innerHTML = '<div class="anam"><div class="sec ok"><h1>Contrato assinado!</h1><p>Obrigado, ' + esc(d.primeiro_nome) + '. Seu contrato foi assinado e gravado com segurança na ' + esc(d.clinica) + '. Você já pode fechar esta página.</p></div></div>';
     });
