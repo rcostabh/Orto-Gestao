@@ -1079,7 +1079,7 @@ html[data-menu="future"] dialog::backdrop{background:rgba(2,4,9,.72);-webkit-bac
 html[data-menu="future"] *{scrollbar-color:rgba(147,160,189,.35) transparent}
 }
 /* Assistente Orbi (IA) */
-#ia-fab{position:fixed;right:20px;bottom:20px;width:64px;height:64px;border-radius:50%;border:2px solid #38bdf8;padding:0;overflow:hidden;background:#0b0f15;cursor:pointer;z-index:45;animation:iapu 2.4s infinite;box-shadow:0 8px 22px rgba(2,6,23,.35)}
+#ia-fab{position:fixed;right:20px;bottom:20px;width:64px;height:64px;border-radius:50%;border:2px solid #38bdf8;padding:0;overflow:hidden;background:#0b0f15;cursor:pointer;z-index:45;animation:iapu 2.4s 4;box-shadow:0 8px 22px rgba(2,6,23,.35)}
 #ia-fab video,#ia-fab .ia-ph{width:100%;height:100%;object-fit:cover;object-position:50% 22%;transform:scale(1.9);transform-origin:50% 25%;display:block}
 #ia-fab:focus-visible{outline:3px solid #7dd3fc;outline-offset:3px}
 @keyframes iapu{0%{box-shadow:0 0 0 0 rgba(56,189,248,.5)}100%{box-shadow:0 0 0 14px rgba(56,189,248,0)}}
@@ -1124,6 +1124,7 @@ html[data-menu="future"] *{scrollbar-color:rgba(147,160,189,.35) transparent}
 @media (max-width:560px){#ia-pn{right:12px;left:12px;width:auto;max-width:none;bottom:88px;height:calc(100vh - 110px)}#ia-fab{right:14px;bottom:14px;width:58px;height:58px}}
 @media (prefers-reduced-motion:reduce){#ia-fab{animation:none}#ia-pn{transition:none}}
 @media print{#ia-fab,#ia-pn{display:none!important}}
+body.dlg-on #ia-fab{animation:none}
 .dc-wrap{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:12px;align-items:stretch}
 @media (max-width:820px){.dc-wrap{grid-template-columns:1fr}}
 .dc-card{position:relative;aspect-ratio:1.586;border-radius:18px;padding:20px 22px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:linear-gradient(135deg,#ff7a1a 0%,#d94f00 45%,#1a1a1a 100%);box-shadow:0 14px 30px rgba(0,0,0,.22)}
