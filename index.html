@@ -1136,6 +1136,12 @@ html[data-menu="future"] *{scrollbar-color:rgba(147,160,189,.35) transparent}
 .dc-pe{display:flex;justify-content:space-between;gap:12px;position:relative;z-index:1}.dc-pe small{display:block;font-size:10px;opacity:.75;text-transform:uppercase;letter-spacing:1px}.dc-pe span{font-size:14px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
 .dc-graf{margin:0;display:flex;flex-direction:column;justify-content:center}
 @media print{.dc-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+.rm-in{width:96px;height:30px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.rm-in:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.rm-in:disabled{background:transparent;border-color:transparent;color:var(--muted)}
+#rm-g input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;vertical-align:middle}
+#rm-g tr.rm-on td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
 </style>
 <style id="premium-css">
 /* Versão Premium (teste): só vale com <html data-premium>. Fonte: site/premium/ */
